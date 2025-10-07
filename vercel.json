@@ -1,5 +1,11 @@
 {
   "version": 2,
+  "builds": [
+    {
+      "src": "api/**/*.py",
+      "use": "@vercel/python"
+    }
+  ],
   "routes": [
     {
       "src": "/api/(.*)",
@@ -13,19 +19,5 @@
       "src": "/(.*)",
       "dest": "/frontend/index.html"
     }
-  ],
-  "functions": {
-    "api/chat.py": {
-      "maxDuration": 30,
-      "runtime": "@vercel/python"
-    },
-    "api/transcribe.py": {
-      "maxDuration": 30,
-      "runtime": "@vercel/python"
-    },
-    "api/health.py": {
-      "maxDuration": 10,
-      "runtime": "@vercel/python"
-    }
-  }
+  ]
 }
