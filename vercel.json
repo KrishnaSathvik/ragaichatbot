@@ -1,11 +1,22 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/**/*.py",
-      "use": "@vercel/python"
+  "functions": {
+    "api/index.py": {
+      "runtime": "@vercel/python"
+    },
+    "api/test.py": {
+      "runtime": "@vercel/python"
+    },
+    "api/health.py": {
+      "runtime": "@vercel/python"
+    },
+    "api/chat.py": {
+      "runtime": "@vercel/python"
+    },
+    "api/transcribe.py": {
+      "runtime": "@vercel/python"
     }
-  ],
+  },
   "routes": [
     {
       "src": "/api/(.*)",
