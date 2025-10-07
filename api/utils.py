@@ -161,14 +161,37 @@ def load_knowledge_base():
     """Load FAISS index and metadata from disk."""
     global faiss_index, metadata_list
     try:
-        # Load FAISS index
-        faiss_index = faiss.read_index("kb_index.faiss")
+        # Load FAISS index - try multiple possible locations
+        index_paths = ["kb_index.faiss", "store/faiss.index", "faiss.index"]
+        metadata_paths = ["kb_metadata.json", "store/meta.json", "meta.json"]
         
-        # Load metadata
-        with open("kb_metadata.json", "r") as f:
-            metadata_list = json.load(f)
+        faiss_index = None
+        metadata_list = []
         
-        print(f"Loaded FAISS index with {faiss_index.ntotal} vectors and {len(metadata_list)} metadata entries")
+        for index_path in index_paths:
+            try:
+                faiss_index = faiss.read_index(index_path)
+                print(f"Loaded FAISS index from {index_path}")
+                break
+            except:
+                continue
+                
+        for metadata_path in metadata_paths:
+            try:
+                with open(metadata_path, "r") as f:
+                    metadata_list = json.load(f)
+                print(f"Loaded metadata from {metadata_path}")
+                break
+            except:
+                continue
+        
+        if faiss_index and metadata_list:
+            print(f"Successfully loaded FAISS index with {faiss_index.ntotal} vectors and {len(metadata_list)} metadata entries")
+        else:
+            print("Warning: Could not load knowledge base files")
+            faiss_index = None
+            metadata_list = []
+            
     except Exception as e:
         print(f"Error loading knowledge base: {e}")
         faiss_index = None
