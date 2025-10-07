@@ -1,11 +1,5 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/**/*.py",
-      "use": "@vercel/python"
-    }
-  ],
   "routes": [
     {
       "src": "/api/(.*)",
@@ -26,6 +20,9 @@
     },
     "api/transcribe.py": {
       "maxDuration": 30
+    },
+    "api/health.py": {
+      "maxDuration": 10
     }
   }
 }
