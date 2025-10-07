@@ -16,13 +16,16 @@
   ],
   "functions": {
     "api/chat.py": {
-      "maxDuration": 30
+      "maxDuration": 30,
+      "runtime": "@vercel/python"
     },
     "api/transcribe.py": {
-      "maxDuration": 30
+      "maxDuration": 30,
+      "runtime": "@vercel/python"
     },
     "api/health.py": {
-      "maxDuration": 10
+      "maxDuration": 10,
+      "runtime": "@vercel/python"
     }
   }
 }
