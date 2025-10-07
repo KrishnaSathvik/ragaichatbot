@@ -1,176 +1,91 @@
-import os
-import json
+import os, json
+import threading
 import numpy as np
 import faiss
-from typing import List, Dict, Any
+from dotenv import load_dotenv
 from openai import OpenAI
 
-# Initialize OpenAI client
-openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+load_dotenv()
 
-# Global variables for knowledge base
-faiss_index = None
-metadata_list = []
+_client = None
+_index = None
+_meta = None
+_lock = threading.Lock()
 
-# Persona definitions
-PERSONAS = {
-    "ai": "AI/ML Expert",
-    "de": "Data Engineering Expert", 
-    "auto": "Auto-detect based on question"
+# ---------- Prompt templates ----------
+PROMPTS = {
+    "system_default": (
+        "You are a precise assistant for Data Engineering, AI/ML, RAG, and MLOps. "
+        "Answer ONLY with facts supported by the provided context. "
+        "If the answer is not in the context, say you don't know."
+    ),
+
+    "user_default": (
+        "Context (verbatim snippets with source):\n{context}\n\n"
+        "Task: Answer the user's question grounded ONLY in the context. "
+        "If context lacks the answer, say you don't know.\n\n"
+        "Question: {question}\n\n"
+        "Answer requirements:\n"
+        "• Be concise (5–8 sentences max)\n"
+        "• No speculation or made-up details\n"
+        "• If useful, include 1–3 short citations like: [source]\n"
+    ),
+
+    "user_interview": (
+        "Context:\n{context}\n\n"
+        "You are an experienced candidate answering an interview question. "
+        "Use a short STAR pattern (Situation, Task, Action, Result) in 6–10 lines. "
+        "Emphasize practical steps, tools, and metrics. If the context is insufficient, say you don't know.\n\n"
+        "Question: {question}\n\n"
+        "Answer format:\n"
+        "• 1–2 lines Situation/Task\n"
+        "• 3–5 lines Action (tools/commands/configs)\n"
+        "• 1–2 lines Result (metrics)\n"
+        "• End with a quick pitfall or best practice (1 line)\n"
+    ),
+
+    "user_sql": (
+        "Context:\n{context}\n\n"
+        "Provide the SQL solution FIRST in a single code block. Then add a brief 2–4 line explanation. "
+        "If multiple correct solutions exist, show the most standard one. If unknown from context, say you don't know.\n\n"
+        "Question: {question}\n"
+    ),
+
+    "user_eli5": (
+        "Context:\n{context}\n\n"
+        "Explain the answer simply, as if to a smart 12-year-old. "
+        "Use short sentences, a friendly tone, and a tiny example. If not in context, say you don't know.\n\n"
+        "Question: {question}\n"
+    ),
 }
 
-SYSTEM_PROMPT_BASE = """
-You are a senior technical expert providing concise, focused guidance. Always give exactly 6-8 sentences that demonstrate deep understanding.
+# ---- Singletons ------------------------------------------------------------
 
-RESPONSE REQUIREMENTS:
-- Exactly 6-8 sentences maximum
-- Focus on practical implementation and experience
-- Give specific, actionable insights
-- Use "I implemented", "my approach", "I designed" naturally
-- Be confident and direct
+def _client_once():
+    global _client
+    if _client is None:
+        _client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    return _client
 
-Use the retrieved knowledge base content as your primary reference. If the knowledge base doesn't contain relevant information, still provide a concise 6-8 sentence answer based on your expertise.
 
-IMPORTANT: Don't repeatedly mention company names or re-establish context that's already known. Give direct, confident answers as if speaking to someone familiar with your background.
-"""
-
-SYSTEM_INTERVIEW = """
-You are Krishna, a senior Data Engineer being interviewed. Answer as if you're speaking directly to an interviewer who already knows your background.
-
-BACKGROUND CONTEXT (don't repeat this):
-- Current: Senior Data Engineer at Walgreens
-- Previous: Data Engineer roles at CVS Health, McKesson, Inditek
-- Expert in: Azure Data Factory, Databricks, PySpark, Delta Lake, data pipelines, MLOps
-- Strong Python, Java, Scala skills
-- Extensive SQL experience with relational and NoSQL databases
-
-RESPONSE REQUIREMENTS:
-- Exactly 6-8 sentences maximum
-- Give direct, confident answers without repeating company names
-- Focus on technical depth and implementation details
-- Use "I implemented", "my approach", "I designed" naturally
-- Assume interviewer knows your background - don't re-establish context
-- Be conversational but technically precise
-- Show practical experience and problem-solving
-
-For qualification questions: Address how your experience meets the requirements directly and confidently.
-
-TONE: Professional but personal, confident, and specific to your experience.
-"""
-
-def detect_question_style(query: str) -> str:
-    """Automatically detect if question should use interview or standard style."""
-    query_lower = query.lower()
-    
-    # Strong interview-style indicators (personal questions)
-    strong_interview_phrases = [
-        "your experience", "your project", "how do you", "tell me about your",
-        "explain your", "describe your", "walk me through your", "how would you",
-        "your approach", "your strategy", "your role", "your work",
-        "how did you", "what did you", "when did you", "where did you",
-        "your team", "your company", "your background", "your skills",
-        "qualifications", "requirements", "skills needed", "job requirements",
-        "proficiency", "technical courses", "software engineering", "data engineering"
-    ]
-    
-    # Technical/learning indicators (general knowledge questions)
-    technical_phrases = [
-        "what is the difference", "compare", "advantages and disadvantages",
-        "pros and cons", "best practices for", "how does", "define",
-        "explain the concept", "what are the types", "list the features"
-    ]
-    
-    # Check for strong interview phrases first
-    if any(phrase in query_lower for phrase in strong_interview_phrases):
-        return "interview"
-    
-    # Check for technical phrases
-    if any(phrase in query_lower for phrase in technical_phrases):
-        return "standard"
-    
-    # For ambiguous questions, default to interview style since most questions 
-    # in interview prep are personal experience based
-    if any(word in query_lower for word in ["explain", "describe", "how", "what"]):
-        return "interview"
-    
-    return "interview"  # Default to interview style for better personal responses
-
-def clean_answer_format(text: str) -> str:
-    """Clean up answer format by removing Q&A artifacts."""
-    import re
-    patterns_to_remove = [
-        r'^\*\*A:\*\*\s*',  # **A:** at the start
-        r'^\*\*Q:\*\*\s*',  # **Q:** at the start  
-        r'^A:\s*',          # A: at the start
-        r'^Q:\s*',          # Q: at the start
-        r'^Answer:\s*',     # Answer: at the start
-        r'^Question:\s*',   # Question: at the start
-    ]
-    
-    cleaned_text = text
-    for pattern in patterns_to_remove:
-        cleaned_text = re.sub(pattern, '', cleaned_text, flags=re.IGNORECASE)
-    
-    return cleaned_text.strip()
-
-def get_embedding(text: str) -> List[float]:
-    """Get OpenAI embedding for text."""
-    response = openai_client.embeddings.create(
-        model="text-embedding-3-small",
-        input=text
-    )
-    return response.data[0].embedding
-
-def retrieve_relevant_chunks(query: str, persona: str, top_k: int = 2) -> List[Dict[str, Any]]:
-    """Retrieve relevant chunks from the knowledge base - context-aware version."""
-    if faiss_index is None or not metadata_list:
-        return []
-    
-    # Check if query is about qualifications/job requirements vs technical content
-    query_lower = query.lower()
-    is_qualification_question = any(phrase in query_lower for phrase in [
-        "qualifications", "requirements", "skills needed", "job requirements",
-        "proficiency", "technical courses", "software engineering", "data engineering"
-    ])
-    
-    # For qualification questions, don't retrieve technical KB content
-    if is_qualification_question:
-        return []
-    
-    # Get query embedding
-    query_embedding = np.array(get_embedding(query)).astype('float32').reshape(1, -1)
-    faiss.normalize_L2(query_embedding)
-    
-    # Search for relevant chunks - ultra fast
-    scores, indices = faiss_index.search(query_embedding, top_k)  # Only get what we need
-    
-    # Return top chunks without complex filtering for maximum speed
-    relevant_chunks = []
-    for score, idx in zip(scores[0], indices[0]):
-        if idx < len(metadata_list):
-            chunk = metadata_list[idx]
-            relevant_chunks.append({
-                'text': chunk['text'],
-                'metadata': chunk['metadata'],
-                'score': float(score)
-            })
-    
-    return relevant_chunks
-
-def load_knowledge_base():
-    """Load FAISS index and metadata from disk."""
-    global faiss_index, metadata_list
-    try:
-        # Load FAISS index - try multiple possible locations
-        index_paths = ["store/faiss.index", "faiss.index", "kb_index.faiss"]
-        metadata_paths = ["store/meta.json", "meta.json", "kb_metadata.json"]
+def _store_once():
+    global _index, _meta
+    if _index is not None and _meta is not None:
+        return _index, _meta
+    with _lock:
+        if _index is not None and _meta is not None:
+            return _index, _meta
         
-        faiss_index = None
-        metadata_list = []
+        # Try multiple possible locations for FAISS files
+        index_paths = ["faiss.index", "api/faiss.index", "store/faiss.index", "kb_index.faiss"]
+        metadata_paths = ["meta.json", "api/meta.json", "store/meta.json", "kb_metadata.json"]
+        
+        _index = None
+        _meta = None
         
         for index_path in index_paths:
             try:
-                faiss_index = faiss.read_index(index_path)
+                _index = faiss.read_index(index_path)
                 print(f"Loaded FAISS index from {index_path}")
                 break
             except:
@@ -178,96 +93,120 @@ def load_knowledge_base():
                 
         for metadata_path in metadata_paths:
             try:
-                with open(metadata_path, "r") as f:
-                    metadata_list = json.load(f)
+                with open(metadata_path, "r", encoding="utf-8") as f:
+                    _meta = json.load(f)
                 print(f"Loaded metadata from {metadata_path}")
                 break
             except:
                 continue
         
-        if faiss_index and metadata_list:
-            print(f"Successfully loaded FAISS index with {faiss_index.ntotal} vectors and {len(metadata_list)} metadata entries")
-        else:
-            print("Warning: Could not load knowledge base files")
-            faiss_index = None
-            metadata_list = []
+        if not _index or not _meta:
+            raise FileNotFoundError("Could not find FAISS index or metadata files")
             
-    except Exception as e:
-        print(f"Error loading knowledge base: {e}")
-        faiss_index = None
-        metadata_list = []
+    return _index, _meta
 
-def build_chat_prompt(query: str, persona: str, relevant_chunks: List[Dict[str, Any]], 
-                     conversation_history: List[Dict[str, Any]], style: str = "standard",
-                     tone: str = "confident", depth: str = "mid") -> str:
-    """Build the complete prompt for the chat model."""
-    
-    # Determine system prompt based on style
-    if style == "interview":
-        system_prompt = SYSTEM_INTERVIEW
+# ---- Embeddings ------------------------------------------------------------
+
+def get_embedding(text: str) -> np.ndarray:
+    cli = _client_once()
+    r = cli.embeddings.create(model="text-embedding-3-small", input=text)
+    return np.array(r.data[0].embedding, dtype="float32")
+
+# ---- Retrieval + Generation ------------------------------------------------
+
+def answer_question(message: str, mode: str | None = None) -> dict:
+    """
+    Core RAG pipeline used by both FastAPI (local) and Vercel handler.
+    Returns a dict: {answer, sources, chunks, usage}
+    """
+    if not (message or "").strip():
+        return {"error": "message is required"}
+
+    idx, meta = _store_once()
+
+    # 1) Embed query
+    q = get_embedding(message).reshape(1, -1)
+
+    # 2) Vector search
+    top_k = 5
+    scores, ids = idx.search(q, top_k)
+
+    # 3) Gather chunks + build context
+    selected = []
+    best_score = 0.0
+    for i, score in zip(ids[0], scores[0]):
+        key = str(i)
+        if key in meta:
+            item = dict(meta[key])
+            item["_score"] = float(score)
+            selected.append(item)
+            best_score = max(best_score, float(score))
+
+    # 3b) Confidence threshold → "I don't know"
+    min_ok = 0.15  # tune as needed
+    if not selected or best_score < min_ok:
+        return {
+            "answer": "I don't know from the provided context.",
+            "sources": [],
+            "chunks": [],
+            "usage": {}
+        }
+
+    context = "\n\n".join([c.get("text", "") for c in selected])
+
+    # 4) Choose prompt by mode
+    mode = (mode or "default").lower()
+    sys_prompt = PROMPTS["system_default"]
+    if mode == "interview":
+        user_prompt = PROMPTS["user_interview"].format(context=context, question=message)
+        temperature = 0.2
+    elif mode == "sql":
+        user_prompt = PROMPTS["user_sql"].format(context=context, question=message)
+        temperature = 0.2
+    elif mode in ("eli5", "explain_like_5", "simple"):
+        user_prompt = PROMPTS["user_eli5"].format(context=context, question=message)
+        temperature = 0.3
     else:
-        system_prompt = SYSTEM_PROMPT_BASE
-    
-    # Build persona context
-    persona_context = PERSONAS.get(persona, "Technical Expert")
-    
-    # Build knowledge base context
-    kb_context = ""
-    if relevant_chunks:
-        kb_context = "\n\n".join([chunk['text'] for chunk in relevant_chunks])
-    else:
-        kb_context = "No specific knowledge base content available for this query."
-    
-    # Build conversation history
-    history_text = ""
-    if conversation_history:
-        history_text = "\n\n".join([
-            f"User: {msg['user']}\nAssistant: {msg['assistant']}"
-            for msg in conversation_history[-5:]  # Last 5 exchanges
-        ])
-    
-    if style == "interview":
-        # For interview mode, make it more direct and personal
-        if kb_context and kb_context.strip():
-            prompt = f"""{system_prompt}
+        user_prompt = PROMPTS["user_default"].format(context=context, question=message)
+        temperature = 0.3
 
-Based on your experience and this relevant knowledge:
+    # 5) Generate
+    cli = _client_once()
+    resp = cli.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": sys_prompt},
+            {"role": "user", "content": user_prompt}
+        ],
+        temperature=temperature
+    )
+    answer = resp.choices[0].message.content.strip()
 
-{kb_context}
+    # 6) Sources for UI chips + optional inline tags
+    sources = [{
+        "title": c.get("source") or c.get("title") or "source",
+        "path": c.get("path"),
+        "score": c.get("_score")
+    } for c in selected]
+    tags = []
+    for s in sources[:3]:
+        base = s.get("title") or s.get("path") or "source"
+        tags.append(f"[{base}]")
+    if tags and mode != "sql":  # keep SQL output clean
+        answer = f"{answer}\n\nSources: " + " ".join(tags)
 
-Interview Question: {query}
-
-Give a personal, experience-based answer as Krishna in exactly 6-8 sentences:"""
-        else:
-            prompt = f"""{system_prompt}
-
-Interview Question: {query}
-
-Give a personal, experience-based answer as Krishna in exactly 6-8 sentences based on your expertise:"""
-    else:
-        # Standard mode
-        prompt = f"""{system_prompt}
-
-{persona_context}
-
-Knowledge Base Context:
-{kb_context}
-
-User: {query}
-
-Assistant (answer in exactly 6-8 sentences):"""
-    
-    return prompt
-
-def handler_response(data: dict, status_code: int = 200):
-    """Create a proper Vercel response."""
     return {
-        'statusCode': status_code,
-        'headers': {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-        },
-        'body': json.dumps(data)
+        "answer": answer,
+        "sources": sources,
+        "chunks": selected,
+        "usage": getattr(resp, "usage", None).model_dump() if hasattr(resp, "usage") else {}
     }
+
+
+def health_check() -> dict:
+    ok, err = True, None
+    try:
+        _store_once()
+    except Exception as e:
+        ok, err = False, str(e)
+    return {"ok": ok, "faiss": ok, "error": err}
