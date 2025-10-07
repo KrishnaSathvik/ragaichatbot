@@ -162,8 +162,8 @@ def load_knowledge_base():
     global faiss_index, metadata_list
     try:
         # Load FAISS index - try multiple possible locations
-        index_paths = ["kb_index.faiss", "store/faiss.index", "faiss.index"]
-        metadata_paths = ["kb_metadata.json", "store/meta.json", "meta.json"]
+        index_paths = ["store/faiss.index", "faiss.index", "kb_index.faiss"]
+        metadata_paths = ["store/meta.json", "meta.json", "kb_metadata.json"]
         
         faiss_index = None
         metadata_list = []
