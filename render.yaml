@@ -1,5 +1,5 @@
 services:
-  # Force deployment with transcription fix
+  # Force deployment with transcription fix v2
   - type: web
     name: rag-chatbot
     env: python
