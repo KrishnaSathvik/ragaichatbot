@@ -678,18 +678,21 @@
                 });
 
                 const data = await response.json();
+                console.log('Transcription response:', data);
 
                 if (!response.ok) {
                     throw new Error(data.detail || 'Transcription failed');
                 }
 
             // Don't show transcript preview - directly send the message
-                    if (data.transcript.trim()) {
+                    if (data.transcript && data.transcript.trim()) {
                 // Add user message to chat
                 addMessage(data.transcript, 'user');
                 
                 // Send to API
                 await sendTranscribedMessage(data.transcript);
+            } else {
+                addMessage('No speech detected. Please try again.', 'assistant');
             }
 
             } catch (error) {

@@ -98,6 +98,9 @@ async def transcribe(audio: UploadFile = File(...)):
                     response_format="text"
                 )
             
+            # transcript is already a string when response_format="text"
+            print(f"Transcription result: {repr(transcript)}")
+            print(f"Transcription type: {type(transcript)}")
             return {"transcript": transcript}
             
         finally:
