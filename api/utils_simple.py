@@ -165,8 +165,8 @@ def _search_similar(query_embedding, top_k=5):
         results.append({
             'index': int(idx),
             'score': float(similarities[idx]),
-            'content': _meta['documents'][idx]['content'],
-            'source': _meta['documents'][idx].get('source', 'unknown')
+            'content': _meta[idx]['text'],
+            'source': _meta[idx]['metadata'].get('file_name', 'unknown')
         })
     
     return results
