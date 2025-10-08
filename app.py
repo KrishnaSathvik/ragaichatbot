@@ -40,6 +40,16 @@ async def health():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/debug")
+async def debug():
+    """Debug endpoint to check environment variables"""
+    return {
+        "openai_key_set": bool(os.getenv("OPENAI_API_KEY")),
+        "openai_key_length": len(os.getenv("OPENAI_API_KEY", "")),
+        "python_version": os.sys.version,
+        "openai_version": "1.40.0"  # From requirements.txt
+    }
+
 @app.post("/api/chat")
 async def chat(data: dict):
     """Chat endpoint"""
