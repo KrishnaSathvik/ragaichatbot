@@ -7,6 +7,6 @@ services:
     startCommand: python app.py
     envVars:
       - key: PYTHON_VERSION
-        value: 3.12.0
+        value: 3.13.4
       - key: OPENAI_API_KEY
         sync: false  # Will be set manually in Render dashboard
