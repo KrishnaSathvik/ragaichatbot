@@ -73,7 +73,11 @@ def _get_client():
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
             raise ValueError("OPENAI_API_KEY environment variable is required")
-        _client = OpenAI(api_key=api_key)
+        try:
+            _client = OpenAI(api_key=api_key)
+        except Exception as e:
+            print(f"Error initializing OpenAI client: {e}")
+            raise ValueError(f"Failed to initialize OpenAI client: {e}")
     return _client
 
 def _load_data():
