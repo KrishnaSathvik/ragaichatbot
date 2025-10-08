@@ -713,5 +713,1265 @@
       "file_path": "data_eng/interview_examples.md",
       "file_name": "interview_examples.md"
     }
+  },
+  {
+    "text": "---\ntags: [business-intelligence, power-bi, tableau, data-visualization, dashboards, analytics]\npersona: bi\n---\n\n# Business Intelligence Development & Tejuu's Experience\n\n## Power BI Development\n\n### Dashboard Design and Development\n**Tejuu's Power BI Expertise:**\nI've built over 50 Power BI dashboards across different business functions - sales, finance, operations, and HR. What I've learned is that a good dashboard tells a story and helps users make decisions quickly.\n\n**My Dashboard Design Principles:**\n```\n1. Know Your Audience\n   - Executives need high-level KPIs\n   - Managers need drill-down capabilities\n   - Analysts need detailed data access\n\n2. Follow the 5-Second Rule\n   - Key insights should be visible in 5 seconds\n   - Use clear titles and labels\n   - Highlight important metrics\n\n3. Use Visual Hierarchy\n   - Most important metrics at the top\n   - Use size and color to guide attention\n   - Group related metrics together\n\n4. Keep It Simple\n   - Maximum 5-7 visuals per page\n  ",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/bi_development.md",
+      "file_name": "bi_development.md",
+      "chunk_index": 0
+    },
+    "id": "tejuu_42"
+  },
+  {
+    "text": "s\n\n3. Use Visual Hierarchy\n   - Most important metrics at the top\n   - Use size and color to guide attention\n   - Group related metrics together\n\n4. Keep It Simple\n   - Maximum 5-7 visuals per page\n   - Avoid chart junk and unnecessary decorations\n   - Use consistent colors and formatting\n\n5. Enable Interactivity\n   - Add filters and slicers\n   - Enable drill-through pages\n   - Use bookmarks for different views\n```\n\n**Sales Dashboard Example:**\n```\nPage 1: Executive Overview\n- Total Revenue (Card visual with YoY comparison)\n- Revenue Trend (Line chart with forecast)\n- Revenue by Region (Map visual)\n- Top 10 Products (Bar chart)\n- Key Metrics Table (Revenue, Orders, Avg Order Value)\n\nPage 2: Sales Performance\n- Sales by Sales Rep (Matrix with conditional formatting)\n- Sales vs Target (Gauge charts)\n- Win Rate by Product Category (Funnel chart)\n- Pipeline Analysis (Waterfall chart)\n\nPage 3: Customer Analysis\n- Customer Segmentation (Scatter plot)\n- Customer Lifetime Value (Tree map)\n- Ch",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/bi_development.md",
+      "file_name": "bi_development.md",
+      "chunk_index": 1
+    },
+    "id": "tejuu_43"
+  },
+  {
+    "text": " charts)\n- Win Rate by Product Category (Funnel chart)\n- Pipeline Analysis (Waterfall chart)\n\nPage 3: Customer Analysis\n- Customer Segmentation (Scatter plot)\n- Customer Lifetime Value (Tree map)\n- Churn Analysis (Line and column chart)\n- Customer Acquisition Cost (KPI visual)\n```\n\n### DAX Formulas and Calculations\n**Tejuu's DAX Knowledge:**\nDAX is essential for creating powerful calculations in Power BI. Here are some of my most-used formulas:\n\n**Time Intelligence:**\n```dax\n-- Year-to-Date Sales\nYTD Sales = \nTOTALYTD(\n    SUM(Sales[Amount]),\n    'Date'[Date]\n)\n\n-- Previous Year Sales\nPY Sales = \nCALCULATE(\n    SUM(Sales[Amount]),\n    SAMEPERIODLASTYEAR('Date'[Date])\n)\n\n-- Year-over-Year Growth\nYoY Growth % = \nDIVIDE(\n    [YTD Sales] - [PY Sales],\n    [PY Sales],\n    0\n)\n\n-- Moving Average (3 months)\n3M Moving Avg = \nAVERAGEX(\n    DATESINPERIOD(\n        'Date'[Date],\n        LASTDATE('Date'[Date]),\n        -3,\n        MONTH\n    ),\n    [Total Sales]\n)\n```\n\n**Customer Metrics:**\n```dax\n-",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/bi_development.md",
+      "file_name": "bi_development.md",
+      "chunk_index": 2
+    },
+    "id": "tejuu_44"
+  },
+  {
+    "text": " (3 months)\n3M Moving Avg = \nAVERAGEX(\n    DATESINPERIOD(\n        'Date'[Date],\n        LASTDATE('Date'[Date]),\n        -3,\n        MONTH\n    ),\n    [Total Sales]\n)\n```\n\n**Customer Metrics:**\n```dax\n-- Customer Count\nTotal Customers = \nDISTINCTCOUNT(Sales[CustomerID])\n\n-- New Customers\nNew Customers = \nCALCULATE(\n    DISTINCTCOUNT(Sales[CustomerID]),\n    FILTER(\n        ALL(Sales),\n        Sales[OrderDate] = \n        CALCULATE(\n            MIN(Sales[OrderDate]),\n            ALLEXCEPT(Sales, Sales[CustomerID])\n        )\n    )\n)\n\n-- Customer Retention Rate\nRetention Rate = \nVAR CurrentCustomers = [Total Customers]\nVAR PreviousCustomers = \n    CALCULATE(\n        [Total Customers],\n        DATEADD('Date'[Date], -1, MONTH)\n    )\nVAR RetainedCustomers = \n    CALCULATE(\n        DISTINCTCOUNT(Sales[CustomerID]),\n        FILTER(\n            ALL(Sales),\n            [CustomerID] IN VALUES(Sales[CustomerID]) &&\n            [OrderDate] >= EOMONTH(TODAY(), -2) &&\n            [OrderDate] < EOMONTH(TO",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/bi_development.md",
+      "file_name": "bi_development.md",
+      "chunk_index": 3
+    },
+    "id": "tejuu_45"
+  },
+  {
+    "text": "s[CustomerID]),\n        FILTER(\n            ALL(Sales),\n            [CustomerID] IN VALUES(Sales[CustomerID]) &&\n            [OrderDate] >= EOMONTH(TODAY(), -2) &&\n            [OrderDate] < EOMONTH(TODAY(), -1)\n        )\n    )\nRETURN\nDIVIDE(RetainedCustomers, PreviousCustomers, 0)\n```\n\n**Advanced Calculations:**\n```dax\n-- Running Total\nRunning Total = \nCALCULATE(\n    SUM(Sales[Amount]),\n    FILTER(\n        ALL('Date'[Date]),\n        'Date'[Date] <= MAX('Date'[Date])\n    )\n)\n\n-- Pareto Analysis (80/20 Rule)\nCumulative % = \nVAR CurrentRevenue = SUM(Sales[Amount])\nVAR TotalRevenue = \n    CALCULATE(\n        SUM(Sales[Amount]),\n        ALL(Products)\n    )\nVAR RunningTotal = \n    CALCULATE(\n        SUM(Sales[Amount]),\n        FILTER(\n            ALL(Products),\n            RANKX(\n                ALL(Products),\n                SUM(Sales[Amount]),\n                ,\n                DESC\n            ) <= RANKX(\n                ALL(Products),\n                SUM(Sales[Amount]),\n                ,\n ",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/bi_development.md",
+      "file_name": "bi_development.md",
+      "chunk_index": 4
+    },
+    "id": "tejuu_46"
+  },
+  {
+    "text": "ALL(Products),\n                SUM(Sales[Amount]),\n                ,\n                DESC\n            ) <= RANKX(\n                ALL(Products),\n                SUM(Sales[Amount]),\n                ,\n                DESC\n            )\n        )\n    )\nRETURN\nDIVIDE(RunningTotal, TotalRevenue, 0)\n\n-- Dynamic Ranking\nProduct Rank = \nRANKX(\n    ALL(Products[ProductName]),\n    [Total Sales],\n    ,\n    DESC,\n    DENSE\n)\n```\n\n### Data Modeling in Power BI\n**Tejuu's Data Modeling Approach:**\nGood data modeling is the foundation of a fast and reliable Power BI report. Here's my approach:\n\n**Star Schema Design:**\n```\nFact Tables:\n- Sales (OrderID, CustomerID, ProductID, DateKey, Amount, Quantity)\n- Inventory (ProductID, DateKey, StockLevel, WarehouseID)\n- Budget (DateKey, DepartmentID, BudgetAmount)\n\nDimension Tables:\n- Customers (CustomerID, Name, Segment, Region, City)\n- Products (ProductID, Name, Category, SubCategory, Price)\n- Date (DateKey, Date, Year, Quarter, Month, Week, Day)\n- Employees ",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/bi_development.md",
+      "file_name": "bi_development.md",
+      "chunk_index": 5
+    },
+    "id": "tejuu_47"
+  },
+  {
+    "text": "\nDimension Tables:\n- Customers (CustomerID, Name, Segment, Region, City)\n- Products (ProductID, Name, Category, SubCategory, Price)\n- Date (DateKey, Date, Year, Quarter, Month, Week, Day)\n- Employees (EmployeeID, Name, Department, Manager, HireDate)\n```\n\n**Relationship Best Practices:**\n```\n1. Use Star Schema\n   - Fact tables in the center\n   - Dimension tables around it\n   - One-to-many relationships\n\n2. Create a Date Table\n   - Use CALENDAR or CALENDARAUTO\n   - Mark as date table\n   - Include all needed date attributes\n\n3. Avoid Bi-Directional Relationships\n   - Can cause ambiguity\n   - Impacts performance\n   - Use DAX instead when possible\n\n4. Hide Unnecessary Columns\n   - Foreign keys\n   - Technical columns\n   - Improves user experience\n\n5. Use Calculated Columns vs Measures Appropriately\n   - Calculated columns: Static, stored in model\n   - Measures: Dynamic, calculated at query time\n   - Prefer measures for aggregations\n```\n\n## Tableau Development\n\n### Building Interactive Dashbo",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/bi_development.md",
+      "file_name": "bi_development.md",
+      "chunk_index": 6
+    },
+    "id": "tejuu_48"
+  },
+  {
+    "text": "ely\n   - Calculated columns: Static, stored in model\n   - Measures: Dynamic, calculated at query time\n   - Prefer measures for aggregations\n```\n\n## Tableau Development\n\n### Building Interactive Dashboards\n**Tejuu's Tableau Experience:**\nI've worked with Tableau for 3+ years, building executive dashboards and self-service analytics solutions. Tableau's strength is its intuitive drag-and-drop interface and powerful visualization capabilities.\n\n**My Tableau Dashboard Structure:**\n```\n1. Overview Dashboard\n   - KPI Summary\n   - Trend Analysis\n   - Geographic Distribution\n   - Quick Filters\n\n2. Detailed Analysis\n   - Drill-down capabilities\n   - Parameter controls\n   - Calculated fields\n   - Reference lines and bands\n\n3. What-If Analysis\n   - Parameters for scenarios\n   - Calculated fields for projections\n   - Dynamic titles and labels\n```\n\n**Calculated Fields in Tableau:**\n```\n// Year-over-Year Growth\n(SUM([Sales]) - LOOKUP(SUM([Sales]), -12)) / LOOKUP(SUM([Sales]), -12)\n\n// Customer Lifet",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/bi_development.md",
+      "file_name": "bi_development.md",
+      "chunk_index": 7
+    },
+    "id": "tejuu_49"
+  },
+  {
+    "text": "projections\n   - Dynamic titles and labels\n```\n\n**Calculated Fields in Tableau:**\n```\n// Year-over-Year Growth\n(SUM([Sales]) - LOOKUP(SUM([Sales]), -12)) / LOOKUP(SUM([Sales]), -12)\n\n// Customer Lifetime Value\n{FIXED [Customer ID]: SUM([Sales])}\n\n// Cohort Analysis\nIF DATEDIFF('month', {FIXED [Customer ID]: MIN([Order Date])}, [Order Date]) = 0\nTHEN \"Month 0\"\nELSEIF DATEDIFF('month', {FIXED [Customer ID]: MIN([Order Date])}, [Order Date]) = 1\nTHEN \"Month 1\"\nELSE \"Month 2+\"\nEND\n\n// Dynamic Ranking\nRANK(SUM([Sales]), 'desc')\n\n// Moving Average\nWINDOW_AVG(SUM([Sales]), -2, 0)\n```\n\n## Excel for Business Intelligence\n\n### Advanced Excel Techniques\n**Tejuu's Excel Expertise:**\nEven with Power BI and Tableau, Excel remains a critical tool. I use it for ad-hoc analysis, data preparation, and quick reports.\n\n**Power Query (ETL in Excel):**\n```\nCommon Transformations:\n1. Remove Duplicates\n2. Fill Down/Up\n3. Pivot/Unpivot Columns\n4. Merge Queries (Joins)\n5. Append Queries (Union)\n6. Split Columns",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/bi_development.md",
+      "file_name": "bi_development.md",
+      "chunk_index": 8
+    },
+    "id": "tejuu_50"
+  },
+  {
+    "text": " reports.\n\n**Power Query (ETL in Excel):**\n```\nCommon Transformations:\n1. Remove Duplicates\n2. Fill Down/Up\n3. Pivot/Unpivot Columns\n4. Merge Queries (Joins)\n5. Append Queries (Union)\n6. Split Columns\n7. Change Data Types\n8. Add Custom Columns\n\nM Language Examples:\n// Add custom column\n= Table.AddColumn(#\"Previous Step\", \"Full Name\", \n    each [First Name] & \" \" & [Last Name])\n\n// Filter rows\n= Table.SelectRows(#\"Previous Step\", \n    each [Sales] > 1000)\n\n// Group by\n= Table.Group(#\"Previous Step\", {\"Region\"}, \n    {{\"Total Sales\", each List.Sum([Sales]), type number}})\n```\n\n**Power Pivot and Data Modeling:**\n```\nDAX in Excel:\n// Total Sales\nTotal Sales:=SUM(Sales[Amount])\n\n// Sales vs Budget Variance\nVariance:=[Total Sales]-[Total Budget]\n\n// Variance %\nVariance %:=DIVIDE([Variance],[Total Budget],0)\n\n// Top N Products\nTop 10 Products:=\nCALCULATE(\n    [Total Sales],\n    TOPN(10, ALL(Products[Product Name]), [Total Sales], DESC)\n)\n```\n\n**Advanced Formulas:**\n```excel\n// Dynamic Named R",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/bi_development.md",
+      "file_name": "bi_development.md",
+      "chunk_index": 9
+    },
+    "id": "tejuu_51"
+  },
+  {
+    "text": "l Budget],0)\n\n// Top N Products\nTop 10 Products:=\nCALCULATE(\n    [Total Sales],\n    TOPN(10, ALL(Products[Product Name]), [Total Sales], DESC)\n)\n```\n\n**Advanced Formulas:**\n```excel\n// Dynamic Named Ranges\n=OFFSET(Sheet1!$A$1,0,0,COUNTA(Sheet1!$A:$A),1)\n\n// Array Formulas (Ctrl+Shift+Enter)\n=SUM(IF(A2:A100=\"Yes\",B2:B100,0))\n\n// XLOOKUP (Modern Excel)\n=XLOOKUP(A2,Table1[ID],Table1[Name],\"Not Found\",0,1)\n\n// SUMIFS with Multiple Criteria\n=SUMIFS(Sales[Amount],Sales[Region],\"West\",Sales[Date],\">=\"&DATE(2023,1,1))\n\n// Dynamic Dashboard with CHOOSE and MATCH\n=CHOOSE(MATCH(B1,{\"Sales\",\"Profit\",\"Quantity\"},0),\n    SUM(Sales[Amount]),\n    SUM(Sales[Profit]),\n    SUM(Sales[Quantity]))\n```\n\n## Data Visualization Best Practices\n\n### Choosing the Right Chart\n**Tejuu's Chart Selection Guide:**\n```\nComparison:\n- Bar Chart: Compare values across categories\n- Column Chart: Show changes over time\n- Bullet Chart: Compare actual vs target\n\nComposition:\n- Pie Chart: Show parts of a whole (max 5 slices)\n- ",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/bi_development.md",
+      "file_name": "bi_development.md",
+      "chunk_index": 10
+    },
+    "id": "tejuu_52"
+  },
+  {
+    "text": "arison:\n- Bar Chart: Compare values across categories\n- Column Chart: Show changes over time\n- Bullet Chart: Compare actual vs target\n\nComposition:\n- Pie Chart: Show parts of a whole (max 5 slices)\n- Stacked Bar: Show composition across categories\n- Treemap: Show hierarchical composition\n\nDistribution:\n- Histogram: Show frequency distribution\n- Box Plot: Show statistical distribution\n- Scatter Plot: Show correlation between variables\n\nTrend:\n- Line Chart: Show trends over time\n- Area Chart: Show cumulative trends\n- Waterfall: Show sequential changes\n\nRelationship:\n- Scatter Plot: Show correlation\n- Bubble Chart: Show 3 dimensions\n- Heat Map: Show patterns in matrix data\n```\n\n### Color Theory and Accessibility\n**My Color Guidelines:**\n```\n1. Use Color Purposefully\n   - Red: Negative, danger, stop\n   - Green: Positive, success, go\n   - Blue: Neutral, information\n   - Orange/Yellow: Warning, attention\n\n2. Ensure Accessibility\n   - Check color blindness compatibility\n   - Use patterns in a",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/bi_development.md",
+      "file_name": "bi_development.md",
+      "chunk_index": 11
+    },
+    "id": "tejuu_53"
+  },
+  {
+    "text": ", stop\n   - Green: Positive, success, go\n   - Blue: Neutral, information\n   - Orange/Yellow: Warning, attention\n\n2. Ensure Accessibility\n   - Check color blindness compatibility\n   - Use patterns in addition to colors\n   - Maintain sufficient contrast\n   - Test with grayscale\n\n3. Limit Color Palette\n   - Maximum 5-6 colors per dashboard\n   - Use shades for variations\n   - Keep brand colors consistent\n\n4. Highlight What Matters\n   - Use bright colors for important data\n   - Gray out less important information\n   - Use white space effectively\n```\n\n## ETL and Data Preparation\n\n### Data Quality Checks\n**Tejuu's Data Validation Process:**\n```\n1. Completeness Checks\n   - Missing values\n   - Null percentages\n   - Required fields populated\n\n2. Accuracy Checks\n   - Data type validation\n   - Range checks (min/max)\n   - Format validation (email, phone)\n\n3. Consistency Checks\n   - Cross-field validation\n   - Referential integrity\n   - Duplicate detection\n\n4. Timeliness Checks\n   - Data freshness\n ",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/bi_development.md",
+      "file_name": "bi_development.md",
+      "chunk_index": 12
+    },
+    "id": "tejuu_54"
+  },
+  {
+    "text": "hecks (min/max)\n   - Format validation (email, phone)\n\n3. Consistency Checks\n   - Cross-field validation\n   - Referential integrity\n   - Duplicate detection\n\n4. Timeliness Checks\n   - Data freshness\n   - Update frequency\n   - Historical completeness\n\nSQL for Data Quality:\n-- Check for nulls\nSELECT \n    COUNT(*) as total_records,\n    COUNT(customer_id) as non_null_customers,\n    COUNT(*) - COUNT(customer_id) as null_count,\n    ROUND((COUNT(*) - COUNT(customer_id)) * 100.0 / COUNT(*), 2) as null_percentage\nFROM sales;\n\n-- Check for duplicates\nSELECT \n    order_id,\n    COUNT(*) as duplicate_count\nFROM orders\nGROUP BY order_id\nHAVING COUNT(*) > 1;\n\n-- Check data ranges\nSELECT \n    MIN(order_date) as earliest_date,\n    MAX(order_date) as latest_date,\n    MIN(amount) as min_amount,\n    MAX(amount) as max_amount,\n    AVG(amount) as avg_amount\nFROM orders;\n```\n\n## Interview Talking Points\n\n### Technical Skills:\n- Power BI dashboard development and DAX\n- Tableau visualization and calculated fie",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/bi_development.md",
+      "file_name": "bi_development.md",
+      "chunk_index": 13
+    },
+    "id": "tejuu_55"
+  },
+  {
+    "text": "t) as max_amount,\n    AVG(amount) as avg_amount\nFROM orders;\n```\n\n## Interview Talking Points\n\n### Technical Skills:\n- Power BI dashboard development and DAX\n- Tableau visualization and calculated fields\n- Advanced Excel (Power Query, Power Pivot)\n- SQL for data analysis\n- Data modeling and ETL\n- Data visualization best practices\n\n### Tools & Technologies:\n- **BI Tools**: Power BI, Tableau, Qlik Sense\n- **Databases**: SQL Server, Oracle, MySQL, PostgreSQL\n- **Excel**: Power Query, Power Pivot, VBA\n- **ETL**: SSIS, Alteryx, Informatica\n- **Cloud**: Azure, AWS, Google Cloud\n\n### Achievements:\n- Built 50+ Power BI dashboards used by 200+ users\n- Reduced report generation time from 2 days to 2 hours\n- Improved data accuracy by 95% through automated quality checks\n- Saved $100K annually by identifying cost optimization opportunities\n- Trained 30+ business users on self-service BI tools\n\n### Project Examples:\n- Sales Performance Dashboard (real-time tracking, 15+ KPIs)\n- Customer Analytics P",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/bi_development.md",
+      "file_name": "bi_development.md",
+      "chunk_index": 14
+    },
+    "id": "tejuu_56"
+  },
+  {
+    "text": "tifying cost optimization opportunities\n- Trained 30+ business users on self-service BI tools\n\n### Project Examples:\n- Sales Performance Dashboard (real-time tracking, 15+ KPIs)\n- Customer Analytics Platform (segmentation, churn prediction)\n- Financial Reporting Suite (P&L, balance sheet, cash flow)\n- Operational Metrics Dashboard (efficiency, productivity, quality)\n- Executive KPI Dashboard (company-wide metrics, drill-down)\n",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/bi_development.md",
+      "file_name": "bi_development.md",
+      "chunk_index": 15
+    },
+    "id": "tejuu_57"
+  },
+  {
+    "text": "---\ntags: [tableau, data-visualization, calculated-fields, parameters, dashboards, lod]\npersona: tejuu\n---\n\n# Tableau Expertise - Tejuu's Experience\n\n## Tableau Dashboard Development\n\n### Building Executive Dashboards\n**Tejuu's Approach:**\nSo I've built numerous executive dashboards in Tableau, and what I've learned is that executives want to see the story quickly. They don't have time to dig through data - they need insights at a glance.\n\n**My Executive Dashboard Structure:**\n```\nPage 1: Overview\n- KPI Summary Cards (Revenue, Profit, Growth %)\n- Trend Line (12-month rolling)\n- Geographic Heat Map\n- Top 10 Products/Customers\n- Quick Filters (Date, Region, Category)\n\nPage 2: Deep Dive\n- Detailed Tables with Drill-Down\n- Comparison Charts (Actual vs Target vs Prior Year)\n- Distribution Analysis\n- Cohort Analysis\n\nPage 3: What-If Analysis\n- Parameter Controls for Scenarios\n- Calculated Projections\n- Sensitivity Analysis\n```\n\n### Interactive Features I Implement\n**Navigation and Interactiv",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/tableau_expertise.md",
+      "file_name": "tableau_expertise.md",
+      "chunk_index": 16
+    },
+    "id": "tejuu_58"
+  },
+  {
+    "text": "sis\n- Cohort Analysis\n\nPage 3: What-If Analysis\n- Parameter Controls for Scenarios\n- Calculated Projections\n- Sensitivity Analysis\n```\n\n### Interactive Features I Implement\n**Navigation and Interactivity:**\n\n```\n1. Dashboard Actions:\n   - Filter Actions: Click on region to filter all visuals\n   - Highlight Actions: Hover to highlight related data\n   - URL Actions: Link to external systems\n   - Parameter Actions: Dynamic parameter updates\n\n2. Navigation:\n   - Button navigation between pages\n   - Breadcrumb navigation\n   - Back button functionality\n   - Reset filters button\n\n3. Tooltips:\n   - Custom tooltip worksheets\n   - Show additional context\n   - Mini visualizations in tooltips\n   - Formatted text with key metrics\n```\n\n## Advanced Calculated Fields\n\n### LOD (Level of Detail) Expressions\n**Tejuu's Most-Used LOD Patterns:**\n\n```tableau\n// FIXED - Customer Lifetime Value\n{FIXED [Customer ID]: SUM([Sales])}\n\n// INCLUDE - Sales with Category Context\n{INCLUDE [Category]: AVG([Sales])}\n\n//",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/tableau_expertise.md",
+      "file_name": "tableau_expertise.md",
+      "chunk_index": 17
+    },
+    "id": "tejuu_59"
+  },
+  {
+    "text": "\n**Tejuu's Most-Used LOD Patterns:**\n\n```tableau\n// FIXED - Customer Lifetime Value\n{FIXED [Customer ID]: SUM([Sales])}\n\n// INCLUDE - Sales with Category Context\n{INCLUDE [Category]: AVG([Sales])}\n\n// EXCLUDE - Overall Average Excluding Region\n{EXCLUDE [Region]: AVG([Sales])}\n\n// Customer First Purchase Date\n{FIXED [Customer ID]: MIN([Order Date])}\n\n// Customer Cohort Analysis\n// Cohort Month\n{FIXED [Customer ID]: \n    MIN(DATETRUNC('month', [Order Date]))}\n\n// Months Since First Purchase\nDATEDIFF('month', \n    {FIXED [Customer ID]: MIN([Order Date])},\n    [Order Date]\n)\n\n// Percent of Total by Category\nSUM([Sales]) / \n{FIXED [Category]: SUM([Sales])}\n\n// Running Total by Customer\nRUNNING_SUM(SUM([Sales]))\n\n// Rank within Category\nRANK(SUM([Sales]), 'desc')\n\n// Dense Rank for Top N\nRANK_DENSE(SUM([Sales]), 'desc')\n```\n\n### Table Calculations\n**My Frequently Used Table Calcs:**\n\n```tableau\n// Year-over-Year Growth\n(SUM([Sales]) - LOOKUP(SUM([Sales]), -12)) / \nLOOKUP(SUM([Sales]), -12)\n\n",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/tableau_expertise.md",
+      "file_name": "tableau_expertise.md",
+      "chunk_index": 18
+    },
+    "id": "tejuu_60"
+  },
+  {
+    "text": "NSE(SUM([Sales]), 'desc')\n```\n\n### Table Calculations\n**My Frequently Used Table Calcs:**\n\n```tableau\n// Year-over-Year Growth\n(SUM([Sales]) - LOOKUP(SUM([Sales]), -12)) / \nLOOKUP(SUM([Sales]), -12)\n\n// Moving Average (3 months)\nWINDOW_AVG(SUM([Sales]), -2, 0)\n\n// Percent of Total\nSUM([Sales]) / TOTAL(SUM([Sales]))\n\n// Running Total\nRUNNING_SUM(SUM([Sales]))\n\n// Percent Difference from Average\n(SUM([Sales]) - WINDOW_AVG(SUM([Sales]))) / \nWINDOW_AVG(SUM([Sales]))\n\n// Index for Row Numbering\nINDEX()\n\n// First/Last Value in Partition\nFIRST() = 0  // First row\nLAST() = 0   // Last row\n\n// Lookup Previous Value\nLOOKUP(SUM([Sales]), -1)\n\n// Window Sum for Cumulative %\nRUNNING_SUM(SUM([Sales])) / \nTOTAL(SUM([Sales]))\n```\n\n### Complex Business Logic\n**Healthcare Analytics at Stryker:**\n\n```tableau\n// Patient Risk Stratification\nIF [Total Claims] > 50000 AND [Chronic Conditions] >= 3 THEN \"High Risk\"\nELSEIF [Total Claims] > 25000 OR [Chronic Conditions] >= 2 THEN \"Medium Risk\"\nELSE \"Low Risk\"\nE",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/tableau_expertise.md",
+      "file_name": "tableau_expertise.md",
+      "chunk_index": 19
+    },
+    "id": "tejuu_61"
+  },
+  {
+    "text": "\n// Patient Risk Stratification\nIF [Total Claims] > 50000 AND [Chronic Conditions] >= 3 THEN \"High Risk\"\nELSEIF [Total Claims] > 25000 OR [Chronic Conditions] >= 2 THEN \"Medium Risk\"\nELSE \"Low Risk\"\nEND\n\n// Readmission Flag\nIF DATEDIFF('day', [Previous Discharge Date], [Admission Date]) <= 30\nTHEN \"30-Day Readmission\"\nELSE \"New Admission\"\nEND\n\n// Length of Stay Category\nCASE [Length of Stay]\n    WHEN 0 THEN \"Same Day\"\n    WHEN 1 THEN \"Overnight\"\n    WHEN 2 THEN \"2 Days\"\n    WHEN 3 THEN \"3 Days\"\n    ELSE \"Extended Stay (4+ days)\"\nEND\n\n// Cost per Day\n[Total Cost] / [Length of Stay]\n\n// Case Mix Adjusted Cost\n[Total Cost] / [Case Mix Index]\n\n// Utilization Rate\n[Actual Bed Days] / [Available Bed Days]\n```\n\n## Parameters and What-If Analysis\n\n### Dynamic Parameters\n**Tejuu's Parameter Strategies:**\n\n```tableau\n// Top N Parameter\nParameter: Top N (Integer, Range 5-20, Default 10)\n\nCalculated Field: Top N Filter\nRANK(SUM([Sales]), 'desc') <= [Top N Parameter]\n\n// Date Range Parameter\nParame",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/tableau_expertise.md",
+      "file_name": "tableau_expertise.md",
+      "chunk_index": 20
+    },
+    "id": "tejuu_62"
+  },
+  {
+    "text": "ies:**\n\n```tableau\n// Top N Parameter\nParameter: Top N (Integer, Range 5-20, Default 10)\n\nCalculated Field: Top N Filter\nRANK(SUM([Sales]), 'desc') <= [Top N Parameter]\n\n// Date Range Parameter\nParameter: Date Range (String, List)\n- Last 7 Days\n- Last 30 Days\n- Last 90 Days\n- Last 12 Months\n- Year to Date\n- Custom\n\nCalculated Field: Date Filter\nCASE [Date Range Parameter]\n    WHEN \"Last 7 Days\" THEN [Order Date] >= TODAY() - 7\n    WHEN \"Last 30 Days\" THEN [Order Date] >= TODAY() - 30\n    WHEN \"Last 90 Days\" THEN [Order Date] >= TODAY() - 90\n    WHEN \"Last 12 Months\" THEN [Order Date] >= DATEADD('month', -12, TODAY())\n    WHEN \"Year to Date\" THEN YEAR([Order Date]) = YEAR(TODAY())\nEND\n\n// Metric Selector Parameter\nParameter: Select Metric (String, List)\n- Sales\n- Profit\n- Quantity\n- Avg Order Value\n\nCalculated Field: Selected Metric\nCASE [Select Metric Parameter]\n    WHEN \"Sales\" THEN SUM([Sales])\n    WHEN \"Profit\" THEN SUM([Profit])\n    WHEN \"Quantity\" THEN SUM([Quantity])\n    WHEN \"Av",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/tableau_expertise.md",
+      "file_name": "tableau_expertise.md",
+      "chunk_index": 21
+    },
+    "id": "tejuu_63"
+  },
+  {
+    "text": "er Value\n\nCalculated Field: Selected Metric\nCASE [Select Metric Parameter]\n    WHEN \"Sales\" THEN SUM([Sales])\n    WHEN \"Profit\" THEN SUM([Profit])\n    WHEN \"Quantity\" THEN SUM([Quantity])\n    WHEN \"Avg Order Value\" THEN AVG([Order Value])\nEND\n\n// Growth Rate Parameter for Projections\nParameter: Growth Rate (Float, Range 0-0.5, Default 0.1)\n\nCalculated Field: Projected Sales\nSUM([Sales]) * (1 + [Growth Rate Parameter])\n```\n\n### Scenario Analysis\n**What-If Modeling:**\n\n```tableau\n// Price Elasticity Scenario\nParameter: Price Change % (Float, -50% to +50%)\n\nCalculated Field: New Price\n[Current Price] * (1 + [Price Change %])\n\nCalculated Field: Projected Demand\n// Assuming elasticity of -1.5\n[Current Demand] * POWER(\n    (1 + [Price Change %]),\n    -1.5\n)\n\nCalculated Field: Projected Revenue\n[New Price] * [Projected Demand]\n\n// Staffing Scenario\nParameter: Additional Staff (Integer, 0-50)\n\nCalculated Field: Total Staff\n[Current Staff] + [Additional Staff]\n\nCalculated Field: Projected Capac",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/tableau_expertise.md",
+      "file_name": "tableau_expertise.md",
+      "chunk_index": 22
+    },
+    "id": "tejuu_64"
+  },
+  {
+    "text": "New Price] * [Projected Demand]\n\n// Staffing Scenario\nParameter: Additional Staff (Integer, 0-50)\n\nCalculated Field: Total Staff\n[Current Staff] + [Additional Staff]\n\nCalculated Field: Projected Capacity\n[Total Staff] * [Productivity per Staff]\n\nCalculated Field: Projected Cost\n([Current Staff] * [Current Wage]) + \n([Additional Staff] * [New Hire Wage])\n\n// Budget Allocation Scenario\nParameter: Marketing % (Float, 0-1)\n\nCalculated Field: Marketing Budget\n[Total Budget] * [Marketing % Parameter]\n\nCalculated Field: Operations Budget\n[Total Budget] * (1 - [Marketing % Parameter])\n```\n\n## Data Blending and Relationships\n\n### Cross-Database Joins\n**My Approach at CVS Health:**\n\n```\nPrimary Data Source: SQL Server (Sales Data)\nSecondary Data Source: Excel (Target Data)\n\nBlending Strategy:\n1. Define relationships on common fields\n2. Use primary data source for main viz\n3. Bring in secondary data as needed\n4. Aggregate appropriately to avoid duplication\n\nExample:\n- Primary: fact_sales (Order D",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/tableau_expertise.md",
+      "file_name": "tableau_expertise.md",
+      "chunk_index": 23
+    },
+    "id": "tejuu_65"
+  },
+  {
+    "text": "ine relationships on common fields\n2. Use primary data source for main viz\n3. Bring in secondary data as needed\n4. Aggregate appropriately to avoid duplication\n\nExample:\n- Primary: fact_sales (Order Date, Product ID, Sales)\n- Secondary: targets (Month, Product ID, Target)\n- Relationship: Product ID\n- Calculation: Actual vs Target %\n```\n\n### Data Source Filters\n**Performance Optimization:**\n\n```tableau\n// Extract Filters\n1. Date Range: Last 2 years only\n2. Status: Exclude \"Cancelled\" orders\n3. Amount: > $0\n\n// Context Filters\n- Region (if analyzing specific region)\n- Date Range (before other filters)\n\n// Data Source Filters\n- Exclude test data\n- Filter out inactive records\n- Remove PII if not needed\n```\n\n## Dashboard Performance Optimization\n\n### Tejuu's Performance Checklist\n**What I Do to Speed Up Dashboards:**\n\n```\n1. Data Source Optimization:\n   - Use extracts instead of live connections\n   - Filter data at source\n   - Aggregate data when possible\n   - Remove unused fields\n   - Use ",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/tableau_expertise.md",
+      "file_name": "tableau_expertise.md",
+      "chunk_index": 24
+    },
+    "id": "tejuu_66"
+  },
+  {
+    "text": " Speed Up Dashboards:**\n\n```\n1. Data Source Optimization:\n   - Use extracts instead of live connections\n   - Filter data at source\n   - Aggregate data when possible\n   - Remove unused fields\n   - Use appropriate data types\n\n2. Calculation Optimization:\n   - Avoid complex calculations in viz\n   - Use table calcs instead of row-level calcs\n   - Materialize calculations in extract\n   - Use FIXED LODs sparingly\n   - Avoid nested LODs\n\n3. Visual Optimization:\n   - Limit number of marks (< 10K per sheet)\n   - Use aggregated data\n   - Avoid high-cardinality dimensions\n   - Use filters to reduce data\n   - Limit dashboard complexity (< 10 sheets)\n\n4. Dashboard Design:\n   - Use containers efficiently\n   - Minimize dashboard actions\n   - Use sheet-specific filters\n   - Hide unused sheets\n   - Optimize images and logos\n\n5. Extract Optimization:\n   - Schedule refreshes during off-hours\n   - Use incremental refresh\n   - Partition large extracts\n   - Remove historical data if not needed\n```\n\n### Extr",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/tableau_expertise.md",
+      "file_name": "tableau_expertise.md",
+      "chunk_index": 25
+    },
+    "id": "tejuu_67"
+  },
+  {
+    "text": "e images and logos\n\n5. Extract Optimization:\n   - Schedule refreshes during off-hours\n   - Use incremental refresh\n   - Partition large extracts\n   - Remove historical data if not needed\n```\n\n### Extract Refresh Strategies\n**My Implementation:**\n\n```\nFull Refresh:\n- Weekly on Sunday night\n- For dimension tables\n- For small fact tables\n\nIncremental Refresh:\n- Daily for large fact tables\n- Filter: [Date] > MAX([Date]) - 7\n- Keeps last 7 days refreshable\n\nHybrid Approach:\n- Incremental daily (Mon-Sat)\n- Full refresh weekly (Sunday)\n- Ensures data consistency\n```\n\n## Advanced Visualizations\n\n### Custom Chart Types\n**Tejuu's Favorite Advanced Viz:**\n\n```\n1. Waterfall Chart\n   - Show sequential changes\n   - Revenue bridge analysis\n   - Budget variance analysis\n\n2. Bullet Chart\n   - KPI performance vs target\n   - Show good/satisfactory/poor ranges\n   - Compact executive view\n\n3. Funnel Chart\n   - Conversion analysis\n   - Sales pipeline stages\n   - Patient journey analysis\n\n4. Sankey Diagram\n ",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/tableau_expertise.md",
+      "file_name": "tableau_expertise.md",
+      "chunk_index": 26
+    },
+    "id": "tejuu_68"
+  },
+  {
+    "text": "ce vs target\n   - Show good/satisfactory/poor ranges\n   - Compact executive view\n\n3. Funnel Chart\n   - Conversion analysis\n   - Sales pipeline stages\n   - Patient journey analysis\n\n4. Sankey Diagram\n   - Flow analysis\n   - Customer journey\n   - Resource allocation\n\n5. Box and Whisker Plot\n   - Distribution analysis\n   - Outlier detection\n   - Statistical analysis\n\n6. Pareto Chart\n   - 80/20 analysis\n   - Prioritization\n   - ABC analysis\n```\n\n### Custom Shapes and Icons\n**Visual Enhancement:**\n\n```\nCustom Shapes for:\n- Geographic maps (custom territories)\n- Process flow diagrams\n- Organization charts\n- Network diagrams\n\nIcon Usage:\n- KPI indicators (↑ ↓ ■)\n- Status indicators (✓ ✗ ⚠)\n- Category icons\n- Action buttons\n```\n\n## Tableau Server Administration\n\n### Publishing and Permissions\n**My Governance Model:**\n\n```\nFolder Structure:\n/Executive Dashboards\n  - Finance\n  - Operations\n  - Sales\n/Departmental Reports\n  - HR\n  - Marketing\n  - IT\n/Sandbox\n  - Development\n  - Testing\n\nPermissio",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/tableau_expertise.md",
+      "file_name": "tableau_expertise.md",
+      "chunk_index": 27
+    },
+    "id": "tejuu_69"
+  },
+  {
+    "text": " Governance Model:**\n\n```\nFolder Structure:\n/Executive Dashboards\n  - Finance\n  - Operations\n  - Sales\n/Departmental Reports\n  - HR\n  - Marketing\n  - IT\n/Sandbox\n  - Development\n  - Testing\n\nPermission Levels:\n- Viewer: Can view only\n- Interactor: Can view and interact\n- Editor: Can edit and publish\n- Publisher: Full control\n\nRow-Level Security:\n- User filters in data source\n- Dynamic user-based filtering\n- Integration with AD groups\n```\n\n### Monitoring and Maintenance\n**What I Track:**\n\n```\nPerformance Metrics:\n- Dashboard load times\n- Extract refresh duration\n- Failed refreshes\n- User adoption rates\n- Most viewed dashboards\n\nMaintenance Tasks:\n- Weekly: Review failed refreshes\n- Monthly: Clean up unused content\n- Quarterly: Performance audit\n- Annually: User access review\n\nAlerts:\n- Extract refresh failures\n- Dashboard load time > 10s\n- Disk space warnings\n- License usage threshold\n```\n\n## Tableau Prep for ETL\n\n### Data Preparation Workflows\n**Tejuu's Prep Flows:**\n\n```\nCommon Transf",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/tableau_expertise.md",
+      "file_name": "tableau_expertise.md",
+      "chunk_index": 28
+    },
+    "id": "tejuu_70"
+  },
+  {
+    "text": "act refresh failures\n- Dashboard load time > 10s\n- Disk space warnings\n- License usage threshold\n```\n\n## Tableau Prep for ETL\n\n### Data Preparation Workflows\n**Tejuu's Prep Flows:**\n\n```\nCommon Transformations:\n1. Clean Data\n   - Remove nulls\n   - Fix data types\n   - Standardize formats\n   - Remove duplicates\n\n2. Join Data\n   - Left/Right/Inner joins\n   - Union multiple sources\n   - Pivot/Unpivot\n\n3. Aggregate Data\n   - Group by dimensions\n   - Calculate summaries\n   - Create rollups\n\n4. Calculate Fields\n   - Derived columns\n   - Conditional logic\n   - Date calculations\n\n5. Output\n   - Tableau extract (.hyper)\n   - Database table\n   - CSV file\n```\n\n### Prep Best Practices\n**My Workflow Design:**\n\n```\n1. Modular Design\n   - Separate flows for different sources\n   - Reusable cleaning steps\n   - Clear naming conventions\n\n2. Documentation\n   - Add descriptions to steps\n   - Document business logic\n   - Note data quality issues\n\n3. Error Handling\n   - Check for nulls\n   - Validate data type",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/tableau_expertise.md",
+      "file_name": "tableau_expertise.md",
+      "chunk_index": 29
+    },
+    "id": "tejuu_71"
+  },
+  {
+    "text": "  - Clear naming conventions\n\n2. Documentation\n   - Add descriptions to steps\n   - Document business logic\n   - Note data quality issues\n\n3. Error Handling\n   - Check for nulls\n   - Validate data types\n   - Handle edge cases\n   - Log errors\n\n4. Performance\n   - Filter early\n   - Aggregate when possible\n   - Limit row sampling in dev\n   - Optimize joins\n```\n\n## Interview Talking Points\n\n### Technical Achievements\n- Built 30+ Tableau dashboards for healthcare and retail\n- Implemented complex LOD calculations for patient analytics\n- Optimized dashboard performance from 45s to 5s load time\n- Created reusable templates reducing development time by 50%\n- Trained 20+ users on Tableau best practices\n\n### Problem-Solving Examples\n**Performance Issue:**\n\"At Stryker, we had this patient dashboard that was super slow - taking 45 seconds to load. I analyzed it and found we were using live connection to a large database with no filters. I created an extract with appropriate filters, moved some calcu",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/tableau_expertise.md",
+      "file_name": "tableau_expertise.md",
+      "chunk_index": 30
+    },
+    "id": "tejuu_72"
+  },
+  {
+    "text": "t was super slow - taking 45 seconds to load. I analyzed it and found we were using live connection to a large database with no filters. I created an extract with appropriate filters, moved some calculations to the data source, and reduced the number of marks. Got it down to 5 seconds.\"\n\n**Complex Calculation:**\n\"At CVS Health, we needed to calculate patient cohort retention over time. This required LOD expressions to identify first purchase date, then table calculations to track behavior over subsequent months. I broke it down into smaller calculated fields, tested each piece, and documented the logic for the team.\"\n\n### Tools & Technologies\n- **Tableau**: Desktop, Server, Prep, Online\n- **Calculations**: LOD, Table Calcs, Parameters\n- **Data Sources**: SQL Server, Oracle, Excel, CSV\n- **Integration**: Tableau APIs, webhooks, embedded analytics\n- **Administration**: User management, permissions, monitoring\n",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/tableau_expertise.md",
+      "file_name": "tableau_expertise.md",
+      "chunk_index": 31
+    },
+    "id": "tejuu_73"
+  },
+  {
+    "text": "Integration**: Tableau APIs, webhooks, embedded analytics\n- **Administration**: User management, permissions, monitoring\n",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/tableau_expertise.md",
+      "file_name": "tableau_expertise.md",
+      "chunk_index": 32
+    },
+    "id": "tejuu_74"
+  },
+  {
+    "text": "---\ntags: [power-bi, dax, data-modeling, performance, rls, best-practices]\npersona: tejuu\n---\n\n# Advanced Power BI & DAX - Tejuu's Expertise\n\n## Power BI Data Modeling\n\n### Star Schema Design for Healthcare Analytics\n**Tejuu's Implementation at Stryker:**\nSo at Stryker, I designed this comprehensive star schema for our Medicaid and healthcare analytics. The key was understanding the business requirements first - what questions do clinicians, finance, and operations teams need to answer?\n\n**My Star Schema Structure:**\n```\nFact Tables:\n- fact_claims (claim_id, patient_key, provider_key, date_key, claim_amount, paid_amount, denied_amount)\n- fact_patient_visits (visit_id, patient_key, facility_key, date_key, visit_type, duration_minutes, cost)\n- fact_inventory (product_key, warehouse_key, date_key, quantity_on_hand, reorder_level, unit_cost)\n\nDimension Tables:\n- dim_patient (patient_key, patient_id, age_group, gender, state, insurance_type, risk_score)\n- dim_provider (provider_key, provide",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/power_bi_advanced.md",
+      "file_name": "power_bi_advanced.md",
+      "chunk_index": 33
+    },
+    "id": "tejuu_75"
+  },
+  {
+    "text": "_key, quantity_on_hand, reorder_level, unit_cost)\n\nDimension Tables:\n- dim_patient (patient_key, patient_id, age_group, gender, state, insurance_type, risk_score)\n- dim_provider (provider_key, provider_id, provider_name, specialty, network_status, region)\n- dim_facility (facility_key, facility_id, facility_name, facility_type, city, state, bed_count)\n- dim_product (product_key, product_id, product_name, category, subcategory, manufacturer)\n- dim_date (date_key, date, year, quarter, month, week, day_of_week, is_holiday, fiscal_period)\n- dim_insurance (insurance_key, payer_name, plan_type, coverage_level)\n```\n\n**Relationship Best Practices I Follow:**\n```\n1. Always use surrogate keys (integers) for relationships\n2. One-to-many relationships from dimension to fact\n3. Avoid bi-directional relationships (use DAX instead)\n4. Hide foreign keys from report view\n5. Mark date table properly\n6. Use role-playing dimensions sparingly\n```\n\n### Row-Level Security (RLS) Implementation\n**Tejuu's RLS St",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/power_bi_advanced.md",
+      "file_name": "power_bi_advanced.md",
+      "chunk_index": 34
+    },
+    "id": "tejuu_76"
+  },
+  {
+    "text": "tionships (use DAX instead)\n4. Hide foreign keys from report view\n5. Mark date table properly\n6. Use role-playing dimensions sparingly\n```\n\n### Row-Level Security (RLS) Implementation\n**Tejuu's RLS Strategy:**\nSo implementing RLS was critical at Central Bank and Stryker because different users needed access to different data. Here's how I approached it:\n\n**Role-Based Access Example:**\n```dax\n-- Regional Manager Role\n[Region] = USERPRINCIPALNAME()\n\n-- State-Level Access\n[State] IN {\n    LOOKUPVALUE(\n        user_access[State],\n        user_access[Email],\n        USERPRINCIPALNAME()\n    )\n}\n\n-- Dynamic Security with Bridge Table\nVAR UserEmail = USERPRINCIPALNAME()\nVAR UserRegions = \n    CALCULATETABLE(\n        VALUES(security_bridge[Region]),\n        security_bridge[UserEmail] = UserEmail\n    )\nRETURN\n    [Region] IN UserRegions\n\n-- Manager Hierarchy (see your team and below)\nVAR CurrentUser = USERPRINCIPALNAME()\nVAR UserLevel = \n    LOOKUPVALUE(\n        dim_employee[Level],\n        dim_",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/power_bi_advanced.md",
+      "file_name": "power_bi_advanced.md",
+      "chunk_index": 35
+    },
+    "id": "tejuu_77"
+  },
+  {
+    "text": "  )\nRETURN\n    [Region] IN UserRegions\n\n-- Manager Hierarchy (see your team and below)\nVAR CurrentUser = USERPRINCIPALNAME()\nVAR UserLevel = \n    LOOKUPVALUE(\n        dim_employee[Level],\n        dim_employee[Email],\n        CurrentUser\n    )\nRETURN\n    dim_employee[Manager_Email] = CurrentUser ||\n    dim_employee[Email] = CurrentUser\n```\n\n**Testing RLS:**\n```\n1. Create test users in Azure AD\n2. Use \"View as\" feature in Power BI Desktop\n3. Test each role with sample queries\n4. Document expected vs actual results\n5. Validate with actual users before production\n```\n\n## Advanced DAX Patterns\n\n### Time Intelligence Mastery\n**Tejuu's Most-Used Time Intelligence Patterns:**\n\n```dax\n-- Year-to-Date with Fiscal Calendar\nYTD Sales = \nCALCULATE(\n    SUM(fact_sales[Amount]),\n    DATESYTD(\n        dim_date[Date],\n        \"06/30\"  -- Fiscal year ends June 30\n    )\n)\n\n-- Prior Year Same Period\nPY Sales = \nCALCULATE(\n    [Total Sales],\n    SAMEPERIODLASTYEAR(dim_date[Date])\n)\n\n-- Year-over-Year Growt",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/power_bi_advanced.md",
+      "file_name": "power_bi_advanced.md",
+      "chunk_index": 36
+    },
+    "id": "tejuu_78"
+  },
+  {
+    "text": "_date[Date],\n        \"06/30\"  -- Fiscal year ends June 30\n    )\n)\n\n-- Prior Year Same Period\nPY Sales = \nCALCULATE(\n    [Total Sales],\n    SAMEPERIODLASTYEAR(dim_date[Date])\n)\n\n-- Year-over-Year Growth %\nYoY Growth % = \nVAR CurrentPeriod = [Total Sales]\nVAR PriorPeriod = [PY Sales]\nRETURN\n    DIVIDE(\n        CurrentPeriod - PriorPeriod,\n        PriorPeriod,\n        0\n    )\n\n-- Month-to-Date vs Prior Month-to-Date\nMTD vs PMTD = \nVAR MTD = \n    CALCULATE(\n        [Total Sales],\n        DATESMTD(dim_date[Date])\n    )\nVAR PMTD = \n    CALCULATE(\n        [Total Sales],\n        DATESMTD(\n            DATEADD(dim_date[Date], -1, MONTH)\n        )\n    )\nRETURN\n    MTD - PMTD\n\n-- Rolling 12 Months\nRolling 12M Sales = \nCALCULATE(\n    [Total Sales],\n    DATESINPERIOD(\n        dim_date[Date],\n        LASTDATE(dim_date[Date]),\n        -12,\n        MONTH\n    )\n)\n\n-- Same Period Last Year with Date Table\nSPLY Sales = \nCALCULATE(\n    [Total Sales],\n    DATEADD(dim_date[Date], -1, YEAR)\n)\n```\n\n### Complex",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/power_bi_advanced.md",
+      "file_name": "power_bi_advanced.md",
+      "chunk_index": 37
+    },
+    "id": "tejuu_79"
+  },
+  {
+    "text": "TDATE(dim_date[Date]),\n        -12,\n        MONTH\n    )\n)\n\n-- Same Period Last Year with Date Table\nSPLY Sales = \nCALCULATE(\n    [Total Sales],\n    DATEADD(dim_date[Date], -1, YEAR)\n)\n```\n\n### Complex Calculated Columns vs Measures\n**When I Use Each:**\n\n**Calculated Columns (Stored in Model):**\n```dax\n-- Age Group (Calculated Column)\nAge Group = \nSWITCH(\n    TRUE(),\n    dim_patient[Age] < 18, \"Pediatric\",\n    dim_patient[Age] < 65, \"Adult\",\n    \"Senior\"\n)\n\n-- Days Since Last Visit (Calculated Column)\nDays Since Last Visit = \nDATEDIFF(\n    dim_patient[Last_Visit_Date],\n    TODAY(),\n    DAY\n)\n\n-- Full Name (Calculated Column)\nFull Name = \ndim_patient[First_Name] & \" \" & dim_patient[Last_Name]\n```\n\n**Measures (Calculated at Query Time):**\n```dax\n-- Total Claims (Measure)\nTotal Claims = \nSUM(fact_claims[Claim_Amount])\n\n-- Average Claim Amount (Measure)\nAvg Claim Amount = \nAVERAGE(fact_claims[Claim_Amount])\n\n-- Distinct Patient Count (Measure)\nPatient Count = \nDISTINCTCOUNT(fact_claims[Pati",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/power_bi_advanced.md",
+      "file_name": "power_bi_advanced.md",
+      "chunk_index": 38
+    },
+    "id": "tejuu_80"
+  },
+  {
+    "text": "act_claims[Claim_Amount])\n\n-- Average Claim Amount (Measure)\nAvg Claim Amount = \nAVERAGE(fact_claims[Claim_Amount])\n\n-- Distinct Patient Count (Measure)\nPatient Count = \nDISTINCTCOUNT(fact_claims[Patient_Key])\n\n-- Claim Approval Rate (Measure)\nApproval Rate = \nDIVIDE(\n    CALCULATE([Total Claims], fact_claims[Status] = \"Approved\"),\n    [Total Claims],\n    0\n)\n```\n\n### Advanced DAX for Healthcare Analytics\n**Tejuu's Medicaid Analytics at Stryker:**\n\n```dax\n-- Patient Risk Score\nPatient Risk Score = \nVAR PatientVisits = \n    CALCULATE(\n        COUNTROWS(fact_patient_visits),\n        ALLEXCEPT(fact_patient_visits, fact_patient_visits[Patient_Key])\n    )\nVAR ChronicConditions = \n    CALCULATE(\n        DISTINCTCOUNT(fact_diagnosis[Condition_Code]),\n        fact_diagnosis[Is_Chronic] = TRUE()\n    )\nVAR HighCostFlag = \n    IF(\n        CALCULATE(\n            SUM(fact_claims[Paid_Amount]),\n            ALLEXCEPT(fact_claims, fact_claims[Patient_Key])\n        ) > 50000,\n        1,\n        0\n    )",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/power_bi_advanced.md",
+      "file_name": "power_bi_advanced.md",
+      "chunk_index": 39
+    },
+    "id": "tejuu_81"
+  },
+  {
+    "text": "  )\nVAR HighCostFlag = \n    IF(\n        CALCULATE(\n            SUM(fact_claims[Paid_Amount]),\n            ALLEXCEPT(fact_claims, fact_claims[Patient_Key])\n        ) > 50000,\n        1,\n        0\n    )\nRETURN\n    (PatientVisits * 0.3) + \n    (ChronicConditions * 0.5) + \n    (HighCostFlag * 0.2)\n\n-- Readmission Rate (30-day)\n30-Day Readmission Rate = \nVAR ReadmissionWindow = 30\nVAR Readmissions = \n    CALCULATE(\n        COUNTROWS(fact_patient_visits),\n        FILTER(\n            fact_patient_visits,\n            VAR CurrentVisitDate = fact_patient_visits[Visit_Date]\n            VAR PatientKey = fact_patient_visits[Patient_Key]\n            VAR PriorVisit = \n                CALCULATE(\n                    MAX(fact_patient_visits[Visit_Date]),\n                    ALLEXCEPT(fact_patient_visits, fact_patient_visits[Patient_Key]),\n                    fact_patient_visits[Visit_Date] < CurrentVisitDate\n                )\n            RETURN\n                DATEDIFF(PriorVisit, CurrentVisitDate, DAY)",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/power_bi_advanced.md",
+      "file_name": "power_bi_advanced.md",
+      "chunk_index": 40
+    },
+    "id": "tejuu_82"
+  },
+  {
+    "text": "ct_patient_visits[Patient_Key]),\n                    fact_patient_visits[Visit_Date] < CurrentVisitDate\n                )\n            RETURN\n                DATEDIFF(PriorVisit, CurrentVisitDate, DAY) <= ReadmissionWindow\n        )\n    )\nVAR TotalVisits = COUNTROWS(fact_patient_visits)\nRETURN\n    DIVIDE(Readmissions, TotalVisits, 0)\n\n-- Cost per Member per Month (PMPM)\nPMPM = \nVAR TotalCost = SUM(fact_claims[Paid_Amount])\nVAR MemberMonths = \n    SUMX(\n        VALUES(dim_patient[Patient_Key]),\n        CALCULATE(\n            DISTINCTCOUNT(dim_date[Month_Year])\n        )\n    )\nRETURN\n    DIVIDE(TotalCost, MemberMonths, 0)\n\n-- Length of Stay Analysis\nAvg Length of Stay = \nAVERAGEX(\n    fact_patient_visits,\n    DATEDIFF(\n        fact_patient_visits[Admission_Date],\n        fact_patient_visits[Discharge_Date],\n        DAY\n    )\n)\n\n-- Case Mix Index\nCase Mix Index = \nAVERAGEX(\n    VALUES(fact_patient_visits[Visit_ID]),\n    RELATED(dim_drg[Relative_Weight])\n)\n```\n\n### Performance Optimization ",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/power_bi_advanced.md",
+      "file_name": "power_bi_advanced.md",
+      "chunk_index": 41
+    },
+    "id": "tejuu_83"
+  },
+  {
+    "text": "ischarge_Date],\n        DAY\n    )\n)\n\n-- Case Mix Index\nCase Mix Index = \nAVERAGEX(\n    VALUES(fact_patient_visits[Visit_ID]),\n    RELATED(dim_drg[Relative_Weight])\n)\n```\n\n### Performance Optimization Techniques\n**My DAX Optimization Rules:**\n\n```dax\n-- BEFORE: Slow (multiple context transitions)\nSlow Measure = \nSUMX(\n    fact_sales,\n    fact_sales[Quantity] * \n    RELATED(dim_product[Unit_Price])\n)\n\n-- AFTER: Fast (calculated column or import both fields)\nFast Measure = \nSUM(fact_sales[Line_Total])\n\n-- BEFORE: Slow (row context in measure)\nSlow Customer Count = \nCOUNTROWS(\n    FILTER(\n        dim_customer,\n        CALCULATE(SUM(fact_sales[Amount])) > 1000\n    )\n)\n\n-- AFTER: Fast (use CALCULATETABLE)\nFast Customer Count = \nCOUNTROWS(\n    CALCULATETABLE(\n        VALUES(dim_customer[Customer_Key]),\n        fact_sales[Amount] > 1000\n    )\n)\n\n-- Use Variables to Avoid Recalculation\nOptimized Measure = \nVAR TotalSales = SUM(fact_sales[Amount])\nVAR TotalCost = SUM(fact_sales[Cost])\nVAR Margin",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/power_bi_advanced.md",
+      "file_name": "power_bi_advanced.md",
+      "chunk_index": 42
+    },
+    "id": "tejuu_84"
+  },
+  {
+    "text": "Key]),\n        fact_sales[Amount] > 1000\n    )\n)\n\n-- Use Variables to Avoid Recalculation\nOptimized Measure = \nVAR TotalSales = SUM(fact_sales[Amount])\nVAR TotalCost = SUM(fact_sales[Cost])\nVAR Margin = TotalSales - TotalCost\nVAR MarginPct = DIVIDE(Margin, TotalSales, 0)\nRETURN\n    IF(MarginPct > 0.3, \"High\", \"Low\")\n```\n\n## Power BI Performance Tuning\n\n### Query Performance Optimization\n**Tejuu's Optimization Checklist:**\n\n```\n1. Data Model Optimization:\n   - Remove unused columns and tables\n   - Use integer keys instead of text\n   - Disable auto date/time hierarchy\n   - Use appropriate data types\n   - Avoid calculated columns when possible\n\n2. DAX Optimization:\n   - Use variables to store intermediate results\n   - Avoid row context in measures\n   - Use TREATAS instead of FILTER when possible\n   - Minimize use of CALCULATE\n   - Use SELECTEDVALUE instead of VALUES + HASONEVALUE\n\n3. Visual Optimization:\n   - Limit visuals per page (max 10-15)\n   - Use bookmarks for different views\n   - A",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/power_bi_advanced.md",
+      "file_name": "power_bi_advanced.md",
+      "chunk_index": 43
+    },
+    "id": "tejuu_85"
+  },
+  {
+    "text": "ble\n   - Minimize use of CALCULATE\n   - Use SELECTEDVALUE instead of VALUES + HASONEVALUE\n\n3. Visual Optimization:\n   - Limit visuals per page (max 10-15)\n   - Use bookmarks for different views\n   - Avoid high-cardinality fields in visuals\n   - Use aggregated data when possible\n   - Implement drill-through instead of showing all detail\n\n4. Data Refresh Optimization:\n   - Use incremental refresh for large tables\n   - Partition large tables by date\n   - Schedule refreshes during off-peak hours\n   - Use dataflows for common transformations\n```\n\n### Incremental Refresh Configuration\n**My Implementation at Stryker:**\n\n```\n1. Create RangeStart and RangeEnd parameters (Date/Time type)\n2. Filter source data:\n   = Table.SelectRows(Source, \n       each [Date] >= RangeStart and [Date] < RangeEnd)\n3. Configure incremental refresh policy:\n   - Archive data: 5 years\n   - Incremental refresh: 10 days\n   - Detect data changes: Yes\n   - Only refresh complete days: Yes\n```\n\n## Advanced Visualizations\n\n#",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/power_bi_advanced.md",
+      "file_name": "power_bi_advanced.md",
+      "chunk_index": 44
+    },
+    "id": "tejuu_86"
+  },
+  {
+    "text": "Configure incremental refresh policy:\n   - Archive data: 5 years\n   - Incremental refresh: 10 days\n   - Detect data changes: Yes\n   - Only refresh complete days: Yes\n```\n\n## Advanced Visualizations\n\n### Custom Visuals I Use\n**Tejuu's Favorite Custom Visuals:**\n\n```\n1. Zebra BI Tables - For variance analysis\n2. Drill Down Donut PRO - For hierarchical data\n3. Chiclet Slicer - For better filter experience\n4. Power KPI - For executive dashboards\n5. Sankey Diagram - For flow analysis\n6. Box and Whisker - For distribution analysis\n```\n\n### Conditional Formatting Patterns\n**My Advanced Formatting Techniques:**\n\n```dax\n-- Color Scale Based on Performance\nColor Measure = \nVAR Performance = [Actual] / [Target]\nRETURN\n    SWITCH(\n        TRUE(),\n        Performance >= 1.1, \"#00B050\",  -- Green\n        Performance >= 0.9, \"#FFC000\",  -- Yellow\n        \"#FF0000\"                        -- Red\n    )\n\n-- Icon Set Based on Trend\nTrend Icon = \nVAR CurrentMonth = [Sales This Month]\nVAR PriorMonth = [Sale",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/power_bi_advanced.md",
+      "file_name": "power_bi_advanced.md",
+      "chunk_index": 45
+    },
+    "id": "tejuu_87"
+  },
+  {
+    "text": "  Performance >= 0.9, \"#FFC000\",  -- Yellow\n        \"#FF0000\"                        -- Red\n    )\n\n-- Icon Set Based on Trend\nTrend Icon = \nVAR CurrentMonth = [Sales This Month]\nVAR PriorMonth = [Sales Last Month]\nVAR Change = DIVIDE(CurrentMonth - PriorMonth, PriorMonth, 0)\nRETURN\n    SWITCH(\n        TRUE(),\n        Change > 0.05, \"▲\",\n        Change < -0.05, \"▼\",\n        \"■\"\n    )\n\n-- Data Bars with Conditional Logic\nData Bar Value = \nVAR MaxValue = \n    CALCULATE(\n        MAX(fact_sales[Amount]),\n        ALLSELECTED(dim_product[Product_Name])\n    )\nVAR CurrentValue = SUM(fact_sales[Amount])\nRETURN\n    DIVIDE(CurrentValue, MaxValue, 0)\n```\n\n## Power BI Deployment & ALM\n\n### Application Lifecycle Management\n**Tejuu's ALM Strategy:**\n\n```\nDevelopment → Test → Production Pipeline\n\n1. Development Workspace:\n   - Individual developer workspaces\n   - Connect to Dev database\n   - Rapid iteration and testing\n   - Git integration for version control\n\n2. Test Workspace:\n   - Shared team worksp",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/power_bi_advanced.md",
+      "file_name": "power_bi_advanced.md",
+      "chunk_index": 46
+    },
+    "id": "tejuu_88"
+  },
+  {
+    "text": "pment Workspace:\n   - Individual developer workspaces\n   - Connect to Dev database\n   - Rapid iteration and testing\n   - Git integration for version control\n\n2. Test Workspace:\n   - Shared team workspace\n   - Connect to Test database\n   - UAT with business users\n   - Performance testing\n\n3. Production Workspace:\n   - Premium capacity\n   - Connect to Prod database\n   - Scheduled refreshes\n   - Monitoring and alerts\n\nDeployment Process:\n1. Export .pbix from Dev\n2. Update data source to Test\n3. Publish to Test workspace\n4. UAT sign-off\n5. Export from Test\n6. Update data source to Prod\n7. Publish to Prod workspace\n8. Configure refresh schedule\n9. Set up monitoring\n```\n\n### Version Control with Git\n**My Git Workflow:**\n\n```bash\n# Save Power BI file as PBIX\n# Use external tools to extract PBIT\n\n# Git workflow\ngit checkout -b feature/new-dashboard\n# Make changes in Power BI\ngit add .\ngit commit -m \"Add sales performance dashboard\"\ngit push origin feature/new-dashboard\n# Create pull request\n# ",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/power_bi_advanced.md",
+      "file_name": "power_bi_advanced.md",
+      "chunk_index": 47
+    },
+    "id": "tejuu_89"
+  },
+  {
+    "text": "# Git workflow\ngit checkout -b feature/new-dashboard\n# Make changes in Power BI\ngit add .\ngit commit -m \"Add sales performance dashboard\"\ngit push origin feature/new-dashboard\n# Create pull request\n# Code review\n# Merge to main\n```\n\n### Deployment Pipelines\n**Configuration:**\n\n```\nPipeline Stages:\n1. Development\n   - Auto-deploy on commit to dev branch\n   - Run data quality tests\n   - Generate documentation\n\n2. Test\n   - Deploy on PR approval\n   - Run regression tests\n   - UAT validation\n\n3. Production\n   - Manual approval required\n   - Deploy during maintenance window\n   - Backup before deployment\n   - Rollback plan ready\n```\n\n## Power BI Best Practices\n\n### Naming Conventions\n**My Standard Naming:**\n\n```\nTables:\n- fact_sales, fact_claims, fact_inventory\n- dim_customer, dim_product, dim_date\n\nMeasures:\n- Total Sales, Avg Order Value, YTD Revenue\n- Use spaces, title case\n- Group related measures in folders\n\nColumns:\n- Use snake_case or PascalCase consistently\n- Prefix calculated column",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/power_bi_advanced.md",
+      "file_name": "power_bi_advanced.md",
+      "chunk_index": 48
+    },
+    "id": "tejuu_90"
+  },
+  {
+    "text": "ate\n\nMeasures:\n- Total Sales, Avg Order Value, YTD Revenue\n- Use spaces, title case\n- Group related measures in folders\n\nColumns:\n- Use snake_case or PascalCase consistently\n- Prefix calculated columns with \"calc_\"\n- Hide foreign keys\n\nRelationships:\n- Always name relationships descriptively\n- Document complex relationships\n```\n\n### Documentation Standards\n**What I Document:**\n\n```markdown\n# Dashboard Documentation\n\n## Purpose\nExecutive sales performance dashboard for regional managers\n\n## Data Sources\n- Azure SQL: sales_db.fact_sales\n- Refresh: Daily at 6 AM EST\n- Latency: T-1 day\n\n## Key Metrics\n- Total Sales: SUM of fact_sales[Amount]\n- YoY Growth: (Current - Prior Year) / Prior Year\n- Target Attainment: Actual / Target\n\n## Filters\n- Date Range: Last 12 months default\n- Region: Multi-select\n- Product Category: Single select\n\n## Row-Level Security\n- Regional managers see their region only\n- VPs see all regions\n- Executives see all data\n\n## Known Issues\n- Data quality issue with Regio",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/power_bi_advanced.md",
+      "file_name": "power_bi_advanced.md",
+      "chunk_index": 49
+    },
+    "id": "tejuu_91"
+  },
+  {
+    "text": "lect\n- Product Category: Single select\n\n## Row-Level Security\n- Regional managers see their region only\n- VPs see all regions\n- Executives see all data\n\n## Known Issues\n- Data quality issue with Region \"Unknown\" - investigating\n- Slow performance on Product Detail page - optimization in progress\n\n## Change Log\n- 2024-01-15: Added YoY comparison\n- 2024-01-10: Initial release\n```\n\n## Interview Talking Points\n\n### Technical Achievements\n- Built 50+ Power BI dashboards serving 200+ users\n- Implemented RLS for 10+ different security roles\n- Optimized DAX reducing query time from 30s to 3s\n- Designed star schemas for healthcare and sales analytics\n- Achieved 99% dashboard uptime in production\n\n### Problem-Solving Examples\n**Performance Issue:**\n\"At Stryker, we had this dashboard that was taking 30 seconds to load. I analyzed the DAX and found we were using calculated columns in measures, causing multiple context transitions. I refactored the measures to use variables and proper filter contex",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/power_bi_advanced.md",
+      "file_name": "power_bi_advanced.md",
+      "chunk_index": 50
+    },
+    "id": "tejuu_92"
+  },
+  {
+    "text": "30 seconds to load. I analyzed the DAX and found we were using calculated columns in measures, causing multiple context transitions. I refactored the measures to use variables and proper filter context, and got the load time down to 3 seconds.\"\n\n**Complex Business Logic:**\n\"At Central Bank, finance needed a complex calculation for regulatory reporting. It involved multiple date ranges, conditional logic, and aggregations across different grain levels. I broke it down into smaller measures, used variables for readability, and documented each step. The final measure was accurate and performant.\"\n\n### Tools & Technologies\n- **Power BI**: Desktop, Service, Premium, Embedded, Report Server\n- **DAX**: Advanced patterns, optimization, debugging\n- **Power Query**: M language, custom functions, data transformation\n- **Azure**: Synapse, Data Factory, SQL Database\n- **Version Control**: Git, Azure DevOps\n- **ALM**: Deployment pipelines, testing, documentation\n",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/power_bi_advanced.md",
+      "file_name": "power_bi_advanced.md",
+      "chunk_index": 51
+    },
+    "id": "tejuu_93"
+  },
+  {
+    "text": "a transformation\n- **Azure**: Synapse, Data Factory, SQL Database\n- **Version Control**: Git, Azure DevOps\n- **ALM**: Deployment pipelines, testing, documentation\n",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_intelligence/power_bi_advanced.md",
+      "file_name": "power_bi_advanced.md",
+      "chunk_index": 52
+    },
+    "id": "tejuu_94"
+  },
+  {
+    "text": "---\ntags: [business-analyst, requirements-gathering, stakeholder-management, documentation, process-improvement]\npersona: ba\n---\n\n# Business Analyst Core Skills & Tejuu's Experience\n\n## Requirements Gathering and Analysis\n\n### Stakeholder Interviews and Workshops\n**Tejuu's Approach:**\nSo in my role as a Business Analyst, I've conducted hundreds of stakeholder interviews and workshops. What I found works best is starting with open-ended questions to understand the business problem before diving into solutions.\n\nFor example, at my previous company, we had a project where the sales team wanted a new reporting dashboard. Instead of just asking what reports they needed, I spent time understanding their daily workflows, pain points, and what decisions they were trying to make. This helped me uncover that they actually needed real-time alerts, not just another dashboard.\n\n**My Interview Technique:**\n```\nPreparation Phase:\n- Research the stakeholder's role and department\n- Review existing docu",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/ba_core_skills.md",
+      "file_name": "ba_core_skills.md",
+      "chunk_index": 53
+    },
+    "id": "tejuu_95"
+  },
+  {
+    "text": "over that they actually needed real-time alerts, not just another dashboard.\n\n**My Interview Technique:**\n```\nPreparation Phase:\n- Research the stakeholder's role and department\n- Review existing documentation and processes\n- Prepare open-ended questions\n- Set clear meeting objectives\n\nDuring the Interview:\n- Start with business context: \"Walk me through your typical day\"\n- Ask \"why\" questions: \"Why is this important to you?\"\n- Use active listening and take detailed notes\n- Clarify assumptions: \"So what I'm hearing is...\"\n- Ask about pain points: \"What frustrates you most about the current process?\"\n\nFollow-up:\n- Send meeting notes within 24 hours\n- Confirm understanding of key points\n- Identify any gaps or follow-up questions\n```\n\n### Requirements Documentation\n**Tejuu's Documentation Standards:**\nI've learned that good documentation is the foundation of successful projects. Here's how I structure my requirements documents:\n\n**Business Requirements Document (BRD) Template:**\n```\n1. Ex",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/ba_core_skills.md",
+      "file_name": "ba_core_skills.md",
+      "chunk_index": 54
+    },
+    "id": "tejuu_96"
+  },
+  {
+    "text": "ndards:**\nI've learned that good documentation is the foundation of successful projects. Here's how I structure my requirements documents:\n\n**Business Requirements Document (BRD) Template:**\n```\n1. Executive Summary\n   - Project overview (2-3 paragraphs)\n   - Business objectives\n   - Expected benefits and ROI\n\n2. Current State Analysis\n   - As-Is process flows\n   - Pain points and challenges\n   - Current system limitations\n\n3. Future State Vision\n   - To-Be process flows\n   - Expected improvements\n   - Success metrics\n\n4. Functional Requirements\n   - User stories with acceptance criteria\n   - Business rules\n   - Data requirements\n\n5. Non-Functional Requirements\n   - Performance requirements\n   - Security and compliance\n   - Usability standards\n\n6. Assumptions and Constraints\n7. Dependencies and Risks\n8. Approval and Sign-off\n```\n\n**User Story Format I Use:**\n```\nAs a [role], I want to [action] so that [benefit].\n\nAcceptance Criteria:\n- Given [context]\n- When [action]\n- Then [expected r",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/ba_core_skills.md",
+      "file_name": "ba_core_skills.md",
+      "chunk_index": 55
+    },
+    "id": "tejuu_97"
+  },
+  {
+    "text": "s and Risks\n8. Approval and Sign-off\n```\n\n**User Story Format I Use:**\n```\nAs a [role], I want to [action] so that [benefit].\n\nAcceptance Criteria:\n- Given [context]\n- When [action]\n- Then [expected result]\n\nExample:\nAs a Sales Manager, I want to view real-time sales performance by region \nso that I can identify underperforming areas and take immediate action.\n\nAcceptance Criteria:\n- Given I am logged into the dashboard\n- When I select a specific date range\n- Then I see sales data grouped by region with YoY comparison\n- And I can drill down to individual sales rep performance\n```\n\n## Process Mapping and Improvement\n\n### Creating Process Flow Diagrams\n**Tejuu's Process Mapping Experience:**\nOne of my key strengths is visualizing complex business processes. I use tools like Visio, Lucidchart, and Miro to create process maps that everyone can understand.\n\n**My Process Mapping Approach:**\n```\nStep 1: Identify Process Boundaries\n- Where does the process start?\n- Where does it end?\n- What tr",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/ba_core_skills.md",
+      "file_name": "ba_core_skills.md",
+      "chunk_index": 56
+    },
+    "id": "tejuu_98"
+  },
+  {
+    "text": ", and Miro to create process maps that everyone can understand.\n\n**My Process Mapping Approach:**\n```\nStep 1: Identify Process Boundaries\n- Where does the process start?\n- Where does it end?\n- What triggers the process?\n\nStep 2: Map Current State (As-Is)\n- Interview process owners\n- Shadow users performing the process\n- Document every step, decision point, and handoff\n- Identify pain points and bottlenecks\n\nStep 3: Analyze and Identify Improvements\n- Look for redundant steps\n- Identify manual tasks that could be automated\n- Find bottlenecks causing delays\n- Spot quality issues or error-prone steps\n\nStep 4: Design Future State (To-Be)\n- Eliminate unnecessary steps\n- Automate manual processes\n- Streamline handoffs\n- Add quality checks where needed\n\nStep 5: Calculate Impact\n- Time savings\n- Cost reduction\n- Error reduction\n- Customer satisfaction improvement\n```\n\n**Real Example - Order Processing Improvement:**\n```\nAs-Is Process (12 steps, 45 minutes average):\n1. Customer calls to place o",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/ba_core_skills.md",
+      "file_name": "ba_core_skills.md",
+      "chunk_index": 57
+    },
+    "id": "tejuu_99"
+  },
+  {
+    "text": "ost reduction\n- Error reduction\n- Customer satisfaction improvement\n```\n\n**Real Example - Order Processing Improvement:**\n```\nAs-Is Process (12 steps, 45 minutes average):\n1. Customer calls to place order\n2. Sales rep manually enters order in Excel\n3. Sales rep emails order to inventory team\n4. Inventory team checks stock manually\n5. Inventory team emails back availability\n6. Sales rep calls customer to confirm\n7. Sales rep enters order in ERP system\n8. Finance team manually creates invoice\n9. Finance emails invoice to customer\n10. Warehouse receives printed order form\n11. Warehouse picks and packs order\n12. Shipping updates tracking manually\n\nTo-Be Process (6 steps, 15 minutes average):\n1. Customer places order through web portal\n2. System automatically checks inventory\n3. System confirms order and sends confirmation email\n4. ERP system auto-generates invoice\n5. Warehouse receives digital order notification\n6. System auto-updates tracking information\n\nImpact:\n- 67% time reduction (45 ",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/ba_core_skills.md",
+      "file_name": "ba_core_skills.md",
+      "chunk_index": 58
+    },
+    "id": "tejuu_100"
+  },
+  {
+    "text": " order and sends confirmation email\n4. ERP system auto-generates invoice\n5. Warehouse receives digital order notification\n6. System auto-updates tracking information\n\nImpact:\n- 67% time reduction (45 min → 15 min)\n- 90% fewer errors (manual entry eliminated)\n- $50K annual cost savings\n- Improved customer satisfaction (instant confirmation)\n```\n\n## Data Analysis and Reporting\n\n### SQL for Business Analysis\n**Tejuu's SQL Skills:**\nAs a Business Analyst, I use SQL daily to extract insights from databases. Here are some common queries I run:\n\n**Sales Performance Analysis:**\n```sql\n-- Monthly sales trend with year-over-year comparison\nSELECT \n    DATE_TRUNC('month', order_date) as month,\n    SUM(order_amount) as current_year_sales,\n    LAG(SUM(order_amount), 12) OVER (ORDER BY DATE_TRUNC('month', order_date)) as previous_year_sales,\n    ROUND(((SUM(order_amount) - LAG(SUM(order_amount), 12) OVER (ORDER BY DATE_TRUNC('month', order_date))) \n           / LAG(SUM(order_amount), 12) OVER (ORDER",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/ba_core_skills.md",
+      "file_name": "ba_core_skills.md",
+      "chunk_index": 59
+    },
+    "id": "tejuu_101"
+  },
+  {
+    "text": "', order_date)) as previous_year_sales,\n    ROUND(((SUM(order_amount) - LAG(SUM(order_amount), 12) OVER (ORDER BY DATE_TRUNC('month', order_date))) \n           / LAG(SUM(order_amount), 12) OVER (ORDER BY DATE_TRUNC('month', order_date))) * 100, 2) as yoy_growth_pct\nFROM orders\nWHERE order_date >= CURRENT_DATE - INTERVAL '2 years'\nGROUP BY DATE_TRUNC('month', order_date)\nORDER BY month;\n```\n\n**Customer Segmentation:**\n```sql\n-- RFM analysis for customer segmentation\nWITH customer_metrics AS (\n    SELECT \n        customer_id,\n        MAX(order_date) as last_order_date,\n        COUNT(DISTINCT order_id) as order_count,\n        SUM(order_amount) as total_spent\n    FROM orders\n    WHERE order_date >= CURRENT_DATE - INTERVAL '1 year'\n    GROUP BY customer_id\n),\nrfm_scores AS (\n    SELECT \n        customer_id,\n        DATEDIFF(CURRENT_DATE, last_order_date) as recency_days,\n        order_count as frequency,\n        total_spent as monetary,\n        NTILE(5) OVER (ORDER BY DATEDIFF(CURRENT_DATE,",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/ba_core_skills.md",
+      "file_name": "ba_core_skills.md",
+      "chunk_index": 60
+    },
+    "id": "tejuu_102"
+  },
+  {
+    "text": " customer_id,\n        DATEDIFF(CURRENT_DATE, last_order_date) as recency_days,\n        order_count as frequency,\n        total_spent as monetary,\n        NTILE(5) OVER (ORDER BY DATEDIFF(CURRENT_DATE, last_order_date) DESC) as recency_score,\n        NTILE(5) OVER (ORDER BY order_count) as frequency_score,\n        NTILE(5) OVER (ORDER BY total_spent) as monetary_score\n    FROM customer_metrics\n)\nSELECT \n    customer_id,\n    recency_days,\n    frequency,\n    monetary,\n    CASE \n        WHEN recency_score >= 4 AND frequency_score >= 4 THEN 'Champions'\n        WHEN recency_score >= 3 AND frequency_score >= 3 THEN 'Loyal Customers'\n        WHEN recency_score >= 4 AND frequency_score <= 2 THEN 'Promising'\n        WHEN recency_score <= 2 AND frequency_score >= 3 THEN 'At Risk'\n        WHEN recency_score <= 2 AND frequency_score <= 2 THEN 'Lost'\n        ELSE 'Others'\n    END as customer_segment\nFROM rfm_scores;\n```\n\n**Product Performance:**\n```sql\n-- Top performing products with contribution an",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/ba_core_skills.md",
+      "file_name": "ba_core_skills.md",
+      "chunk_index": 61
+    },
+    "id": "tejuu_103"
+  },
+  {
+    "text": "_score <= 2 AND frequency_score <= 2 THEN 'Lost'\n        ELSE 'Others'\n    END as customer_segment\nFROM rfm_scores;\n```\n\n**Product Performance:**\n```sql\n-- Top performing products with contribution analysis\nSELECT \n    product_name,\n    SUM(quantity_sold) as total_quantity,\n    SUM(revenue) as total_revenue,\n    ROUND(SUM(revenue) * 100.0 / SUM(SUM(revenue)) OVER (), 2) as revenue_contribution_pct,\n    ROUND(SUM(SUM(revenue)) OVER (ORDER BY SUM(revenue) DESC) * 100.0 / SUM(SUM(revenue)) OVER (), 2) as cumulative_pct\nFROM sales\nWHERE sale_date >= CURRENT_DATE - INTERVAL '90 days'\nGROUP BY product_name\nORDER BY total_revenue DESC\nLIMIT 20;\n```\n\n## Stakeholder Management\n\n### Communication Strategies\n**Tejuu's Stakeholder Management:**\nManaging different stakeholders with different priorities is one of the biggest challenges. Here's what I've learned:\n\n**Stakeholder Analysis Matrix:**\n```\nHigh Power, High Interest (Manage Closely):\n- C-level executives\n- Project sponsors\n- Key decision ma",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/ba_core_skills.md",
+      "file_name": "ba_core_skills.md",
+      "chunk_index": 62
+    },
+    "id": "tejuu_104"
+  },
+  {
+    "text": " is one of the biggest challenges. Here's what I've learned:\n\n**Stakeholder Analysis Matrix:**\n```\nHigh Power, High Interest (Manage Closely):\n- C-level executives\n- Project sponsors\n- Key decision makers\nStrategy: Regular updates, involve in key decisions, address concerns immediately\n\nHigh Power, Low Interest (Keep Satisfied):\n- Department heads not directly involved\n- Compliance/legal teams\nStrategy: Periodic updates, keep informed of major changes\n\nLow Power, High Interest (Keep Informed):\n- End users\n- Team members\nStrategy: Regular communication, gather feedback, involve in testing\n\nLow Power, Low Interest (Monitor):\n- Peripheral stakeholders\nStrategy: Minimal communication, inform of major milestones\n```\n\n**My Communication Approach:**\n```\nFor Executives:\n- Focus on business impact and ROI\n- Use high-level dashboards and metrics\n- Keep updates brief (1-page summaries)\n- Highlight risks and mitigation plans\n\nFor Technical Teams:\n- Provide detailed requirements and specifications\n",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/ba_core_skills.md",
+      "file_name": "ba_core_skills.md",
+      "chunk_index": 63
+    },
+    "id": "tejuu_105"
+  },
+  {
+    "text": "and ROI\n- Use high-level dashboards and metrics\n- Keep updates brief (1-page summaries)\n- Highlight risks and mitigation plans\n\nFor Technical Teams:\n- Provide detailed requirements and specifications\n- Use technical language appropriately\n- Be available for clarification\n- Respect their expertise and input\n\nFor End Users:\n- Use simple, non-technical language\n- Show how changes benefit them\n- Involve them in testing and feedback\n- Address their concerns empathetically\n\nFor Project Managers:\n- Provide clear timelines and dependencies\n- Flag blockers early\n- Keep requirements documentation updated\n- Attend all status meetings prepared\n```\n\n## Gap Analysis and Feasibility Studies\n\n### Conducting Gap Analysis\n**Tejuu's Gap Analysis Framework:**\n```\n1. Define Current State\n   - Document existing capabilities\n   - Identify current performance metrics\n   - List available resources\n\n2. Define Desired Future State\n   - Document required capabilities\n   - Set target performance metrics\n   - Ident",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/ba_core_skills.md",
+      "file_name": "ba_core_skills.md",
+      "chunk_index": 64
+    },
+    "id": "tejuu_106"
+  },
+  {
+    "text": " capabilities\n   - Identify current performance metrics\n   - List available resources\n\n2. Define Desired Future State\n   - Document required capabilities\n   - Set target performance metrics\n   - Identify needed resources\n\n3. Identify Gaps\n   - Capability gaps\n   - Performance gaps\n   - Resource gaps\n   - Knowledge/skill gaps\n\n4. Prioritize Gaps\n   - Impact on business objectives\n   - Urgency and dependencies\n   - Cost and effort to close\n\n5. Develop Action Plan\n   - Quick wins (high impact, low effort)\n   - Strategic initiatives (high impact, high effort)\n   - Fill-ins (low impact, low effort)\n   - Reconsider (low impact, high effort)\n```\n\n## Interview Talking Points\n\n### Technical Skills:\n- Requirements gathering and documentation\n- Process mapping and improvement\n- SQL and data analysis\n- Stakeholder management\n- Gap analysis and feasibility studies\n\n### Tools & Technologies:\n- **Documentation**: Confluence, SharePoint, MS Word\n- **Process Mapping**: Visio, Lucidchart, Miro, Draw.io\n",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/ba_core_skills.md",
+      "file_name": "ba_core_skills.md",
+      "chunk_index": 65
+    },
+    "id": "tejuu_107"
+  },
+  {
+    "text": "- Stakeholder management\n- Gap analysis and feasibility studies\n\n### Tools & Technologies:\n- **Documentation**: Confluence, SharePoint, MS Word\n- **Process Mapping**: Visio, Lucidchart, Miro, Draw.io\n- **Project Management**: Jira, Azure DevOps, Asana\n- **Data Analysis**: SQL, Excel, Power BI, Tableau\n- **Collaboration**: MS Teams, Slack, Zoom\n\n### Achievements:\n- Reduced process time by 67% through process optimization\n- Saved $50K annually by identifying automation opportunities\n- Improved customer satisfaction by 25% through better requirements\n- Successfully delivered 15+ projects on time and within budget\n- Managed stakeholder groups of 20+ people across multiple departments\n",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/ba_core_skills.md",
+      "file_name": "ba_core_skills.md",
+      "chunk_index": 66
+    },
+    "id": "tejuu_108"
+  },
+  {
+    "text": "---\ntags: [analytics-engineer, dbt, data-modeling, sql, data-warehouse, metrics]\npersona: ae\n---\n\n# Analytics Engineer & Tejuu's Experience\n\n## Modern Data Stack and Analytics Engineering\n\n### What is an Analytics Engineer?\n**Tejuu's Role:**\nSo as an Analytics Engineer, I'm kind of the bridge between data engineering and business intelligence. I take raw data from data warehouses and transform it into clean, well-modeled datasets that business users can easily understand and use for analysis.\n\nThe key difference from a traditional BI developer is that I write code (mostly SQL and Python) to build data models, use version control, write tests, and follow software engineering best practices. It's like being a data engineer but focused on the analytics layer rather than data pipelines.\n\n**My Responsibilities:**\n```\n1. Data Modeling\n   - Design dimensional models (star/snowflake schemas)\n   - Create reusable data marts\n   - Define metrics and KPIs\n   - Document data lineage\n\n2. Transformat",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/analytics_engineer.md",
+      "file_name": "analytics_engineer.md",
+      "chunk_index": 67
+    },
+    "id": "tejuu_109"
+  },
+  {
+    "text": "Responsibilities:**\n```\n1. Data Modeling\n   - Design dimensional models (star/snowflake schemas)\n   - Create reusable data marts\n   - Define metrics and KPIs\n   - Document data lineage\n\n2. Transformation Development\n   - Write SQL transformations\n   - Build dbt models\n   - Create staging, intermediate, and mart layers\n   - Implement business logic\n\n3. Data Quality & Testing\n   - Write data quality tests\n   - Implement validation rules\n   - Monitor data freshness\n   - Alert on anomalies\n\n4. Documentation & Governance\n   - Document data models\n   - Define metrics definitions\n   - Create data dictionaries\n   - Maintain data catalog\n\n5. Collaboration\n   - Work with data engineers on data pipelines\n   - Partner with analysts on requirements\n   - Support BI developers with data models\n   - Train business users on data usage\n```\n\n## dbt (Data Build Tool)\n\n### Building Transformation Pipelines with dbt\n**Tejuu's dbt Experience:**\nI use dbt daily to transform raw data into analytics-ready datas",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/analytics_engineer.md",
+      "file_name": "analytics_engineer.md",
+      "chunk_index": 68
+    },
+    "id": "tejuu_110"
+  },
+  {
+    "text": " business users on data usage\n```\n\n## dbt (Data Build Tool)\n\n### Building Transformation Pipelines with dbt\n**Tejuu's dbt Experience:**\nI use dbt daily to transform raw data into analytics-ready datasets. It's become the standard tool for analytics engineering, and I love how it brings software engineering practices to data transformation.\n\n**My dbt Project Structure:**\n```\nmy_dbt_project/\n├── models/\n│   ├── staging/          # Raw data cleaning\n│   │   ├── stg_customers.sql\n│   │   ├── stg_orders.sql\n│   │   └── stg_products.sql\n│   ├── intermediate/     # Business logic\n│   │   ├── int_customer_orders.sql\n│   │   └── int_order_items.sql\n│   └── marts/           # Final analytics tables\n│       ├── finance/\n│       │   ├── fct_revenue.sql\n│       │   └── dim_customers.sql\n│       └── marketing/\n│           ├── fct_campaigns.sql\n│           └── dim_customer_segments.sql\n├── tests/\n│   └── assert_positive_revenue.sql\n├── macros/\n│   └── generate_schema_name.sql\n└── dbt_project.yml\n```\n",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/analytics_engineer.md",
+      "file_name": "analytics_engineer.md",
+      "chunk_index": 69
+    },
+    "id": "tejuu_111"
+  },
+  {
+    "text": "keting/\n│           ├── fct_campaigns.sql\n│           └── dim_customer_segments.sql\n├── tests/\n│   └── assert_positive_revenue.sql\n├── macros/\n│   └── generate_schema_name.sql\n└── dbt_project.yml\n```\n\n**Staging Layer Example:**\n```sql\n-- models/staging/stg_customers.sql\n{{\n    config(\n        materialized='view',\n        schema='staging'\n    )\n}}\n\nWITH source AS (\n    SELECT * FROM {{ source('raw', 'customers') }}\n),\n\nrenamed AS (\n    SELECT\n        customer_id,\n        TRIM(LOWER(email)) AS email,\n        TRIM(first_name) AS first_name,\n        TRIM(last_name) AS last_name,\n        CONCAT(first_name, ' ', last_name) AS full_name,\n        phone,\n        address,\n        city,\n        state,\n        zip_code,\n        country,\n        created_at,\n        updated_at\n    FROM source\n    WHERE customer_id IS NOT NULL\n)\n\nSELECT * FROM renamed\n```\n\n**Intermediate Layer Example:**\n```sql\n-- models/intermediate/int_customer_orders.sql\n{{\n    config(\n        materialized='ephemeral'\n    )\n}}\n\nWI",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/analytics_engineer.md",
+      "file_name": "analytics_engineer.md",
+      "chunk_index": 70
+    },
+    "id": "tejuu_112"
+  },
+  {
+    "text": "customer_id IS NOT NULL\n)\n\nSELECT * FROM renamed\n```\n\n**Intermediate Layer Example:**\n```sql\n-- models/intermediate/int_customer_orders.sql\n{{\n    config(\n        materialized='ephemeral'\n    )\n}}\n\nWITH customers AS (\n    SELECT * FROM {{ ref('stg_customers') }}\n),\n\norders AS (\n    SELECT * FROM {{ ref('stg_orders') }}\n),\n\ncustomer_orders AS (\n    SELECT\n        c.customer_id,\n        c.full_name,\n        c.email,\n        c.city,\n        c.state,\n        o.order_id,\n        o.order_date,\n        o.order_amount,\n        o.order_status\n    FROM customers c\n    LEFT JOIN orders o ON c.customer_id = o.customer_id\n)\n\nSELECT * FROM customer_orders\n```\n\n**Marts Layer Example:**\n```sql\n-- models/marts/finance/fct_revenue.sql\n{{\n    config(\n        materialized='incremental',\n        unique_key='order_id',\n        schema='finance'\n    )\n}}\n\nWITH customer_orders AS (\n    SELECT * FROM {{ ref('int_customer_orders') }}\n),\n\nrevenue_metrics AS (\n    SELECT\n        order_id,\n        customer_id,\n    ",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/analytics_engineer.md",
+      "file_name": "analytics_engineer.md",
+      "chunk_index": 71
+    },
+    "id": "tejuu_113"
+  },
+  {
+    "text": "der_id',\n        schema='finance'\n    )\n}}\n\nWITH customer_orders AS (\n    SELECT * FROM {{ ref('int_customer_orders') }}\n),\n\nrevenue_metrics AS (\n    SELECT\n        order_id,\n        customer_id,\n        order_date,\n        order_amount,\n        \n        -- Time dimensions\n        DATE_TRUNC('month', order_date) AS order_month,\n        DATE_TRUNC('quarter', order_date) AS order_quarter,\n        DATE_TRUNC('year', order_date) AS order_year,\n        \n        -- Customer metrics\n        ROW_NUMBER() OVER (\n            PARTITION BY customer_id \n            ORDER BY order_date\n        ) AS customer_order_number,\n        \n        -- Revenue metrics\n        SUM(order_amount) OVER (\n            PARTITION BY customer_id \n            ORDER BY order_date\n            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW\n        ) AS customer_lifetime_value,\n        \n        CURRENT_TIMESTAMP AS dbt_updated_at\n        \n    FROM customer_orders\n    WHERE order_status = 'completed'\n    \n    {% if is_incre",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/analytics_engineer.md",
+      "file_name": "analytics_engineer.md",
+      "chunk_index": 72
+    },
+    "id": "tejuu_114"
+  },
+  {
+    "text": "ND CURRENT ROW\n        ) AS customer_lifetime_value,\n        \n        CURRENT_TIMESTAMP AS dbt_updated_at\n        \n    FROM customer_orders\n    WHERE order_status = 'completed'\n    \n    {% if is_incremental() %}\n        AND order_date > (SELECT MAX(order_date) FROM {{ this }})\n    {% endif %}\n)\n\nSELECT * FROM revenue_metrics\n```\n\n### dbt Tests and Data Quality\n**My Testing Strategy:**\n```yaml\n# models/staging/schema.yml\nversion: 2\n\nmodels:\n  - name: stg_customers\n    description: Cleaned and standardized customer data\n    columns:\n      - name: customer_id\n        description: Primary key for customers\n        tests:\n          - unique\n          - not_null\n      \n      - name: email\n        description: Customer email address\n        tests:\n          - not_null\n          - unique\n          - dbt_utils.email\n      \n      - name: created_at\n        description: Timestamp when customer was created\n        tests:\n          - not_null\n          - dbt_utils.expression_is_true:\n              ",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/analytics_engineer.md",
+      "file_name": "analytics_engineer.md",
+      "chunk_index": 73
+    },
+    "id": "tejuu_115"
+  },
+  {
+    "text": " - dbt_utils.email\n      \n      - name: created_at\n        description: Timestamp when customer was created\n        tests:\n          - not_null\n          - dbt_utils.expression_is_true:\n              expression: \">= '2020-01-01'\"\n\n  - name: stg_orders\n    description: Cleaned and standardized order data\n    columns:\n      - name: order_id\n        tests:\n          - unique\n          - not_null\n      \n      - name: customer_id\n        tests:\n          - not_null\n          - relationships:\n              to: ref('stg_customers')\n              field: customer_id\n      \n      - name: order_amount\n        tests:\n          - not_null\n          - dbt_utils.expression_is_true:\n              expression: \"> 0\"\n```\n\n**Custom Tests:**\n```sql\n-- tests/assert_revenue_positive.sql\nSELECT\n    order_id,\n    order_amount\nFROM {{ ref('fct_revenue') }}\nWHERE order_amount <= 0\n```\n\n### dbt Macros for Reusability\n**My Commonly Used Macros:**\n```sql\n-- macros/cents_to_dollars.sql\n{% macro cents_to_dollars(colu",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/analytics_engineer.md",
+      "file_name": "analytics_engineer.md",
+      "chunk_index": 74
+    },
+    "id": "tejuu_116"
+  },
+  {
+    "text": "order_amount\nFROM {{ ref('fct_revenue') }}\nWHERE order_amount <= 0\n```\n\n### dbt Macros for Reusability\n**My Commonly Used Macros:**\n```sql\n-- macros/cents_to_dollars.sql\n{% macro cents_to_dollars(column_name, precision=2) %}\n    ROUND({{ column_name }} / 100.0, {{ precision }})\n{% endmacro %}\n\n-- Usage in model:\nSELECT\n    order_id,\n    {{ cents_to_dollars('amount_cents') }} AS amount_dollars\nFROM orders\n\n-- macros/generate_surrogate_key.sql\n{% macro generate_surrogate_key(field_list) %}\n    MD5(CONCAT(\n        {% for field in field_list %}\n            COALESCE(CAST({{ field }} AS VARCHAR), '')\n            {% if not loop.last %} || '|' || {% endif %}\n        {% endfor %}\n    ))\n{% endmacro %}\n\n-- Usage:\nSELECT\n    {{ generate_surrogate_key(['customer_id', 'order_date']) }} AS order_key,\n    *\nFROM orders\n\n-- macros/pivot_metric.sql\n{% macro pivot_metric(column, values, metric, agg_function='SUM') %}\n    {% for value in values %}\n        {{ agg_function }}(\n            CASE WHEN {{ colu",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/analytics_engineer.md",
+      "file_name": "analytics_engineer.md",
+      "chunk_index": 75
+    },
+    "id": "tejuu_117"
+  },
+  {
+    "text": "  *\nFROM orders\n\n-- macros/pivot_metric.sql\n{% macro pivot_metric(column, values, metric, agg_function='SUM') %}\n    {% for value in values %}\n        {{ agg_function }}(\n            CASE WHEN {{ column }} = '{{ value }}' \n            THEN {{ metric }} \n            ELSE 0 END\n        ) AS {{ value | replace(' ', '_') | lower }}\n        {% if not loop.last %}, {% endif %}\n    {% endfor %}\n{% endmacro %}\n```\n\n## Metrics Layer and Semantic Modeling\n\n### Defining Business Metrics\n**Tejuu's Metrics Framework:**\n```yaml\n# metrics/revenue_metrics.yml\nversion: 2\n\nmetrics:\n  - name: total_revenue\n    label: Total Revenue\n    model: ref('fct_revenue')\n    description: Sum of all completed order amounts\n    \n    calculation_method: sum\n    expression: order_amount\n    \n    timestamp: order_date\n    time_grains: [day, week, month, quarter, year]\n    \n    dimensions:\n      - customer_segment\n      - product_category\n      - region\n    \n    filters:\n      - field: order_status\n        operator: '='\n",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/analytics_engineer.md",
+      "file_name": "analytics_engineer.md",
+      "chunk_index": 76
+    },
+    "id": "tejuu_118"
+  },
+  {
+    "text": "ime_grains: [day, week, month, quarter, year]\n    \n    dimensions:\n      - customer_segment\n      - product_category\n      - region\n    \n    filters:\n      - field: order_status\n        operator: '='\n        value: \"'completed'\"\n\n  - name: average_order_value\n    label: Average Order Value\n    model: ref('fct_revenue')\n    description: Average amount per order\n    \n    calculation_method: average\n    expression: order_amount\n    \n    timestamp: order_date\n    time_grains: [day, week, month, quarter, year]\n\n  - name: customer_lifetime_value\n    label: Customer Lifetime Value\n    model: ref('dim_customers')\n    description: Total revenue per customer\n    \n    calculation_method: sum\n    expression: total_spent\n    \n    dimensions:\n      - customer_segment\n      - acquisition_channel\n```\n\n## SQL Optimization for Analytics\n\n### Query Performance Optimization\n**Tejuu's SQL Optimization Techniques:**\n```sql\n-- BEFORE: Slow query with subqueries\nSELECT \n    c.customer_id,\n    c.customer_name,",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/analytics_engineer.md",
+      "file_name": "analytics_engineer.md",
+      "chunk_index": 77
+    },
+    "id": "tejuu_119"
+  },
+  {
+    "text": "SQL Optimization for Analytics\n\n### Query Performance Optimization\n**Tejuu's SQL Optimization Techniques:**\n```sql\n-- BEFORE: Slow query with subqueries\nSELECT \n    c.customer_id,\n    c.customer_name,\n    (SELECT COUNT(*) FROM orders o WHERE o.customer_id = c.customer_id) as order_count,\n    (SELECT SUM(amount) FROM orders o WHERE o.customer_id = c.customer_id) as total_spent\nFROM customers c;\n\n-- AFTER: Optimized with JOIN\nSELECT \n    c.customer_id,\n    c.customer_name,\n    COUNT(o.order_id) as order_count,\n    SUM(o.amount) as total_spent\nFROM customers c\nLEFT JOIN orders o ON c.customer_id = o.customer_id\nGROUP BY c.customer_id, c.customer_name;\n\n-- BEFORE: Multiple passes over data\nSELECT customer_id, SUM(amount) FROM orders GROUP BY customer_id;\nSELECT customer_id, COUNT(*) FROM orders GROUP BY customer_id;\nSELECT customer_id, AVG(amount) FROM orders GROUP BY customer_id;\n\n-- AFTER: Single pass with multiple aggregations\nSELECT \n    customer_id,\n    SUM(amount) as total_amount,\n  ",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/analytics_engineer.md",
+      "file_name": "analytics_engineer.md",
+      "chunk_index": 78
+    },
+    "id": "tejuu_120"
+  },
+  {
+    "text": "s GROUP BY customer_id;\nSELECT customer_id, AVG(amount) FROM orders GROUP BY customer_id;\n\n-- AFTER: Single pass with multiple aggregations\nSELECT \n    customer_id,\n    SUM(amount) as total_amount,\n    COUNT(*) as order_count,\n    AVG(amount) as avg_amount\nFROM orders\nGROUP BY customer_id;\n\n-- Using CTEs for readability and performance\nWITH monthly_sales AS (\n    SELECT \n        DATE_TRUNC('month', order_date) as month,\n        SUM(amount) as total_sales\n    FROM orders\n    WHERE order_date >= '2023-01-01'\n    GROUP BY DATE_TRUNC('month', order_date)\n),\nsales_with_growth AS (\n    SELECT \n        month,\n        total_sales,\n        LAG(total_sales) OVER (ORDER BY month) as prev_month_sales,\n        (total_sales - LAG(total_sales) OVER (ORDER BY month)) / \n        LAG(total_sales) OVER (ORDER BY month) * 100 as growth_rate\n    FROM monthly_sales\n)\nSELECT * FROM sales_with_growth\nWHERE growth_rate IS NOT NULL\nORDER BY month;\n```\n\n## Data Warehouse Modeling\n\n### Dimensional Modeling\n**Teju",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/analytics_engineer.md",
+      "file_name": "analytics_engineer.md",
+      "chunk_index": 79
+    },
+    "id": "tejuu_121"
+  },
+  {
+    "text": "R BY month) * 100 as growth_rate\n    FROM monthly_sales\n)\nSELECT * FROM sales_with_growth\nWHERE growth_rate IS NOT NULL\nORDER BY month;\n```\n\n## Data Warehouse Modeling\n\n### Dimensional Modeling\n**Tejuu's Dimensional Model Design:**\n```sql\n-- Dimension Table: Customers\nCREATE TABLE dim_customers (\n    customer_key INT PRIMARY KEY,  -- Surrogate key\n    customer_id VARCHAR(50),        -- Natural key\n    customer_name VARCHAR(200),\n    email VARCHAR(200),\n    segment VARCHAR(50),\n    city VARCHAR(100),\n    state VARCHAR(50),\n    country VARCHAR(50),\n    first_order_date DATE,\n    customer_since_days INT,\n    is_active BOOLEAN,\n    effective_date DATE,            -- SCD Type 2\n    expiration_date DATE,           -- SCD Type 2\n    is_current BOOLEAN,             -- SCD Type 2\n    created_at TIMESTAMP,\n    updated_at TIMESTAMP\n);\n\n-- Fact Table: Sales\nCREATE TABLE fct_sales (\n    sale_key BIGINT PRIMARY KEY,\n    order_id VARCHAR(50),\n    customer_key INT REFERENCES dim_customers(customer_key",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/analytics_engineer.md",
+      "file_name": "analytics_engineer.md",
+      "chunk_index": 80
+    },
+    "id": "tejuu_122"
+  },
+  {
+    "text": "ESTAMP,\n    updated_at TIMESTAMP\n);\n\n-- Fact Table: Sales\nCREATE TABLE fct_sales (\n    sale_key BIGINT PRIMARY KEY,\n    order_id VARCHAR(50),\n    customer_key INT REFERENCES dim_customers(customer_key),\n    product_key INT REFERENCES dim_products(product_key),\n    date_key INT REFERENCES dim_date(date_key),\n    employee_key INT REFERENCES dim_employees(employee_key),\n    \n    -- Measures\n    quantity INT,\n    unit_price DECIMAL(10,2),\n    discount_amount DECIMAL(10,2),\n    tax_amount DECIMAL(10,2),\n    total_amount DECIMAL(10,2),\n    cost_amount DECIMAL(10,2),\n    profit_amount DECIMAL(10,2),\n    \n    -- Degenerate dimensions\n    order_number VARCHAR(50),\n    invoice_number VARCHAR(50),\n    \n    created_at TIMESTAMP\n);\n\n-- Date Dimension (very important for analytics)\nCREATE TABLE dim_date (\n    date_key INT PRIMARY KEY,\n    date DATE,\n    day_of_week VARCHAR(10),\n    day_of_month INT,\n    day_of_year INT,\n    week_of_year INT,\n    month_number INT,\n    month_name VARCHAR(10),\n    quar",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/analytics_engineer.md",
+      "file_name": "analytics_engineer.md",
+      "chunk_index": 81
+    },
+    "id": "tejuu_123"
+  },
+  {
+    "text": " (\n    date_key INT PRIMARY KEY,\n    date DATE,\n    day_of_week VARCHAR(10),\n    day_of_month INT,\n    day_of_year INT,\n    week_of_year INT,\n    month_number INT,\n    month_name VARCHAR(10),\n    quarter INT,\n    year INT,\n    is_weekend BOOLEAN,\n    is_holiday BOOLEAN,\n    holiday_name VARCHAR(100),\n    fiscal_year INT,\n    fiscal_quarter INT,\n    fiscal_month INT\n);\n```\n\n## Data Governance and Documentation\n\n### Data Catalog and Lineage\n**My Documentation Approach:**\n```markdown\n# Data Model: Customer Analytics\n\n## Purpose\nProvides a comprehensive view of customer behavior, segmentation, and lifetime value for marketing and sales teams.\n\n## Source Systems\n- Salesforce CRM (customer data)\n- Shopify (order data)\n- Google Analytics (web behavior)\n\n## Refresh Schedule\n- Staging: Every 1 hour\n- Intermediate: Every 2 hours\n- Marts: Daily at 6 AM EST\n\n## Data Lineage\n```\nraw.salesforce.accounts \n  → staging.stg_customers \n    → intermediate.int_customer_orders \n      → marts.dim_customers\n`",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/analytics_engineer.md",
+      "file_name": "analytics_engineer.md",
+      "chunk_index": 82
+    },
+    "id": "tejuu_124"
+  },
+  {
+    "text": "\n- Intermediate: Every 2 hours\n- Marts: Daily at 6 AM EST\n\n## Data Lineage\n```\nraw.salesforce.accounts \n  → staging.stg_customers \n    → intermediate.int_customer_orders \n      → marts.dim_customers\n```\n\n## Key Metrics\n| Metric | Definition | Formula |\n|--------|-----------|---------|\n| Customer Lifetime Value | Total revenue from customer | SUM(order_amount) |\n| Average Order Value | Average amount per order | SUM(order_amount) / COUNT(orders) |\n| Purchase Frequency | Orders per customer per year | COUNT(orders) / customer_tenure_years |\n\n## Data Quality Rules\n- customer_id must be unique and not null\n- email must be valid format\n- total_spent must be >= 0\n- first_order_date must be <= last_order_date\n\n## Access Control\n- Finance team: Full access\n- Marketing team: Read access (excluding PII)\n- Sales team: Read access (own region only)\n```\n\n## Interview Talking Points\n\n### Technical Skills:\n- dbt development and testing\n- SQL optimization and performance tuning\n- Dimensional modeling ",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/analytics_engineer.md",
+      "file_name": "analytics_engineer.md",
+      "chunk_index": 83
+    },
+    "id": "tejuu_125"
+  },
+  {
+    "text": "PII)\n- Sales team: Read access (own region only)\n```\n\n## Interview Talking Points\n\n### Technical Skills:\n- dbt development and testing\n- SQL optimization and performance tuning\n- Dimensional modeling (star/snowflake schemas)\n- Data quality and validation\n- Metrics definition and semantic modeling\n- Version control (Git) for data transformations\n\n### Tools & Technologies:\n- **Transformation**: dbt, SQL, Python\n- **Data Warehouses**: Snowflake, BigQuery, Redshift\n- **Version Control**: Git, GitHub, GitLab\n- **Orchestration**: Airflow, Dagster, Prefect\n- **BI Tools**: Power BI, Tableau, Looker\n- **Data Quality**: Great Expectations, dbt tests\n\n### Achievements:\n- Built 100+ dbt models serving 50+ analysts\n- Reduced data transformation time from 6 hours to 1 hour\n- Implemented data quality tests catching 95% of issues\n- Created reusable metrics layer used across 20+ dashboards\n- Documented 200+ data models improving data discovery\n- Trained 15+ analysts on dbt and SQL best practices\n\n### P",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/analytics_engineer.md",
+      "file_name": "analytics_engineer.md",
+      "chunk_index": 84
+    },
+    "id": "tejuu_126"
+  },
+  {
+    "text": "ts catching 95% of issues\n- Created reusable metrics layer used across 20+ dashboards\n- Documented 200+ data models improving data discovery\n- Trained 15+ analysts on dbt and SQL best practices\n\n### Project Examples:\n- Customer 360 data mart (unified customer view)\n- Financial reporting data warehouse (P&L, balance sheet)\n- Marketing analytics platform (campaign performance, attribution)\n- Product analytics (usage, engagement, retention)\n- Operational metrics (efficiency, productivity, quality)\n",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/analytics_engineer.md",
+      "file_name": "analytics_engineer.md",
+      "chunk_index": 85
+    },
+    "id": "tejuu_127"
+  },
+  {
+    "text": "---\ntags: [sql, advanced-sql, window-functions, cte, optimization, healthcare, medicaid]\npersona: tejuu\n---\n\n# Advanced SQL for Business Analysis - Tejuu's Expertise\n\n## Healthcare & Medicaid Analytics SQL\n\n### Claims Analysis at Stryker\n**Tejuu's Real-World SQL for Medicaid:**\n\n```sql\n-- Medicaid Claims Analysis with Payment Patterns\nWITH claim_summary AS (\n    SELECT \n        claim_id,\n        patient_id,\n        provider_id,\n        claim_date,\n        service_date,\n        claim_amount,\n        paid_amount,\n        denied_amount,\n        claim_status,\n        denial_reason,\n        payer_name,\n        DATEDIFF(day, service_date, claim_date) as days_to_submit,\n        DATEDIFF(day, claim_date, payment_date) as days_to_payment\n    FROM fact_claims\n    WHERE payer_type = 'Medicaid'\n        AND claim_date >= '2023-01-01'\n),\npayment_metrics AS (\n    SELECT \n        provider_id,\n        COUNT(*) as total_claims,\n        SUM(claim_amount) as total_billed,\n        SUM(paid_amount) as total",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/sql_advanced.md",
+      "file_name": "sql_advanced.md",
+      "chunk_index": 86
+    },
+    "id": "tejuu_128"
+  },
+  {
+    "text": "  AND claim_date >= '2023-01-01'\n),\npayment_metrics AS (\n    SELECT \n        provider_id,\n        COUNT(*) as total_claims,\n        SUM(claim_amount) as total_billed,\n        SUM(paid_amount) as total_paid,\n        SUM(denied_amount) as total_denied,\n        AVG(paid_amount) as avg_payment,\n        AVG(days_to_payment) as avg_days_to_payment,\n        SUM(CASE WHEN claim_status = 'Denied' THEN 1 ELSE 0 END) as denied_count,\n        SUM(CASE WHEN claim_status = 'Paid' THEN 1 ELSE 0 END) as paid_count\n    FROM claim_summary\n    GROUP BY provider_id\n)\nSELECT \n    p.provider_id,\n    p.provider_name,\n    p.provider_specialty,\n    pm.total_claims,\n    pm.total_billed,\n    pm.total_paid,\n    ROUND((pm.total_paid / NULLIF(pm.total_billed, 0)) * 100, 2) as payment_rate_pct,\n    pm.denied_count,\n    ROUND((pm.denied_count * 100.0 / pm.total_claims), 2) as denial_rate_pct,\n    pm.avg_payment,\n    pm.avg_days_to_payment,\n    CASE \n        WHEN pm.avg_days_to_payment <= 30 THEN 'Fast'\n        WHEN p",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/sql_advanced.md",
+      "file_name": "sql_advanced.md",
+      "chunk_index": 87
+    },
+    "id": "tejuu_129"
+  },
+  {
+    "text": "ROUND((pm.denied_count * 100.0 / pm.total_claims), 2) as denial_rate_pct,\n    pm.avg_payment,\n    pm.avg_days_to_payment,\n    CASE \n        WHEN pm.avg_days_to_payment <= 30 THEN 'Fast'\n        WHEN pm.avg_days_to_payment <= 60 THEN 'Average'\n        ELSE 'Slow'\n    END as payment_speed_category\nFROM payment_metrics pm\nJOIN dim_provider p ON pm.provider_id = p.provider_id\nWHERE pm.total_claims >= 10  -- Minimum volume threshold\nORDER BY pm.total_billed DESC;\n```\n\n### Patient Readmission Analysis\n**30-Day Readmission Tracking:**\n\n```sql\n-- Identify 30-Day Hospital Readmissions\nWITH patient_visits AS (\n    SELECT \n        patient_id,\n        visit_id,\n        admission_date,\n        discharge_date,\n        diagnosis_code,\n        drg_code,\n        facility_id,\n        LEAD(admission_date) OVER (\n            PARTITION BY patient_id \n            ORDER BY admission_date\n        ) as next_admission_date,\n        LEAD(visit_id) OVER (\n            PARTITION BY patient_id \n            ORDER BY ",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/sql_advanced.md",
+      "file_name": "sql_advanced.md",
+      "chunk_index": 88
+    },
+    "id": "tejuu_130"
+  },
+  {
+    "text": "ER (\n            PARTITION BY patient_id \n            ORDER BY admission_date\n        ) as next_admission_date,\n        LEAD(visit_id) OVER (\n            PARTITION BY patient_id \n            ORDER BY admission_date\n        ) as next_visit_id\n    FROM fact_patient_visits\n    WHERE discharge_date IS NOT NULL\n        AND admission_date >= '2023-01-01'\n),\nreadmissions AS (\n    SELECT \n        patient_id,\n        visit_id as initial_visit_id,\n        next_visit_id as readmission_visit_id,\n        admission_date as initial_admission,\n        discharge_date as initial_discharge,\n        next_admission_date as readmission_date,\n        DATEDIFF(day, discharge_date, next_admission_date) as days_between_visits,\n        diagnosis_code as initial_diagnosis,\n        drg_code as initial_drg\n    FROM patient_visits\n    WHERE next_admission_date IS NOT NULL\n        AND DATEDIFF(day, discharge_date, next_admission_date) <= 30\n)\nSELECT \n    r.patient_id,\n    p.patient_name,\n    p.age,\n    p.gender,\n    ",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/sql_advanced.md",
+      "file_name": "sql_advanced.md",
+      "chunk_index": 89
+    },
+    "id": "tejuu_131"
+  },
+  {
+    "text": "ient_visits\n    WHERE next_admission_date IS NOT NULL\n        AND DATEDIFF(day, discharge_date, next_admission_date) <= 30\n)\nSELECT \n    r.patient_id,\n    p.patient_name,\n    p.age,\n    p.gender,\n    r.initial_visit_id,\n    r.readmission_visit_id,\n    r.initial_admission,\n    r.initial_discharge,\n    r.readmission_date,\n    r.days_between_visits,\n    r.initial_diagnosis,\n    d.diagnosis_description,\n    r.initial_drg,\n    drg.drg_description,\n    f.facility_name,\n    CASE \n        WHEN r.days_between_visits <= 7 THEN 'Very High Risk'\n        WHEN r.days_between_visits <= 14 THEN 'High Risk'\n        WHEN r.days_between_visits <= 21 THEN 'Medium Risk'\n        ELSE 'Low Risk'\n    END as readmission_risk_category\nFROM readmissions r\nJOIN dim_patient p ON r.patient_id = p.patient_id\nJOIN dim_diagnosis d ON r.initial_diagnosis = d.diagnosis_code\nJOIN dim_drg drg ON r.initial_drg = drg.drg_code\nJOIN fact_patient_visits v ON r.initial_visit_id = v.visit_id\nJOIN dim_facility f ON v.facility_id ",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/sql_advanced.md",
+      "file_name": "sql_advanced.md",
+      "chunk_index": 90
+    },
+    "id": "tejuu_132"
+  },
+  {
+    "text": "agnosis d ON r.initial_diagnosis = d.diagnosis_code\nJOIN dim_drg drg ON r.initial_drg = drg.drg_code\nJOIN fact_patient_visits v ON r.initial_visit_id = v.visit_id\nJOIN dim_facility f ON v.facility_id = f.facility_id\nORDER BY r.days_between_visits, r.readmission_date DESC;\n\n-- Readmission Rate by Diagnosis\nSELECT \n    d.diagnosis_code,\n    d.diagnosis_description,\n    COUNT(DISTINCT v.visit_id) as total_discharges,\n    COUNT(DISTINCT r.readmission_visit_id) as readmissions,\n    ROUND((COUNT(DISTINCT r.readmission_visit_id) * 100.0 / \n           COUNT(DISTINCT v.visit_id)), 2) as readmission_rate_pct,\n    AVG(r.days_between_visits) as avg_days_to_readmission\nFROM fact_patient_visits v\nJOIN dim_diagnosis d ON v.primary_diagnosis = d.diagnosis_code\nLEFT JOIN readmissions r ON v.visit_id = r.initial_visit_id\nWHERE v.discharge_date >= '2023-01-01'\nGROUP BY d.diagnosis_code, d.diagnosis_description\nHAVING COUNT(DISTINCT v.visit_id) >= 20  -- Minimum volume\nORDER BY readmission_rate_pct DESC;\n",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/sql_advanced.md",
+      "file_name": "sql_advanced.md",
+      "chunk_index": 91
+    },
+    "id": "tejuu_133"
+  },
+  {
+    "text": "itial_visit_id\nWHERE v.discharge_date >= '2023-01-01'\nGROUP BY d.diagnosis_code, d.diagnosis_description\nHAVING COUNT(DISTINCT v.visit_id) >= 20  -- Minimum volume\nORDER BY readmission_rate_pct DESC;\n```\n\n## Advanced Window Functions for Business Analytics\n\n### Sales Performance Analysis\n**Tejuu's Sales Analytics at CVS Health:**\n\n```sql\n-- Comprehensive Sales Performance with Rankings and Trends\nWITH daily_sales AS (\n    SELECT \n        sale_date,\n        product_id,\n        store_id,\n        region,\n        SUM(quantity) as units_sold,\n        SUM(sales_amount) as daily_sales,\n        SUM(cost_amount) as daily_cost\n    FROM fact_sales\n    WHERE sale_date >= '2023-01-01'\n    GROUP BY sale_date, product_id, store_id, region\n),\nsales_with_metrics AS (\n    SELECT \n        sale_date,\n        product_id,\n        store_id,\n        region,\n        daily_sales,\n        daily_cost,\n        daily_sales - daily_cost as daily_profit,\n        \n        -- Running totals\n        SUM(daily_sales) OVE",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/sql_advanced.md",
+      "file_name": "sql_advanced.md",
+      "chunk_index": 92
+    },
+    "id": "tejuu_134"
+  },
+  {
+    "text": "product_id,\n        store_id,\n        region,\n        daily_sales,\n        daily_cost,\n        daily_sales - daily_cost as daily_profit,\n        \n        -- Running totals\n        SUM(daily_sales) OVER (\n            PARTITION BY product_id, store_id \n            ORDER BY sale_date\n            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW\n        ) as running_total_sales,\n        \n        -- Moving averages\n        AVG(daily_sales) OVER (\n            PARTITION BY product_id, store_id \n            ORDER BY sale_date\n            ROWS BETWEEN 6 PRECEDING AND CURRENT ROW\n        ) as moving_avg_7day,\n        \n        AVG(daily_sales) OVER (\n            PARTITION BY product_id, store_id \n            ORDER BY sale_date\n            ROWS BETWEEN 29 PRECEDING AND CURRENT ROW\n        ) as moving_avg_30day,\n        \n        -- Year-over-year comparison\n        LAG(daily_sales, 365) OVER (\n            PARTITION BY product_id, store_id \n            ORDER BY sale_date\n        ) as sales_last_year,",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/sql_advanced.md",
+      "file_name": "sql_advanced.md",
+      "chunk_index": 93
+    },
+    "id": "tejuu_135"
+  },
+  {
+    "text": "vg_30day,\n        \n        -- Year-over-year comparison\n        LAG(daily_sales, 365) OVER (\n            PARTITION BY product_id, store_id \n            ORDER BY sale_date\n        ) as sales_last_year,\n        \n        -- Month-over-month comparison\n        LAG(daily_sales, 30) OVER (\n            PARTITION BY product_id, store_id \n            ORDER BY sale_date\n        ) as sales_last_month,\n        \n        -- Rankings\n        RANK() OVER (\n            PARTITION BY sale_date, region \n            ORDER BY daily_sales DESC\n        ) as daily_rank_in_region,\n        \n        DENSE_RANK() OVER (\n            PARTITION BY DATE_TRUNC('month', sale_date), region \n            ORDER BY SUM(daily_sales) OVER (\n                PARTITION BY product_id, store_id, DATE_TRUNC('month', sale_date)\n            ) DESC\n        ) as monthly_rank_in_region,\n        \n        -- Percentiles\n        PERCENT_RANK() OVER (\n            PARTITION BY region \n            ORDER BY daily_sales\n        ) as sales_percen",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/sql_advanced.md",
+      "file_name": "sql_advanced.md",
+      "chunk_index": 94
+    },
+    "id": "tejuu_136"
+  },
+  {
+    "text": "   ) DESC\n        ) as monthly_rank_in_region,\n        \n        -- Percentiles\n        PERCENT_RANK() OVER (\n            PARTITION BY region \n            ORDER BY daily_sales\n        ) as sales_percentile\n        \n    FROM daily_sales\n)\nSELECT \n    sale_date,\n    p.product_name,\n    s.store_name,\n    sm.region,\n    sm.daily_sales,\n    sm.daily_profit,\n    sm.running_total_sales,\n    sm.moving_avg_7day,\n    sm.moving_avg_30day,\n    sm.sales_last_year,\n    ROUND(((sm.daily_sales - sm.sales_last_year) / \n           NULLIF(sm.sales_last_year, 0)) * 100, 2) as yoy_growth_pct,\n    sm.daily_rank_in_region,\n    sm.monthly_rank_in_region,\n    ROUND(sm.sales_percentile * 100, 2) as sales_percentile_rank,\n    CASE \n        WHEN sm.daily_sales > sm.moving_avg_30day * 1.2 THEN 'High Performance'\n        WHEN sm.daily_sales < sm.moving_avg_30day * 0.8 THEN 'Low Performance'\n        ELSE 'Normal'\n    END as performance_category\nFROM sales_with_metrics sm\nJOIN dim_product p ON sm.product_id = p.produc",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/sql_advanced.md",
+      "file_name": "sql_advanced.md",
+      "chunk_index": 95
+    },
+    "id": "tejuu_137"
+  },
+  {
+    "text": "  WHEN sm.daily_sales < sm.moving_avg_30day * 0.8 THEN 'Low Performance'\n        ELSE 'Normal'\n    END as performance_category\nFROM sales_with_metrics sm\nJOIN dim_product p ON sm.product_id = p.product_id\nJOIN dim_store s ON sm.store_id = s.store_id\nWHERE sale_date >= '2024-01-01'\nORDER BY sale_date DESC, sm.daily_sales DESC;\n```\n\n### Customer Cohort Analysis\n**Retention and Lifetime Value:**\n\n```sql\n-- Customer Cohort Analysis with Retention Rates\nWITH first_purchase AS (\n    SELECT \n        customer_id,\n        MIN(order_date) as cohort_month,\n        MIN(order_id) as first_order_id\n    FROM fact_orders\n    GROUP BY customer_id\n),\ncustomer_orders AS (\n    SELECT \n        o.customer_id,\n        o.order_date,\n        o.order_amount,\n        fp.cohort_month,\n        DATE_TRUNC('month', o.order_date) as order_month,\n        DATEDIFF(month, fp.cohort_month, DATE_TRUNC('month', o.order_date)) as months_since_first\n    FROM fact_orders o\n    JOIN first_purchase fp ON o.customer_id = fp.cust",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/sql_advanced.md",
+      "file_name": "sql_advanced.md",
+      "chunk_index": 96
+    },
+    "id": "tejuu_138"
+  },
+  {
+    "text": "der_date) as order_month,\n        DATEDIFF(month, fp.cohort_month, DATE_TRUNC('month', o.order_date)) as months_since_first\n    FROM fact_orders o\n    JOIN first_purchase fp ON o.customer_id = fp.customer_id\n    WHERE o.order_date >= '2023-01-01'\n),\ncohort_data AS (\n    SELECT \n        cohort_month,\n        months_since_first,\n        COUNT(DISTINCT customer_id) as customers,\n        SUM(order_amount) as total_revenue,\n        AVG(order_amount) as avg_order_value\n    FROM customer_orders\n    GROUP BY cohort_month, months_since_first\n),\ncohort_size AS (\n    SELECT \n        cohort_month,\n        COUNT(DISTINCT customer_id) as cohort_size\n    FROM first_purchase\n    GROUP BY cohort_month\n)\nSELECT \n    cd.cohort_month,\n    cs.cohort_size,\n    cd.months_since_first,\n    cd.customers,\n    ROUND((cd.customers * 100.0 / cs.cohort_size), 2) as retention_rate_pct,\n    cd.total_revenue,\n    cd.avg_order_value,\n    SUM(cd.total_revenue) OVER (\n        PARTITION BY cd.cohort_month \n        ORDER BY",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/sql_advanced.md",
+      "file_name": "sql_advanced.md",
+      "chunk_index": 97
+    },
+    "id": "tejuu_139"
+  },
+  {
+    "text": "(cd.customers * 100.0 / cs.cohort_size), 2) as retention_rate_pct,\n    cd.total_revenue,\n    cd.avg_order_value,\n    SUM(cd.total_revenue) OVER (\n        PARTITION BY cd.cohort_month \n        ORDER BY cd.months_since_first\n        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW\n    ) as cumulative_revenue,\n    ROUND(SUM(cd.total_revenue) OVER (\n        PARTITION BY cd.cohort_month \n        ORDER BY cd.months_since_first\n        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW\n    ) / cs.cohort_size, 2) as lifetime_value\nFROM cohort_data cd\nJOIN cohort_size cs ON cd.cohort_month = cs.cohort_month\nORDER BY cd.cohort_month, cd.months_since_first;\n```\n\n## Complex CTEs and Recursive Queries\n\n### Organizational Hierarchy Analysis\n**Tejuu's HR Analytics:**\n\n```sql\n-- Recursive CTE for Employee Hierarchy\nWITH RECURSIVE employee_hierarchy AS (\n    -- Base case: Top-level managers (no manager)\n    SELECT \n        employee_id,\n        employee_name,\n        manager_id,\n        job_title,\n       ",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/sql_advanced.md",
+      "file_name": "sql_advanced.md",
+      "chunk_index": 98
+    },
+    "id": "tejuu_140"
+  },
+  {
+    "text": "ierarchy\nWITH RECURSIVE employee_hierarchy AS (\n    -- Base case: Top-level managers (no manager)\n    SELECT \n        employee_id,\n        employee_name,\n        manager_id,\n        job_title,\n        department,\n        salary,\n        1 as level,\n        CAST(employee_name AS VARCHAR(1000)) as hierarchy_path,\n        CAST(employee_id AS VARCHAR(1000)) as id_path\n    FROM dim_employee\n    WHERE manager_id IS NULL\n    \n    UNION ALL\n    \n    -- Recursive case: Employees with managers\n    SELECT \n        e.employee_id,\n        e.employee_name,\n        e.manager_id,\n        e.job_title,\n        e.department,\n        e.salary,\n        eh.level + 1,\n        CAST(eh.hierarchy_path || ' > ' || e.employee_name AS VARCHAR(1000)),\n        CAST(eh.id_path || '>' || e.employee_id AS VARCHAR(1000))\n    FROM dim_employee e\n    INNER JOIN employee_hierarchy eh ON e.manager_id = eh.employee_id\n    WHERE eh.level < 10  -- Prevent infinite recursion\n),\nteam_metrics AS (\n    SELECT \n        eh.employee_",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/sql_advanced.md",
+      "file_name": "sql_advanced.md",
+      "chunk_index": 99
+    },
+    "id": "tejuu_141"
+  },
+  {
+    "text": "  FROM dim_employee e\n    INNER JOIN employee_hierarchy eh ON e.manager_id = eh.employee_id\n    WHERE eh.level < 10  -- Prevent infinite recursion\n),\nteam_metrics AS (\n    SELECT \n        eh.employee_id,\n        eh.employee_name,\n        eh.level,\n        COUNT(DISTINCT e2.employee_id) as direct_reports,\n        COUNT(DISTINCT e3.employee_id) as total_team_size,\n        AVG(e3.salary) as avg_team_salary,\n        SUM(e3.salary) as total_team_cost\n    FROM employee_hierarchy eh\n    LEFT JOIN dim_employee e2 ON eh.employee_id = e2.manager_id\n    LEFT JOIN employee_hierarchy e3 ON e3.id_path LIKE eh.id_path || '%'\n    GROUP BY eh.employee_id, eh.employee_name, eh.level\n)\nSELECT \n    eh.employee_id,\n    eh.employee_name,\n    eh.job_title,\n    eh.department,\n    eh.salary,\n    eh.level,\n    eh.hierarchy_path,\n    tm.direct_reports,\n    tm.total_team_size,\n    tm.avg_team_salary,\n    tm.total_team_cost,\n    ROUND((eh.salary / NULLIF(tm.avg_team_salary, 0)), 2) as salary_vs_team_avg\nFROM emplo",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/sql_advanced.md",
+      "file_name": "sql_advanced.md",
+      "chunk_index": 100
+    },
+    "id": "tejuu_142"
+  },
+  {
+    "text": "ierarchy_path,\n    tm.direct_reports,\n    tm.total_team_size,\n    tm.avg_team_salary,\n    tm.total_team_cost,\n    ROUND((eh.salary / NULLIF(tm.avg_team_salary, 0)), 2) as salary_vs_team_avg\nFROM employee_hierarchy eh\nJOIN team_metrics tm ON eh.employee_id = tm.employee_id\nORDER BY eh.level, eh.employee_name;\n```\n\n### Product Category Hierarchy\n**Inventory Analysis with Rollups:**\n\n```sql\n-- Product Category Hierarchy with Sales Rollup\nWITH RECURSIVE category_hierarchy AS (\n    SELECT \n        category_id,\n        category_name,\n        parent_category_id,\n        1 as level,\n        CAST(category_name AS VARCHAR(500)) as category_path\n    FROM dim_category\n    WHERE parent_category_id IS NULL\n    \n    UNION ALL\n    \n    SELECT \n        c.category_id,\n        c.category_name,\n        c.parent_category_id,\n        ch.level + 1,\n        CAST(ch.category_path || ' > ' || c.category_name AS VARCHAR(500))\n    FROM dim_category c\n    INNER JOIN category_hierarchy ch ON c.parent_category_id = ",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/sql_advanced.md",
+      "file_name": "sql_advanced.md",
+      "chunk_index": 101
+    },
+    "id": "tejuu_143"
+  },
+  {
+    "text": "nt_category_id,\n        ch.level + 1,\n        CAST(ch.category_path || ' > ' || c.category_name AS VARCHAR(500))\n    FROM dim_category c\n    INNER JOIN category_hierarchy ch ON c.parent_category_id = ch.category_id\n),\nsales_by_category AS (\n    SELECT \n        p.category_id,\n        SUM(s.sales_amount) as total_sales,\n        SUM(s.quantity) as total_quantity,\n        COUNT(DISTINCT s.order_id) as order_count,\n        COUNT(DISTINCT s.customer_id) as customer_count\n    FROM fact_sales s\n    JOIN dim_product p ON s.product_id = p.product_id\n    WHERE s.sale_date >= '2024-01-01'\n    GROUP BY p.category_id\n)\nSELECT \n    ch.category_id,\n    ch.category_name,\n    ch.parent_category_id,\n    ch.level,\n    ch.category_path,\n    COALESCE(sc.total_sales, 0) as direct_sales,\n    COALESCE(sc.total_quantity, 0) as direct_quantity,\n    SUM(COALESCE(sc2.total_sales, 0)) as total_sales_with_children,\n    SUM(COALESCE(sc2.total_quantity, 0)) as total_quantity_with_children\nFROM category_hierarchy ch\nLE",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/sql_advanced.md",
+      "file_name": "sql_advanced.md",
+      "chunk_index": 102
+    },
+    "id": "tejuu_144"
+  },
+  {
+    "text": "ntity, 0) as direct_quantity,\n    SUM(COALESCE(sc2.total_sales, 0)) as total_sales_with_children,\n    SUM(COALESCE(sc2.total_quantity, 0)) as total_quantity_with_children\nFROM category_hierarchy ch\nLEFT JOIN sales_by_category sc ON ch.category_id = sc.category_id\nLEFT JOIN category_hierarchy ch2 ON ch2.category_path LIKE ch.category_path || '%'\nLEFT JOIN sales_by_category sc2 ON ch2.category_id = sc2.category_id\nGROUP BY \n    ch.category_id,\n    ch.category_name,\n    ch.parent_category_id,\n    ch.level,\n    ch.category_path,\n    sc.total_sales,\n    sc.total_quantity\nORDER BY ch.category_path;\n```\n\n## Data Quality and Validation SQL\n\n### Comprehensive Data Quality Checks\n**Tejuu's Data Validation Framework:**\n\n```sql\n-- Data Quality Report\nWITH null_checks AS (\n    SELECT \n        'fact_sales' as table_name,\n        'customer_id' as column_name,\n        COUNT(*) as total_records,\n        SUM(CASE WHEN customer_id IS NULL THEN 1 ELSE 0 END) as null_count,\n        ROUND(SUM(CASE WHEN cust",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/sql_advanced.md",
+      "file_name": "sql_advanced.md",
+      "chunk_index": 103
+    },
+    "id": "tejuu_145"
+  },
+  {
+    "text": "es' as table_name,\n        'customer_id' as column_name,\n        COUNT(*) as total_records,\n        SUM(CASE WHEN customer_id IS NULL THEN 1 ELSE 0 END) as null_count,\n        ROUND(SUM(CASE WHEN customer_id IS NULL THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) as null_percentage\n    FROM fact_sales\n    WHERE sale_date >= CURRENT_DATE - INTERVAL '30 days'\n    \n    UNION ALL\n    \n    SELECT \n        'fact_sales',\n        'sale_date',\n        COUNT(*),\n        SUM(CASE WHEN sale_date IS NULL THEN 1 ELSE 0 END),\n        ROUND(SUM(CASE WHEN sale_date IS NULL THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2)\n    FROM fact_sales\n    WHERE sale_date >= CURRENT_DATE - INTERVAL '30 days'\n    \n    UNION ALL\n    \n    SELECT \n        'fact_sales',\n        'sales_amount',\n        COUNT(*),\n        SUM(CASE WHEN sales_amount IS NULL THEN 1 ELSE 0 END),\n        ROUND(SUM(CASE WHEN sales_amount IS NULL THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2)\n    FROM fact_sales\n    WHERE sale_date >= CURRENT_DATE - INTERVAL '30",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/sql_advanced.md",
+      "file_name": "sql_advanced.md",
+      "chunk_index": 104
+    },
+    "id": "tejuu_146"
+  },
+  {
+    "text": "les_amount IS NULL THEN 1 ELSE 0 END),\n        ROUND(SUM(CASE WHEN sales_amount IS NULL THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2)\n    FROM fact_sales\n    WHERE sale_date >= CURRENT_DATE - INTERVAL '30 days'\n),\nrange_checks AS (\n    SELECT \n        'fact_sales' as table_name,\n        'sales_amount' as column_name,\n        MIN(sales_amount) as min_value,\n        MAX(sales_amount) as max_value,\n        AVG(sales_amount) as avg_value,\n        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY sales_amount) as median_value,\n        SUM(CASE WHEN sales_amount < 0 THEN 1 ELSE 0 END) as negative_count,\n        SUM(CASE WHEN sales_amount = 0 THEN 1 ELSE 0 END) as zero_count\n    FROM fact_sales\n    WHERE sale_date >= CURRENT_DATE - INTERVAL '30 days'\n),\nduplicate_checks AS (\n    SELECT \n        'fact_sales' as table_name,\n        'order_id' as key_column,\n        COUNT(*) as total_records,\n        COUNT(DISTINCT order_id) as unique_records,\n        COUNT(*) - COUNT(DISTINCT order_id) as duplicate_count",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/sql_advanced.md",
+      "file_name": "sql_advanced.md",
+      "chunk_index": 105
+    },
+    "id": "tejuu_147"
+  },
+  {
+    "text": "' as table_name,\n        'order_id' as key_column,\n        COUNT(*) as total_records,\n        COUNT(DISTINCT order_id) as unique_records,\n        COUNT(*) - COUNT(DISTINCT order_id) as duplicate_count\n    FROM fact_sales\n    WHERE sale_date >= CURRENT_DATE - INTERVAL '30 days'\n),\nreferential_integrity AS (\n    SELECT \n        'fact_sales -> dim_customer' as relationship,\n        COUNT(DISTINCT s.customer_id) as fact_keys,\n        COUNT(DISTINCT c.customer_id) as dim_keys,\n        COUNT(DISTINCT s.customer_id) - COUNT(DISTINCT c.customer_id) as orphaned_records\n    FROM fact_sales s\n    LEFT JOIN dim_customer c ON s.customer_id = c.customer_id\n    WHERE s.sale_date >= CURRENT_DATE - INTERVAL '30 days'\n)\nSELECT \n    'Null Checks' as check_type,\n    table_name,\n    column_name,\n    null_count as issue_count,\n    null_percentage as issue_percentage,\n    CASE WHEN null_percentage > 5 THEN 'FAIL' ELSE 'PASS' END as status\nFROM null_checks\nWHERE null_count > 0\n\nUNION ALL\n\nSELECT \n    'Range C",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/sql_advanced.md",
+      "file_name": "sql_advanced.md",
+      "chunk_index": 106
+    },
+    "id": "tejuu_148"
+  },
+  {
+    "text": " as issue_count,\n    null_percentage as issue_percentage,\n    CASE WHEN null_percentage > 5 THEN 'FAIL' ELSE 'PASS' END as status\nFROM null_checks\nWHERE null_count > 0\n\nUNION ALL\n\nSELECT \n    'Range Checks',\n    table_name,\n    column_name,\n    negative_count + zero_count,\n    ROUND((negative_count + zero_count) * 100.0 / \n          (SELECT COUNT(*) FROM fact_sales WHERE sale_date >= CURRENT_DATE - INTERVAL '30 days'), 2),\n    CASE WHEN negative_count > 0 THEN 'FAIL' ELSE 'PASS' END\nFROM range_checks\n\nUNION ALL\n\nSELECT \n    'Duplicate Checks',\n    table_name,\n    key_column,\n    duplicate_count,\n    ROUND(duplicate_count * 100.0 / total_records, 2),\n    CASE WHEN duplicate_count > 0 THEN 'FAIL' ELSE 'PASS' END\nFROM duplicate_checks\n\nUNION ALL\n\nSELECT \n    'Referential Integrity',\n    relationship,\n    '',\n    orphaned_records,\n    ROUND(orphaned_records * 100.0 / fact_keys, 2),\n    CASE WHEN orphaned_records > 0 THEN 'FAIL' ELSE 'PASS' END\nFROM referential_integrity;\n```\n\n## Interview ",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/sql_advanced.md",
+      "file_name": "sql_advanced.md",
+      "chunk_index": 107
+    },
+    "id": "tejuu_149"
+  },
+  {
+    "text": "ionship,\n    '',\n    orphaned_records,\n    ROUND(orphaned_records * 100.0 / fact_keys, 2),\n    CASE WHEN orphaned_records > 0 THEN 'FAIL' ELSE 'PASS' END\nFROM referential_integrity;\n```\n\n## Interview Talking Points\n\n### Technical Achievements\n- Wrote 500+ SQL queries for business analytics\n- Optimized slow queries from 5 minutes to 10 seconds\n- Built automated data quality checks catching 95% of issues\n- Created reusable SQL templates for common analyses\n- Trained 15+ analysts on advanced SQL techniques\n\n### Problem-Solving Examples\n**Performance Optimization:**\n\"At Stryker, we had this Medicaid claims query that was taking 5 minutes to run. I analyzed the execution plan and found we were doing a full table scan on a 50 million row table. I added appropriate indexes on claim_date and provider_id, rewrote the query to use CTEs instead of subqueries, and got it down to 10 seconds.\"\n\n**Complex Business Logic:**\n\"At Central Bank, finance needed a complex calculation for regulatory reportin",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/sql_advanced.md",
+      "file_name": "sql_advanced.md",
+      "chunk_index": 108
+    },
+    "id": "tejuu_150"
+  },
+  {
+    "text": "der_id, rewrote the query to use CTEs instead of subqueries, and got it down to 10 seconds.\"\n\n**Complex Business Logic:**\n\"At Central Bank, finance needed a complex calculation for regulatory reporting that involved multiple date ranges, conditional aggregations, and hierarchical rollups. I broke it down into CTEs, tested each piece separately, and documented the logic. The final query was 200 lines but very maintainable and accurate.\"\n\n### Tools & Technologies\n- **Databases**: SQL Server, Oracle, PostgreSQL, MySQL\n- **SQL Skills**: Window functions, CTEs, recursive queries, performance tuning\n- **Tools**: SQL Server Management Studio, DBeaver, DataGrip\n- **Integration**: Power BI, Tableau, Python, Excel\n",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/sql_advanced.md",
+      "file_name": "sql_advanced.md",
+      "chunk_index": 109
+    },
+    "id": "tejuu_151"
+  },
+  {
+    "text": "---\ntags: [tejuu, experience, resume, business-analyst, bi-developer, analytics-engineer]\npersona: tejuu\n---\n\n# Tejuu's Professional Experience & Background\n\n## Professional Summary\n\nBusiness Intelligence & Analytics professional with hands-on expertise in SQL, Python, and modern BI stacks. Experienced in leading data migration initiatives, building ETL pipelines on Azure, and delivering enterprise-grade Power BI solutions. Adept at turning messy legacy systems into trusted metrics and scalable models that power decision-making for finance, operations, and leadership.\n\n## Professional Experience\n\n### Senior Analytics Engineer — Central Bank of Missouri\n**Duration:** Dec 2024 – Present\n\n**Key Responsibilities and Achievements:**\n\nSo at Central Bank of Missouri, I'm currently leading this major migration project where we're moving all these fragmented Excel files and legacy reports into Azure SQL with Power BI semantic models. What I did was write SQL and Python validation scripts that h",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/tejuu_experience.md",
+      "file_name": "tejuu_experience.md",
+      "chunk_index": 110
+    },
+    "id": "tejuu_152"
+  },
+  {
+    "text": "jor migration project where we're moving all these fragmented Excel files and legacy reports into Azure SQL with Power BI semantic models. What I did was write SQL and Python validation scripts that helped us reconcile over 12 million rows of data. The result was pretty significant - we improved reporting efficiency by 25% and really reduced the manual workload that the team was dealing with.\n\nOne of the things I'm really proud of is building these certified dashboards with role-based security. I implemented RLS (row-level security) and standardized KPIs, which enabled secure self-service for our finance, audit, and risk teams. This actually reduced ad-hoc reporting requests by 30% across multiple departments, which was a huge win for everyone.\n\nI also implemented automated SQL quality checks and monitoring pipelines. What this did was improve the accuracy of 15+ recurring regulatory reports by 20%. This was super important because it strengthened our compliance confidence and increase",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/tejuu_experience.md",
+      "file_name": "tejuu_experience.md",
+      "chunk_index": 111
+    },
+    "id": "tejuu_153"
+  },
+  {
+    "text": "cks and monitoring pipelines. What this did was improve the accuracy of 15+ recurring regulatory reports by 20%. This was super important because it strengthened our compliance confidence and increased trust among senior stakeholders.\n\nAnother major project was partnering with finance and audit groups to map over 200 legacy metrics into standardized semantic models. We ended up deprecating duplicate workbooks and consolidating 30% of manual spreadsheets into governed BI assets that are now used organization-wide.\n\nI also mentor analysts on DAX optimization, KPI documentation, and structured intake processes. This has raised delivery timeliness, improved collaboration, and freed over 30 analyst hours monthly from repetitive reporting and rework.\n\n**Technologies Used:**\n- Azure SQL, Power BI, DAX, Power Query\n- SQL, Python\n- Git for version control\n- Azure Data Factory\n\n### Analytics Engineer — Stryker\n**Duration:** Jan 2022 – Dec 2024\n\n**Key Responsibilities and Achievements:**\n\nAt Stry",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/tejuu_experience.md",
+      "file_name": "tejuu_experience.md",
+      "chunk_index": 112
+    },
+    "id": "tejuu_154"
+  },
+  {
+    "text": ", DAX, Power Query\n- SQL, Python\n- Git for version control\n- Azure Data Factory\n\n### Analytics Engineer — Stryker\n**Duration:** Jan 2022 – Dec 2024\n\n**Key Responsibilities and Achievements:**\n\nAt Stryker, I directed this massive migration of global sales and service data from Oracle and Excel into Azure Synapse star schemas. I built the ETL using Azure Data Factory and Databricks, and validated over 15 million transactions using Python scripts. This enabled unified reporting across all regions, which was a game-changer for the company.\n\nOne of my biggest achievements was engineering these partitioned ELT pipelines with optimized orchestration. I cut refresh runtimes by 45% and lowered compute spend significantly. At the same time, we scaled secure data access to over 1,000 field reps, executives, and business stakeholders worldwide.\n\nI developed comprehensive data lineage documentation and KPI guardrails. What this did was lower discrepancies in quarterly executive scorecards, accelera",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/tejuu_experience.md",
+      "file_name": "tejuu_experience.md",
+      "chunk_index": 113
+    },
+    "id": "tejuu_155"
+  },
+  {
+    "text": "utives, and business stakeholders worldwide.\n\nI developed comprehensive data lineage documentation and KPI guardrails. What this did was lower discrepancies in quarterly executive scorecards, accelerate month-end close by days, and improve trust in CFO reporting packages globally.\n\nI also collaborated with clinical and product teams to translate operational questions into measurable KPIs and drill-through dashboards. This work uncovered process inefficiencies and unlocked over $2 million in actionable revenue opportunities.\n\n**Technologies Used:**\n- Azure Synapse, Azure Data Factory, Databricks\n- SQL, Python, PySpark\n- Power BI, DAX\n- Oracle database\n- Star schema design\n\n**Challenges Overcome:**\n- Data quality issues during migration from legacy systems\n- Performance optimization for large-scale data processing\n- Stakeholder alignment across multiple global regions\n- Balancing technical debt with new feature delivery\n\n### Product Data Analyst — CVS Health\n**Duration:** May 2020 – Jan ",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/tejuu_experience.md",
+      "file_name": "tejuu_experience.md",
+      "chunk_index": 114
+    },
+    "id": "tejuu_156"
+  },
+  {
+    "text": "e-scale data processing\n- Stakeholder alignment across multiple global regions\n- Balancing technical debt with new feature delivery\n\n### Product Data Analyst — CVS Health\n**Duration:** May 2020 – Jan 2022\n\n**Key Responsibilities and Achievements:**\n\nAt CVS Health, I migrated pharmacy and inventory reporting from Access and Excel into Azure SQL with Power BI pipelines. I designed Python and SQL reconciliation scripts that validated over 10 million records and reduced manual reconciliation tasks by 40% consistently.\n\nI tuned complex SQL transformations and Power Query refreshes to stabilize recurring dashboards. This saved 25-30 analyst hours monthly and improved the accuracy and reliability of operational reporting across nationwide teams.\n\nI partnered with engineers to define semantic layer fields, KPI acceptance contracts, and validation scripts. This ensured smooth release cycles and reduced risks of downstream disruptions during production deployments.\n\nI also piloted A/B reporting ",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/tejuu_experience.md",
+      "file_name": "tejuu_experience.md",
+      "chunk_index": 115
+    },
+    "id": "tejuu_157"
+  },
+  {
+    "text": "r fields, KPI acceptance contracts, and validation scripts. This ensured smooth release cycles and reduced risks of downstream disruptions during production deployments.\n\nI also piloted A/B reporting tied to operational initiatives and staffing levers. I translated findings into measurable throughput improvements that directly influenced roadmap prioritization and leadership decision making.\n\n**Technologies Used:**\n- Azure SQL, Power BI\n- Python, SQL\n- Power Query, DAX\n- Access database migration\n- Excel automation\n\n**Key Learnings:**\n- Importance of data quality checks in migration projects\n- Stakeholder communication is critical for adoption\n- Documentation saves countless hours of rework\n- Automated testing catches issues before production\n\n### Business Analyst — Colruyt IT Group\n**Duration:** May 2018 – Dec 2019\n\n**Key Responsibilities and Achievements:**\n\nAt Colruyt IT Group, I consolidated fragmented Excel and Access reporting processes into standardized Power BI dashboards with ",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/tejuu_experience.md",
+      "file_name": "tejuu_experience.md",
+      "chunk_index": 116
+    },
+    "id": "tejuu_158"
+  },
+  {
+    "text": "tion:** May 2018 – Dec 2019\n\n**Key Responsibilities and Achievements:**\n\nAt Colruyt IT Group, I consolidated fragmented Excel and Access reporting processes into standardized Power BI dashboards with reusable DAX templates. This reduced duplication and increased trust in weekly financial and merchandising performance metrics.\n\nI designed SQL dimensional models to support finance and merchandising analyses. This accelerated month-end close cycles, provided interactive drilldowns, and replaced time-consuming manual spreadsheet-based efforts.\n\nI captured requirements across departments, authored detailed user stories, and developed UAT scripts with standardized KPI definitions. This ensured successful deliveries aligned with governance rules and stakeholder expectations.\n\n**Technologies Used:**\n- Power BI, DAX, Power Query\n- SQL Server\n- Excel, Access\n- Requirements gathering tools\n- UAT documentation\n\n**Skills Developed:**\n- Stakeholder management across multiple departments\n- Requiremen",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/tejuu_experience.md",
+      "file_name": "tejuu_experience.md",
+      "chunk_index": 117
+    },
+    "id": "tejuu_159"
+  },
+  {
+    "text": "**\n- Power BI, DAX, Power Query\n- SQL Server\n- Excel, Access\n- Requirements gathering tools\n- UAT documentation\n\n**Skills Developed:**\n- Stakeholder management across multiple departments\n- Requirements gathering and documentation\n- UAT script development\n- KPI definition and governance\n\n## Technical Skills\n\n### Programming & Data\n- **SQL**: Expert level - Complex queries, window functions, CTEs, performance tuning\n- **Python**: Proficient - Pandas, NumPy, data validation scripts, automation\n- **R**: Intermediate - Statistical analysis, data visualization\n- **Git**: Version control for code and documentation\n\n### Analytics & BI Tools\n- **Power BI**: Expert - DAX, Power Query, data modeling, RLS, performance optimization\n- **Tableau**: Proficient - Dashboard design, calculated fields, parameters\n- **Excel**: Advanced - Power Pivot, Power Query, VBA, complex formulas\n\n### Cloud & Data Platforms\n- **Azure**: Synapse, Data Factory, Databricks, Azure SQL\n- **Snowflake**: Data warehousing, q",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/tejuu_experience.md",
+      "file_name": "tejuu_experience.md",
+      "chunk_index": 118
+    },
+    "id": "tejuu_160"
+  },
+  {
+    "text": "eters\n- **Excel**: Advanced - Power Pivot, Power Query, VBA, complex formulas\n\n### Cloud & Data Platforms\n- **Azure**: Synapse, Data Factory, Databricks, Azure SQL\n- **Snowflake**: Data warehousing, query optimization\n- **AWS**: Basic familiarity with S3, Redshift\n- **dbt**: Data transformation, testing, documentation\n\n### Data & Business Skills\n- Data migration and ETL/ELT\n- KPI definition and governance\n- Dimensional modeling (star and snowflake schemas)\n- Forecasting and predictive analytics\n- Data quality and validation\n- Data lineage and documentation\n- Requirements gathering\n- Stakeholder management\n- UAT and testing\n\n## Education\n\n**MS Data Science**\nUniversity of North Texas, Denton, TX\n\n**B.Tech Information Technology**\nJNTU, Hyderabad, India\n\n## Certifications\n\n- **Scrum Alliance** — Certified Scrum Product Owner\n- **Google** — Business Intelligence Professional\n- **Microsoft** — Azure Data Engineer\n\n## Key Achievements & Metrics\n\n### Efficiency & Savings\n- Saved 25-30 hours ",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/tejuu_experience.md",
+      "file_name": "tejuu_experience.md",
+      "chunk_index": 119
+    },
+    "id": "tejuu_161"
+  },
+  {
+    "text": "** — Certified Scrum Product Owner\n- **Google** — Business Intelligence Professional\n- **Microsoft** — Azure Data Engineer\n\n## Key Achievements & Metrics\n\n### Efficiency & Savings\n- Saved 25-30 hours monthly through automation\n- Cut manual reconciliation by 40%\n- Reduced refresh runtime by 45%\n- Reduced compute spend by 22%\n\n### Scale & Volume\n- Reconciled 12M+ legacy rows\n- Built pipelines for 15M+ transactions\n- Supported 1K+ field users\n- Processed 10+ TB monthly\n\n### Impact & Adoption\n- Improved reporting efficiency by 25%\n- Reduced ad-hoc requests by 30%\n- Boosted dashboard adoption across regions\n- Consolidated 30% of manual spreadsheets\n\n### Financial Impact\n- Uncovered $2M+ revenue opportunity\n- Cut ad-hoc requests by 32%\n- Improved quarterly close by multiple days\n- Reduced operational costs significantly\n\n### Accuracy & Quality\n- Improved metric accuracy by 20%\n- Reduced discrepancies by 30%\n- Improved trust in KPIs across organization\n\n## Interview Talking Points\n\n### Proble",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/tejuu_experience.md",
+      "file_name": "tejuu_experience.md",
+      "chunk_index": 120
+    },
+    "id": "tejuu_162"
+  },
+  {
+    "text": "ional costs significantly\n\n### Accuracy & Quality\n- Improved metric accuracy by 20%\n- Reduced discrepancies by 30%\n- Improved trust in KPIs across organization\n\n## Interview Talking Points\n\n### Problem-Solving Examples\n\n**Challenge: Legacy System Migration**\nSo at CVS Health, we had this huge challenge where all the pharmacy reporting was in Access databases and Excel spreadsheets. The data was inconsistent, reports were breaking, and analysts were spending hours manually reconciling numbers. What I did was design a migration strategy to move everything to Azure SQL and Power BI. I wrote Python scripts to validate the data during migration, and we reconciled over 10 million records. The result was that we reduced manual work by 40% and improved data accuracy significantly.\n\n**Challenge: Performance Optimization**\nAt Stryker, we had these ELT pipelines that were taking forever to run - like 2-3 hours for a single refresh. This was causing delays in reporting and frustrating users. I ana",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/tejuu_experience.md",
+      "file_name": "tejuu_experience.md",
+      "chunk_index": 121
+    },
+    "id": "tejuu_163"
+  },
+  {
+    "text": "rformance Optimization**\nAt Stryker, we had these ELT pipelines that were taking forever to run - like 2-3 hours for a single refresh. This was causing delays in reporting and frustrating users. I analyzed the execution plans, identified bottlenecks, and implemented partitioning strategies in Databricks. I also optimized the orchestration in Azure Data Factory. The result was that we cut the runtime by 45% - from 2-3 hours down to about an hour. This also reduced our compute costs significantly.\n\n**Challenge: Stakeholder Alignment**\nOne challenge I faced at Central Bank was getting buy-in from different departments for the migration project. Finance wanted things one way, audit had different requirements, and risk had their own needs. What I did was organize workshops with each group, documented their requirements, and found common ground. I created a standardized KPI framework that met everyone's needs. The result was successful adoption across all departments and a 30% reduction in a",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/tejuu_experience.md",
+      "file_name": "tejuu_experience.md",
+      "chunk_index": 122
+    },
+    "id": "tejuu_164"
+  },
+  {
+    "text": "mented their requirements, and found common ground. I created a standardized KPI framework that met everyone's needs. The result was successful adoption across all departments and a 30% reduction in ad-hoc reporting requests.\n\n### Technical Strengths\n\n**Power BI & DAX**\nI'm really strong in Power BI and DAX. I've built over 50 dashboards across different business functions. I know how to optimize DAX formulas for performance, implement RLS for security, and design semantic models that are easy for business users to understand.\n\n**SQL & Data Modeling**\nSQL is my bread and butter. I write complex queries daily, including window functions, CTEs, and performance-tuned joins. I'm experienced in dimensional modeling - both star and snowflake schemas. I know how to design data warehouses that are optimized for analytics.\n\n**Data Migration**\nI've led multiple large-scale data migration projects. I know how to plan migrations, validate data, handle edge cases, and ensure business continuity. I ",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/tejuu_experience.md",
+      "file_name": "tejuu_experience.md",
+      "chunk_index": 123
+    },
+    "id": "tejuu_165"
+  },
+  {
+    "text": " optimized for analytics.\n\n**Data Migration**\nI've led multiple large-scale data migration projects. I know how to plan migrations, validate data, handle edge cases, and ensure business continuity. I always write reconciliation scripts to make sure no data is lost and everything matches.\n\n**Stakeholder Management**\nI'm good at working with non-technical stakeholders. I can translate business requirements into technical specifications and explain technical concepts in business terms. I've worked with executives, finance teams, operations, and IT across multiple companies.\n\n## Work Style & Approach\n\n### My Philosophy\nI believe in building things that last. When I design a dashboard or data model, I think about maintainability, scalability, and documentation. I don't just deliver a solution - I make sure the team can maintain it after I'm done.\n\n### Collaboration\nI work well in cross-functional teams. I've collaborated with data engineers, software developers, business analysts, and execu",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/tejuu_experience.md",
+      "file_name": "tejuu_experience.md",
+      "chunk_index": 124
+    },
+    "id": "tejuu_166"
+  },
+  {
+    "text": " I make sure the team can maintain it after I'm done.\n\n### Collaboration\nI work well in cross-functional teams. I've collaborated with data engineers, software developers, business analysts, and executives. I believe in clear communication, documentation, and knowledge sharing.\n\n### Continuous Learning\nI'm always learning new tools and techniques. I recently learned dbt and have been exploring more advanced Azure services. I believe in staying current with industry trends and best practices.\n\n### Problem-Solving Approach\nWhen I face a problem, I start by understanding the root cause. I gather requirements, analyze the data, and design a solution. I believe in iterative development - start with an MVP, get feedback, and improve. I also believe in testing thoroughly before production deployment.\n",
+    "metadata": {
+      "persona": "tejuu",
+      "file_path": "kb_tejuu/business_analyst/tejuu_experience.md",
+      "file_name": "tejuu_experience.md",
+      "chunk_index": 125
+    },
+    "id": "tejuu_167"
   }
 ]

@@ -10,7 +10,7 @@ import tempfile
 from fastapi import FastAPI, HTTPException, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from api.utils_simple import answer_question, health_check
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -58,15 +58,17 @@ async def debug():
 
 @app.post("/api/chat")
 async def chat(data: dict):
-    """Chat endpoint"""
+    """Chat endpoint with optional streaming and profile selection"""
     try:
         message = data.get("message", "").strip()
         mode = data.get("mode", "auto")
+        profile = data.get("profile", "krishna")
+        stream = data.get("stream", False)
         
         if not message:
             raise HTTPException(status_code=400, detail="Message is required")
         
-        result = answer_question(message, mode=mode)
+        result = answer_question(message, mode=mode, profile=profile, stream=stream)
         
         if "error" in result:
             raise HTTPException(status_code=400, detail=result["error"])
