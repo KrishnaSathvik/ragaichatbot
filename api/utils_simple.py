@@ -199,10 +199,10 @@ def answer_question(question, mode="auto", **kwargs):
             user_prompt = PROMPTS["user_default"].format(context=context, question=question)
             system_prompt = PROMPTS["system_default"]
         
-        # Get response from OpenAI
+        # Get response from OpenAI (using faster model for better response time)
         client = _get_client()
         response = client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4o-mini",  # Faster and cheaper than gpt-4o
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
