@@ -3,579 +3,383 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RAG AI Chatbot - AI/ML & Data Engineering Interview Assistant</title>
-  <meta name="description" content="AI-powered chatbot for AI/ML and Data Engineering interview preparation. Get expert answers to technical questions with RAG technology.">
-  <meta name="keywords" content="RAG, AI, chatbot, interview, machine learning, data engineering, technical questions">
-  <meta name="author" content="RAG AI Chatbot">
-  <meta property="og:title" content="RAG AI Chatbot - Interview Assistant">
-  <meta property="og:description" content="AI-powered chatbot for technical interview preparation">
-  <meta property="og:url" content="https://ragaichatbot.com">
-  <meta property="og:type" content="website">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-      font-family: 'Inter', sans-serif;
-    }
-    
-    /* Custom scrollbar */
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 4px;
-    }
-    
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: rgba(156, 163, 175, 0.5);
-      border-radius: 2px;
-    }
-    
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: rgba(156, 163, 175, 0.8);
-    }
-    
-    /* Loading animation */
-    @keyframes bounce {
-      0%, 80%, 100% {
-        transform: scale(0);
-      }
-      40% {
-        transform: scale(1);
-      }
-        }
-
-        .loading-dot {
-            animation: bounce 1.4s ease-in-out infinite both;
-        }
-
-        .loading-dot:nth-child(1) { animation-delay: -0.32s; }
-        .loading-dot:nth-child(2) { animation-delay: -0.16s; }
-        .loading-dot:nth-child(3) { animation-delay: 0s; }
-
-    /* Auto-resize textarea */
-    .auto-resize {
-            resize: none;
-            overflow: hidden;
-    }
-    
-    /* Mobile-first responsive design */
-    @media (min-width: 1024px) {
-      /* Hide mobile layout on desktop */
-      .mobile-frame {
-        display: none !important;
-      }
-      
-      /* Show desktop layout on desktop */
-      .desktop-layout {
-            display: flex;
-        height: 100vh;
-      }
-      
-      .desktop-sidebar {
-            display: block;
-        width: 320px;
-        background: #f8fafc;
-        border-right: 1px solid #e2e8f0;
-        overflow-y: auto;
-      }
-      
-      .desktop-main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-      }
-      
-      .desktop-chat-container {
-            flex: 1;
-            display: flex;
-        flex-direction: column;
-            background: white;
-        }
-    }
-    
-    @media (max-width: 1023px) {
-      /* Show mobile layout on mobile */
-      .mobile-frame {
-        display: block;
-      }
-      
-      /* Hide desktop layout on mobile */
-      .desktop-layout {
-        display: none !important;
-      }
-      
-      .desktop-sidebar {
-        display: none !important;
+    <title>RAG AI Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'chat-bg': '#212121',
+                        'message-bg': '#2f2f2f',
+                        'user-bg': '#007AFF',
+                        'sidebar-bg': '#171717',
+                        'border-color': '#404040',
+                    }
+                }
             }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #2f2f2f;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #777;
+        }
+        
+        /* Smooth animations */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Typing indicator */
+        .typing-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #9CA3AF;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+        
+        .typing-indicator:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
         }
     </style>
 </head>
-<body class="bg-gray-100 flex justify-center items-center min-h-screen p-4">
-  <!-- Mobile Frame (iPhone-style) -->
-  <div class="mobile-frame w-[390px] h-[844px] bg-black rounded-[60px] p-3 shadow-2xl relative overflow-hidden">
-    <!-- Screen -->
-    <div class="mobile-screen w-full h-full bg-black rounded-[50px] overflow-hidden relative">
-      <!-- Status Bar -->
-      <div class="absolute top-0 w-full px-8 pt-3 pb-1 flex justify-between items-center z-30">
-        <div class="text-white text-sm font-medium">9:41</div>
-        <div class="absolute top-1 left-1/2 transform -translate-x-1/2 w-[150px] h-[30px] bg-black rounded-b-[20px] z-40"></div>
-        <div class="flex items-center space-x-2">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
-          </svg>
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-          </svg>
-          <div class="w-6 h-3 bg-white rounded-full"></div>
-        </div>
-      </div>
-
-      <!-- App Content -->
-      <div class="w-full h-full bg-gradient-to-b from-indigo-900 to-purple-900 pt-12">
-        <!-- App Header -->
-        <div class="px-6 pt-4 pb-6 flex justify-between items-center">
-          <div class="flex items-center">
-            <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-              </svg>
-            </div>
-            <div class="ml-3">
-              <h1 class="text-white text-xl font-semibold">RAG AI</h1>
-              <p class="text-indigo-200 text-xs">AI/ML & Data Engineering</p>
-            </div>
-          </div>
-          <button class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center" onclick="toggleSidebar()">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-        </div>
-
-        <!-- Chat Container -->
-        <div class="bg-white rounded-t-3xl h-[680px] overflow-hidden flex flex-col">
-          <!-- Chat Header -->
-          <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-            <h2 class="text-gray-800 font-semibold">New Chat</h2>
-            <div class="flex space-x-4">
-              <select id="modeSelect" class="text-gray-600 bg-transparent border-none outline-none text-sm">
-                <option value="auto">Auto Mode</option>
-                <option value="ai">AI/ML Focus</option>
-                <option value="de">Data Engineering</option>
-              </select>
-              <button class="text-gray-400" onclick="startNewChat()">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          <!-- Messages -->
-          <div class="flex-1 overflow-y-auto px-6 py-4 space-y-6 custom-scrollbar" id="messages">
-            <!-- Welcome Message -->
-            <div class="flex justify-center">
-              <span class="text-xs text-gray-400" id="currentTime"></span>
-            </div>
-            
-            <!-- AI Message -->
-            <div class="flex items-start">
-              <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center flex-shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
-              </div>
-              <div class="ml-3 bg-gray-100 rounded-xl rounded-tl-none p-4 max-w-[260px]">
-                <p class="text-gray-800 text-sm">Hello! I'm your AI/ML and Data Engineering assistant. How can I help you today?</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Loading Indicator -->
-          <div class="px-6 py-2" id="loadingIndicator" style="display: none;">
-            <div class="flex items-center space-x-2 text-gray-500">
-              <div class="flex space-x-1">
-                <div class="w-2 h-2 bg-indigo-500 rounded-full loading-dot"></div>
-                <div class="w-2 h-2 bg-indigo-500 rounded-full loading-dot"></div>
-                <div class="w-2 h-2 bg-indigo-500 rounded-full loading-dot"></div>
-              </div>
-              <span class="text-xs">Thinking...</span>
-            </div>
-          </div>
-
-          <!-- Recording Indicator -->
-          <div class="px-6 py-2" id="recordingIndicator" style="display: none;">
-            <div class="flex items-center space-x-2 text-red-500">
-              <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-              <span class="text-xs font-medium">Recording... Click to stop</span>
-            </div>
-          </div>
-
-
-          <!-- Input Area -->
-          <div class="p-4 border-t border-gray-100">
-            <div class="flex items-center bg-gray-100 rounded-full px-4 py-2">
-              <button class="text-gray-400 mr-2" onclick="toggleRecording()">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                </svg>
-              </button>
-              <textarea 
-                id="messageInput" 
-                placeholder="Message RAG AI..." 
-                class="bg-transparent flex-1 outline-none text-gray-600 text-sm resize-none auto-resize"
-                rows="1"
-              ></textarea>
-              <button class="ml-2 w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center" onclick="sendMessage()">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Desktop Layout (Hidden on mobile) -->
-  <div class="desktop-layout">
-    <!-- Desktop Sidebar -->
-    <div class="desktop-sidebar">
-      <div class="p-6 border-b border-gray-200">
-        <button class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-indigo-700 transition-colors" onclick="startNewChat()">
-                    + New Chat
+<body class="bg-chat-bg text-white h-screen overflow-hidden">
+    <div class="flex h-full">
+        <!-- Sidebar -->
+        <div id="sidebar" class="w-64 bg-sidebar-bg border-r border-border-color flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 -translate-x-full lg:static fixed inset-y-0 z-50">
+            <!-- Header -->
+            <div class="p-4 border-b border-border-color">
+                <button id="newChatBtn" class="w-full bg-transparent border border-border-color rounded-lg px-4 py-2 text-sm hover:bg-message-bg transition-colors flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    New Chat
                 </button>
             </div>
             
-      <div class="flex-1 overflow-y-auto p-4 custom-scrollbar" id="desktopChatList">
-        <div class="text-center text-gray-500 py-8">
-                    No chat history yet.<br>Start a conversation!
+            <!-- Chat History -->
+            <div class="flex-1 overflow-y-auto p-2">
+                <div id="chatHistory" class="space-y-1">
+                    <!-- Chat history will be populated here -->
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="p-4 border-t border-border-color">
+                <div class="text-xs text-gray-400 text-center">
+                    RAG AI Chatbot
                 </div>
             </div>
         </div>
-
-    <!-- Desktop Main Content -->
-    <div class="desktop-main">
-      <div class="desktop-chat-container">
-        <!-- Desktop Header -->
-        <div class="px-6 py-4 border-b border-gray-200 bg-white">
-          <h1 class="text-2xl font-semibold text-gray-800 mb-2">RAG Chatbot</h1>
-          <p class="text-gray-600 mb-4">AI/ML & Data Engineering Assistant</p>
-          <div class="flex space-x-4">
-            <select id="desktopModeSelect" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+        
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col">
+            <!-- Top Bar -->
+            <div class="bg-sidebar-bg border-b border-border-color p-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <button id="sidebarToggle" class="lg:hidden p-2 hover:bg-message-bg rounded-lg transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                    <h1 class="text-lg font-semibold">RAG AI Chatbot</h1>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <select id="modeSelect" class="bg-message-bg border border-border-color rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="auto">Auto Mode</option>
-                        <option value="ai">AI/ML Focus</option>
-              <option value="de">Data Engineering</option>
+                        <option value="ai_ml">AI/ML Focus</option>
+                        <option value="data_eng">Data Engineering</option>
                     </select>
                 </div>
             </div>
-
-        <!-- Desktop Messages -->
-        <div class="flex-1 overflow-y-auto p-6 custom-scrollbar" id="desktopMessages">
-          <div class="max-w-4xl mx-auto">
-            <div class="flex items-start space-x-3 mb-6">
-              <div class="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center flex-shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
+            
+            <!-- Messages Container -->
+            <div id="messagesContainer" class="flex-1 overflow-y-auto p-4 space-y-4">
+                <!-- Welcome Message -->
+                <div class="flex items-start gap-3 fade-in">
+                    <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
                     </div>
-              <div class="bg-gray-100 rounded-xl rounded-tl-none p-4 max-w-2xl">
-                <p class="text-gray-800">Hello! I'm your AI/ML and Data Engineering assistant. How can I help you today?</p>
+                    <div class="bg-message-bg rounded-2xl rounded-tl-md px-4 py-3 max-w-3xl">
+                        <p class="text-gray-100">Hello! I'm your AI/ML and Data Engineering assistant. How can I help you today?</p>
+                    </div>
                 </div>
             </div>
-                </div>
-            </div>
-
-        <!-- Desktop Loading -->
-        <div class="px-6 py-2" id="desktopLoadingIndicator" style="display: none;">
-          <div class="max-w-4xl mx-auto">
-            <div class="flex items-center space-x-2 text-gray-500">
-              <div class="flex space-x-1">
-                <div class="w-2 h-2 bg-indigo-500 rounded-full loading-dot"></div>
-                <div class="w-2 h-2 bg-indigo-500 rounded-full loading-dot"></div>
-                <div class="w-2 h-2 bg-indigo-500 rounded-full loading-dot"></div>
-                </div>
-              <span class="text-sm">Thinking...</span>
-            </div>
-          </div>
-            </div>
-
-        <!-- Desktop Recording -->
-        <div class="px-6 py-2" id="desktopRecordingIndicator" style="display: none;">
-          <div class="max-w-4xl mx-auto">
-            <div class="flex items-center space-x-2 text-red-500">
-              <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-              <span class="text-sm font-medium">Recording... Click to stop</span>
-            </div>
-          </div>
-            </div>
-
-
-        <!-- Desktop Input -->
-        <div class="p-6 border-t border-gray-200 bg-white">
-          <div class="max-w-4xl mx-auto">
-            <div class="flex items-end space-x-3">
-              <div class="flex-1">
+            
+            <!-- Input Area -->
+            <div class="p-4 border-t border-border-color">
+                <div class="max-w-4xl mx-auto">
+                    <div class="relative">
                         <textarea 
-                  id="desktopMessageInput" 
-                            placeholder="Type your question here..." 
-                  class="w-full px-4 py-3 border border-gray-300 rounded-xl resize-none auto-resize focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            id="messageInput" 
+                            placeholder="Type your message here..." 
+                            class="w-full bg-message-bg border border-border-color rounded-2xl px-4 py-3 pr-12 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-white placeholder-gray-400"
                             rows="1"
+                            style="min-height: 48px; max-height: 120px;"
                         ></textarea>
+                        
+                        <div class="absolute right-3 bottom-3 flex items-center gap-2">
+                            <!-- Voice Recording Button -->
+                            <button 
+                                id="voiceBtn" 
+                                class="p-2 hover:bg-gray-600 rounded-full transition-colors"
+                                title="Voice input"
+                            >
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+                                </svg>
+                            </button>
+                            
+                            <!-- Send Button -->
+                            <button 
+                                id="sendBtn" 
+                                class="p-2 bg-blue-600 hover:bg-blue-700 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled
+                            >
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
-              <div class="flex space-x-2">
-                <button class="p-3 text-gray-400 hover:text-gray-600 transition-colors" onclick="toggleRecording()">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                  </svg>
-                        </button>
-                <button class="px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors" onclick="sendMessage()">
-                            Send
-                        </button>
-              </div>
-            </div>
+                    
+                    <!-- Recording Indicator -->
+                    <div id="recordingIndicator" class="hidden mt-2 flex items-center gap-2 text-red-400">
+                        <div class="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
+                        <span class="text-sm">Recording... Click to stop</span>
                     </div>
-                </div>
-            </div>
+      </div>
+      </div>
         </div>
     </div>
+    
+    <!-- Sidebar Overlay (Mobile) -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden"></div>
 
     <script>
-        let mediaRecorder;
-        let audioChunks = [];
-        let isRecording = false;
+        // Global variables
         let conversationHistory = [];
         let currentChatId = null;
         let chatHistory = [];
-    function getIsMobile() {
-        return window.innerWidth < 1024;
-    }
+        let isRecording = false;
+        let mediaRecorder = null;
+        let audioChunks = [];
 
-    // Dynamic API base URL
+        // API Configuration
         const API_BASE = "https://rag-chatbot-api-33r9.onrender.com";
 
-    // Initialize
-    window.addEventListener('load', function() {
-        updateCurrentTime();
-        setInterval(updateCurrentTime, 1000);
-        loadChatHistory();
-        if (chatHistory.length === 0) {
-            startNewChat();
-        }
-        
-        // Auto-resize textareas
-        setupAutoResize();
-        
-        // Focus appropriate input based on current screen size
-        const input = getIsMobile() ? document.getElementById('messageInput') : document.getElementById('desktopMessageInput');
-        if (input) input.focus();
-    });
+        // DOM Elements
+        const messagesContainer = document.getElementById('messagesContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const voiceBtn = document.getElementById('voiceBtn');
+        const recordingIndicator = document.getElementById('recordingIndicator');
+        const modeSelect = document.getElementById('modeSelect');
+        const newChatBtn = document.getElementById('newChatBtn');
+        const chatHistoryContainer = document.getElementById('chatHistory');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
 
-    // Handle window resize
-    window.addEventListener('resize', function() {
-        // Force re-layout if needed
-        const input = getIsMobile() ? document.getElementById('messageInput') : document.getElementById('desktopMessageInput');
-        if (input) input.focus();
-    });
-
-    function updateCurrentTime() {
-        const now = new Date();
-        const timeString = now.toLocaleTimeString('en-US', { 
-            hour: 'numeric', 
-            minute: '2-digit',
-            hour12: true 
-        });
-        document.getElementById('currentTime').textContent = `Today, ${timeString}`;
-    }
-
-    function setupAutoResize() {
-        const textareas = document.querySelectorAll('.auto-resize');
-        textareas.forEach(textarea => {
-            textarea.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadChatHistory();
+            setupEventListeners();
+            autoResizeTextarea();
         });
 
-            textarea.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
-        });
-    }
+        function setupEventListeners() {
+            // Send message
+            sendBtn.addEventListener('click', sendMessage);
+            messageInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
 
-        function showLoading(show) {
-        const mobileIndicator = document.getElementById('loadingIndicator');
-        const desktopIndicator = document.getElementById('desktopLoadingIndicator');
-        
-        if (getIsMobile()) {
-            mobileIndicator.style.display = show ? 'block' : 'none';
-        } else {
-            desktopIndicator.style.display = show ? 'block' : 'none';
-        }
+            // Voice recording
+            voiceBtn.addEventListener('click', toggleRecording);
+
+            // New chat
+            newChatBtn.addEventListener('click', startNewChat);
+
+            // Sidebar toggle (mobile)
+            sidebarToggle.addEventListener('click', toggleSidebar);
+            sidebarOverlay.addEventListener('click', closeSidebar);
+
+            // Auto-resize textarea
+            messageInput.addEventListener('input', autoResizeTextarea);
         }
 
-        function addMessage(content, sender, modeUsed = null) {
-        const messagesContainer = getIsMobile() ? document.getElementById('messages') : document.getElementById('desktopMessages');
-        
-        if (getIsMobile()) {
-            addMobileMessage(content, sender, modeUsed, messagesContainer);
-        } else {
-            addDesktopMessage(content, sender, modeUsed, messagesContainer);
-        }
-    }
-
-    function addMobileMessage(content, sender, modeUsed, container) {
-            const messageDiv = document.createElement('div');
-        messageDiv.className = 'flex items-start';
-        
-        if (sender === 'user') {
-            messageDiv.className += ' justify-end';
-            messageDiv.innerHTML = `
-                <div class="mr-3 bg-indigo-600 rounded-xl rounded-tr-none p-4 max-w-[260px]">
-                    <p class="text-white text-sm">${content}</p>
-                </div>
-                <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                </div>
-            `;
-        } else {
-            let modeBadge = '';
-            if (modeUsed) {
-                const modeDisplay = modeUsed === 'ai' ? 'AI/ML' : 'DE';
-                modeBadge = `<div class="text-xs text-indigo-600 font-medium mb-1">${modeDisplay}</div>`;
-            }
+        function autoResizeTextarea() {
+            messageInput.style.height = 'auto';
+            messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
             
-            messageDiv.innerHTML = `
-                <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center flex-shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                    </svg>
-                </div>
-                <div class="ml-3 bg-gray-100 rounded-xl rounded-tl-none p-4 max-w-[260px]">
-                    ${modeBadge}
-                    <p class="text-gray-800 text-sm">${content}</p>
-                </div>
-            `;
+            // Enable/disable send button
+            sendBtn.disabled = !messageInput.value.trim();
         }
-        
-        container.appendChild(messageDiv);
-        container.scrollTop = container.scrollHeight;
-    }
 
-    function addDesktopMessage(content, sender, modeUsed, container) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'flex items-start space-x-3 mb-6';
-        
-        if (sender === 'user') {
-            messageDiv.className += ' justify-end';
-            messageDiv.innerHTML = `
-                <div class="bg-indigo-600 text-white rounded-xl rounded-tr-none p-4 max-w-2xl">
-                    <p class="text-sm">${content}</p>
-                </div>
-                <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                </div>
-            `;
-            } else {
-            let modeBadge = '';
-            if (modeUsed) {
-                const modeDisplay = modeUsed === 'ai' ? 'AI/ML' : 'DE';
-                modeBadge = `<div class="text-xs text-indigo-600 font-medium mb-2">${modeDisplay}</div>`;
-            }
-            
-            messageDiv.innerHTML = `
-                <div class="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center flex-shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                    </svg>
-                </div>
-                <div class="bg-gray-100 rounded-xl rounded-tl-none p-4 max-w-2xl">
-                    ${modeBadge}
-                    <p class="text-gray-800">${content}</p>
-                </div>
-            `;
+        function toggleSidebar() {
+            sidebar.classList.toggle('-translate-x-full');
+            sidebarOverlay.classList.toggle('hidden');
         }
-        
-        container.appendChild(messageDiv);
-        container.scrollTop = container.scrollHeight;
+
+        function closeSidebar() {
+            sidebar.classList.add('-translate-x-full');
+            sidebarOverlay.classList.add('hidden');
         }
 
         async function sendMessage() {
-        // If currently recording, stop recording first and transcribe
-        if (isRecording) {
-            await stopRecordingAndTranscribe();
-            return;
-        }
-        
-        const messageInput = getIsMobile() ? document.getElementById('messageInput') : document.getElementById('desktopMessageInput');
             const message = messageInput.value.trim();
-        
             if (!message) return;
 
+            // Add user message
             addMessage(message, 'user');
             messageInput.value = '';
-            messageInput.style.height = 'auto';
-            showLoading(true);
+            autoResizeTextarea();
+
+            // Show typing indicator
+            const typingId = showTypingIndicator();
 
             try {
-            const modeSelect = getIsMobile() ? document.getElementById('modeSelect') : document.getElementById('desktopModeSelect');
-            
                 const response = await fetch(`${API_BASE}/api/chat`, {
                     method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
                     body: JSON.stringify({
                         message: message,
-                    mode: modeSelect.value,
-                        conversation_history: conversationHistory,
-                    style: "standard",
-                        tone: "confident",
-                        depth: "mid"
+                        mode: modeSelect.value
                     })
                 });
 
                 const data = await response.json();
-                
-                if (!response.ok) {
-                    throw new Error(data.detail || 'Failed to get response');
+                hideTypingIndicator(typingId);
+
+                if (data.error) {
+                    addMessage(`Error: ${data.error}`, 'assistant', 'error');
+                } else {
+                    addMessage(data.answer, 'assistant', 'success', data.sources);
                 }
 
-                addMessage(data.answer, 'assistant', data.mode_used);
-                
-                conversationHistory.push({ 
-                    user: message, 
-                    assistant: data.answer,
-                    modeUsed: data.mode_used,
-                    timestamp: new Date().toISOString()
+                // Save to conversation history
+                conversationHistory.push({
+                    user: message,
+                    assistant: data.answer || data.error,
+                    modeUsed: modeSelect.value
                 });
-                
+
+                // Save chat
                 saveCurrentChat();
-                
+
             } catch (error) {
-                console.error('Error:', error);
-                addMessage(`Error: ${error.message}`, 'assistant');
-            } finally {
-                showLoading(false);
-                messageInput.focus();
+                hideTypingIndicator(typingId);
+                addMessage(`Error: ${error.message}`, 'assistant', 'error');
             }
         }
 
-    // Audio recording functions
+        function addMessage(content, sender, type = 'normal', sources = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'flex items-start gap-3 fade-in';
+            
+            if (sender === 'user') {
+                messageDiv.innerHTML = `
+                    <div class="w-8 h-8 bg-user-bg rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                    </div>
+                    <div class="bg-user-bg rounded-2xl rounded-tr-md px-4 py-3 max-w-3xl ml-auto">
+                        <p class="text-white">${escapeHtml(content)}</p>
+                    </div>
+                `;
+            } else {
+                const bgColor = type === 'error' ? 'bg-red-900' : 'bg-message-bg';
+                const textColor = type === 'error' ? 'text-red-100' : 'text-gray-100';
+                
+                messageDiv.innerHTML = `
+                    <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                    </div>
+                    <div class="${bgColor} rounded-2xl rounded-tl-md px-4 py-3 max-w-3xl">
+                        <div class="${textColor} whitespace-pre-wrap">${escapeHtml(content)}</div>
+                        ${sources ? `<div class="mt-3 pt-3 border-t border-gray-600">
+                            <div class="text-xs text-gray-400 mb-2">Sources:</div>
+                            <div class="flex flex-wrap gap-1">
+                                ${sources.map(source => `<span class="text-xs bg-gray-700 px-2 py-1 rounded">${source.title}</span>`).join('')}
+                            </div>
+                        </div>` : ''}
+                    </div>
+                `;
+            }
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const typingId = 'typing-' + Date.now();
+            const typingDiv = document.createElement('div');
+            typingDiv.id = typingId;
+            typingDiv.className = 'flex items-start gap-3 fade-in';
+            typingDiv.innerHTML = `
+                <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                    </svg>
+                </div>
+                <div class="bg-message-bg rounded-2xl rounded-tl-md px-4 py-3">
+                    <div class="flex items-center gap-1">
+                        <div class="typing-indicator"></div>
+                        <div class="typing-indicator"></div>
+                        <div class="typing-indicator"></div>
+                    </div>
+                </div>
+            `;
+            
+            messagesContainer.appendChild(typingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            return typingId;
+        }
+
+        function hideTypingIndicator(typingId) {
+            const typingElement = document.getElementById(typingId);
+            if (typingElement) {
+                typingElement.remove();
+            }
+        }
+
         async function toggleRecording() {
             if (!isRecording) {
-                startRecording();
+                await startRecording();
             } else {
                 stopRecording();
             }
@@ -583,53 +387,33 @@
 
         async function startRecording() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    audio: {
-                        sampleRate: 16000,
-                        channelCount: 1,
-                        echoCancellation: true,
-                        noiseSuppression: true
-                    }
-                });
-                
-                let options = { mimeType: 'audio/webm;codecs=opus' };
-                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                    options = { mimeType: 'audio/webm' };
-                }
-                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                    options = { mimeType: 'audio/mp4' };
-                }
-            
-                mediaRecorder = new MediaRecorder(stream, options);
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
                 audioChunks = [];
 
                 mediaRecorder.ondataavailable = event => {
-                    if (event.data.size > 0) {
-                        audioChunks.push(event.data);
-                    }
+                    audioChunks.push(event.data);
                 };
 
                 mediaRecorder.onstop = async () => {
-                    if (audioChunks.length > 0) {
-                        const audioBlob = new Blob(audioChunks, { type: options.mimeType });
-                        await transcribeAudio(audioBlob, options.mimeType);
-                    }
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    await transcribeAudio(audioBlob);
                     stream.getTracks().forEach(track => track.stop());
                 };
 
                 mediaRecorder.start();
                 isRecording = true;
                 
-            // Update UI
-            if (getIsMobile()) {
-                document.getElementById('recordingIndicator').style.display = 'block';
-            } else {
-                document.getElementById('desktopRecordingIndicator').style.display = 'block';
-            }
+                voiceBtn.innerHTML = `
+                    <svg class="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                `;
+                recordingIndicator.classList.remove('hidden');
                 
             } catch (error) {
                 console.error('Error starting recording:', error);
-                alert('Error accessing microphone. Please check permissions.');
+                addMessage('Error: Could not access microphone', 'assistant', 'error');
             }
         }
 
@@ -638,38 +422,20 @@
                 mediaRecorder.stop();
                 isRecording = false;
                 
-            // Update UI
-            if (getIsMobile()) {
-                document.getElementById('recordingIndicator').style.display = 'none';
-            } else {
-                document.getElementById('desktopRecordingIndicator').style.display = 'none';
-            }
-        }
-    }
-
-    async function stopRecordingAndTranscribe() {
-        if (mediaRecorder && isRecording) {
-            mediaRecorder.stop();
-            isRecording = false;
-            
-            // Update UI
-            if (getIsMobile()) {
-                document.getElementById('recordingIndicator').style.display = 'none';
-            } else {
-                document.getElementById('desktopRecordingIndicator').style.display = 'none';
-            }
+                voiceBtn.innerHTML = `
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+                    </svg>
+                `;
+                recordingIndicator.classList.add('hidden');
             }
         }
 
-        async function transcribeAudio(audioBlob, mimeType = 'audio/webm') {
-            showLoading(true);
-            
+        async function transcribeAudio(audioBlob) {
+            const formData = new FormData();
+            formData.append('audio', audioBlob, 'audio.webm');
+
             try {
-                const formData = new FormData();
-                const fileName = mimeType.includes('webm') ? 'recording.webm' : 
-                                mimeType.includes('mp4') ? 'recording.mp4' : 'recording.wav';
-                formData.append('audio_file', audioBlob, fileName);
-
                 const response = await fetch(`${API_BASE}/api/transcribe`, {
                     method: 'POST',
                     body: formData
@@ -682,103 +448,59 @@
                     throw new Error(data.detail || 'Transcription failed');
                 }
 
-            // Don't show transcript preview - directly send the message
-                    if (data.transcript && data.transcript.trim()) {
-                // Add user message to chat
-                addMessage(data.transcript, 'user');
-                
-                // Send to API
-                await sendTranscribedMessage(data.transcript);
-            } else {
-                addMessage('No speech detected. Please try again.', 'assistant');
-            }
+                if (data.transcript && data.transcript.trim()) {
+                    // Add user message
+                    addMessage(data.transcript, 'user');
+                    
+                    // Send to API
+                    await sendTranscribedMessage(data.transcript);
+                } else {
+                    addMessage('No speech detected. Please try again.', 'assistant', 'error');
+                }
 
             } catch (error) {
                 console.error('Transcription error:', error);
-                addMessage(`Transcription error: ${error.message}`, 'assistant');
-            } finally {
-                showLoading(false);
+                addMessage(`Transcription error: ${error.message}`, 'assistant', 'error');
             }
         }
 
-        function clearTranscript() {
-        if (getIsMobile()) {
-            document.getElementById('transcriptPreview').style.display = 'none';
-            document.getElementById('transcriptText').textContent = '';
-        } else {
-            document.getElementById('desktopTranscriptPreview').style.display = 'none';
-            document.getElementById('desktopTranscriptText').textContent = '';
-        }
-    }
+        async function sendTranscribedMessage(transcript) {
+            const typingId = showTypingIndicator();
 
-    async function sendTranscribedMessage(transcript) {
-        showLoading(true);
+            try {
+                const response = await fetch(`${API_BASE}/api/chat`, {
+        method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: transcript,
+                        mode: modeSelect.value
+                    })
+                });
 
-        try {
-            const modeSelect = getIsMobile() ? document.getElementById('modeSelect') : document.getElementById('desktopModeSelect');
-            
-            const response = await fetch(`${API_BASE}/api/chat`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    message: transcript,
-                    mode: modeSelect.value,
-                    conversation_history: conversationHistory,
-                    style: "standard",
-                    tone: "confident",
-                    depth: "mid"
-                })
-            });
+                const data = await response.json();
+                hideTypingIndicator(typingId);
 
-            const data = await response.json();
-            
-            if (!response.ok) {
-                throw new Error(data.detail || 'Failed to get response');
-            }
+                if (data.error) {
+                    addMessage(`Error: ${data.error}`, 'assistant', 'error');
+                } else {
+                    addMessage(data.answer, 'assistant', 'success', data.sources);
+                }
 
-            addMessage(data.answer, 'assistant', data.mode_used);
-            
-            conversationHistory.push({ 
-                user: transcript, 
-                assistant: data.answer,
-                modeUsed: data.mode_used,
-                timestamp: new Date().toISOString()
-            });
-            
-            saveCurrentChat();
-            
-        } catch (error) {
-            console.error('Error:', error);
-            addMessage(`Error: ${error.message}`, 'assistant');
-        } finally {
-            showLoading(false);
-            
-            // Focus appropriate input
-            const input = getIsMobile() ? document.getElementById('messageInput') : document.getElementById('desktopMessageInput');
-            if (input) input.focus();
-        }
-        }
+                // Save to conversation history
+                conversationHistory.push({
+                    user: transcript,
+                    assistant: data.answer || data.error,
+                    modeUsed: modeSelect.value
+                });
 
-        // Chat history management
-        function generateChatId() {
-            return 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        }
+                // Save chat
+                saveCurrentChat();
 
-        function getChatTitle(firstMessage) {
-            return firstMessage.length > 40 ? firstMessage.substring(0, 40) + '...' : firstMessage;
-        }
-
-        function saveChatHistory() {
-            localStorage.setItem('ragChatHistory', JSON.stringify(chatHistory));
-        }
-
-        function loadChatHistory() {
-            const saved = localStorage.getItem('ragChatHistory');
-            if (saved) {
-                chatHistory = JSON.parse(saved);
-                renderChatList();
+            } catch (error) {
+                hideTypingIndicator(typingId);
+                addMessage(`Error: ${error.message}`, 'assistant', 'error');
             }
         }
 
@@ -786,46 +508,27 @@
             if (currentChatId && conversationHistory.length > 0) {
                 saveCurrentChat();
             }
+            
             currentChatId = generateChatId();
             conversationHistory = [];
             
-        // Clear messages
-        const messagesContainer = getIsMobile() ? document.getElementById('messages') : document.getElementById('desktopMessages');
-        if (getIsMobile()) {
+            // Clear messages
             messagesContainer.innerHTML = `
-                <div class="flex justify-center">
-                    <span class="text-xs text-gray-400" id="currentTime"></span>
-                </div>
-                <div class="flex items-start">
-                    <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center flex-shrink-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                <div class="flex items-start gap-3 fade-in">
+                    <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
                         </svg>
                     </div>
-                    <div class="ml-3 bg-gray-100 rounded-xl rounded-tl-none p-4 max-w-[260px]">
-                        <p class="text-gray-800 text-sm">Hello! I'm your AI/ML and Data Engineering assistant. How can I help you today?</p>
+                    <div class="bg-message-bg rounded-2xl rounded-tl-md px-4 py-3 max-w-3xl">
+                        <p class="text-gray-100">Hello! I'm your AI/ML and Data Engineering assistant. How can I help you today?</p>
                     </div>
                 </div>
             `;
-        } else {
-            messagesContainer.innerHTML = `
-                <div class="flex items-start space-x-3 mb-6">
-                    <div class="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center flex-shrink-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                        </svg>
-                    </div>
-                    <div class="bg-gray-100 rounded-xl rounded-tl-none p-4 max-w-2xl">
-                        <p class="text-gray-800">Hello! I'm your AI/ML and Data Engineering assistant. How can I help you today?</p>
-                    </div>
-                </div>
-            `;
-        }
             
-            renderChatList();
-        
-        const input = getIsMobile() ? document.getElementById('messageInput') : document.getElementById('desktopMessageInput');
-        if (input) input.focus();
+            renderChatHistory();
+            closeSidebar();
+            messageInput.focus();
         }
 
         function saveCurrentChat() {
@@ -858,68 +561,85 @@
             currentChatId = chatId;
             conversationHistory = chat.messages.slice();
             
-        // Clear and reload messages
-        startNewChat();
-        
-        // Re-add conversation history
+            // Clear and reload messages
+            startNewChat();
+            
+            // Re-add conversation history
             chat.messages.forEach(msg => {
                 addMessage(msg.user, 'user');
-                addMessage(msg.assistant, 'assistant', msg.modeUsed);
+                addMessage(msg.assistant, 'assistant');
             });
         }
 
         function deleteChat(chatId) {
-            // Confirm deletion
             if (!confirm('Are you sure you want to delete this chat?')) {
                 return;
             }
             
-            // Remove from chat history
             chatHistory = chatHistory.filter(chat => chat.id !== chatId);
             saveChatHistory();
             
-            // If deleting current chat, start a new one
             if (chatId === currentChatId) {
                 startNewChat();
             } else {
-                renderChatList();
+                renderChatHistory();
             }
         }
 
-        function renderChatList() {
-        const chatList = document.getElementById('desktopChatList');
-            
+        function renderChatHistory() {
             if (chatHistory.length === 0) {
-                chatList.innerHTML = `
-                <div class="text-center text-gray-500 py-8">
-                        No chat history yet.<br>Start a conversation!
+                chatHistoryContainer.innerHTML = `
+                    <div class="text-center text-gray-400 py-8">
+                        <div class="text-sm">No chat history yet.</div>
+                        <div class="text-xs mt-1">Start a conversation!</div>
                     </div>
                 `;
                 return;
             }
             
-            chatList.innerHTML = chatHistory.map(chat => `
-            <div class="p-3 mb-2 rounded-lg transition-colors hover:bg-gray-100 ${chat.id === currentChatId ? 'bg-indigo-50 border border-indigo-200' : ''}" 
-                     style="position: relative;">
-                <div class="cursor-pointer pr-8" onclick="loadChat('${chat.id}')">
-                    <div class="font-medium text-sm text-gray-800 truncate">${chat.title}</div>
-                    <div class="text-xs text-gray-500 truncate mt-1">${chat.preview}</div>
-                    <div class="text-xs text-gray-400 mt-1">${new Date(chat.lastUpdated).toLocaleDateString()}</div>
-                </div>
-                <button onclick="event.stopPropagation(); deleteChat('${chat.id}')" 
-                        class="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-md hover:bg-red-100 text-gray-400 hover:text-red-600 transition-colors"
-                        title="Delete chat">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                </button>
+            chatHistoryContainer.innerHTML = chatHistory.map(chat => `
+                <div class="group relative p-3 rounded-lg cursor-pointer transition-colors hover:bg-message-bg ${chat.id === currentChatId ? 'bg-message-bg border border-border-color' : ''}" 
+                     onclick="loadChat('${chat.id}')">
+                    <div class="pr-8">
+                        <div class="font-medium text-sm text-white truncate">${chat.title}</div>
+                        <div class="text-xs text-gray-400 truncate mt-1">${chat.preview}</div>
+                        <div class="text-xs text-gray-500 mt-1">${new Date(chat.lastUpdated).toLocaleDateString()}</div>
+                    </div>
+                    <button onclick="event.stopPropagation(); deleteChat('${chat.id}')" 
+                            class="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md hover:bg-red-600 text-gray-400 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
+                            title="Delete chat">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                    </button>
                 </div>
             `).join('');
         }
 
-    function toggleSidebar() {
-        // This would be used for mobile sidebar toggle if needed
-        console.log('Sidebar toggle - not implemented for mobile frame design');
+        function loadChatHistory() {
+            const saved = localStorage.getItem('ragChatHistory');
+            if (saved) {
+                chatHistory = JSON.parse(saved);
+                renderChatHistory();
+            }
+        }
+
+        function saveChatHistory() {
+            localStorage.setItem('ragChatHistory', JSON.stringify(chatHistory));
+        }
+
+        function generateChatId() {
+            return 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        function getChatTitle(firstMessage) {
+            return firstMessage.length > 30 ? firstMessage.substring(0, 30) + '...' : firstMessage;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
     </script>
 </body>
