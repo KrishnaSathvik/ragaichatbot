@@ -1,4 +1,5 @@
 services:
+  # Force deployment with numpy fix
   - type: web
     name: rag-chatbot
     env: python
