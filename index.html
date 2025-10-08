@@ -4,17 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RAG AI Chatbot</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23007AFF'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z'/></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        'chat-bg': '#212121',
-                        'message-bg': '#2f2f2f',
-                        'user-bg': '#007AFF',
-                        'sidebar-bg': '#171717',
-                        'border-color': '#404040',
+                        // Dark theme colors
+                        'chat-bg-dark': '#212121',
+                        'message-bg-dark': '#2f2f2f',
+                        'user-bg-dark': '#007AFF',
+                        'sidebar-bg-dark': '#171717',
+                        'border-color-dark': '#404040',
+                        
+                        // Light theme colors
+                        'chat-bg-light': '#ffffff',
+                        'message-bg-light': '#f8f9fa',
+                        'user-bg-light': '#007AFF',
+                        'sidebar-bg-light': '#f1f3f4',
+                        'border-color-light': '#e5e7eb',
+                        'text-light': '#1f2937',
+                        'text-secondary-light': '#6b7280',
                     }
                 }
             }
@@ -26,14 +37,81 @@
             width: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: #2f2f2f;
+            background: var(--scrollbar-track);
         }
         ::-webkit-scrollbar-thumb {
-            background: #555;
+            background: var(--scrollbar-thumb);
             border-radius: 3px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #777;
+            background: var(--scrollbar-thumb-hover);
+        }
+        
+        /* Theme variables */
+        :root {
+            --scrollbar-track: #2f2f2f;
+            --scrollbar-thumb: #555;
+            --scrollbar-thumb-hover: #777;
+            --chat-bg: #212121;
+            --sidebar-bg: #171717;
+            --message-bg: #2f2f2f;
+            --border-color: #404040;
+            --text-primary: #ffffff;
+            --text-secondary: #9ca3af;
+        }
+        
+        [data-theme="light"] {
+            --scrollbar-track: #f1f3f4;
+            --scrollbar-thumb: #c1c1c1;
+            --scrollbar-thumb-hover: #a1a1a1;
+            --chat-bg: #ffffff;
+            --sidebar-bg: #f8f9fa;
+            --message-bg: #f1f3f4;
+            --border-color: #e5e7eb;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+        }
+        
+        /* Theme-aware classes */
+        .theme-bg { background-color: var(--chat-bg); }
+        .theme-sidebar-bg { background-color: var(--sidebar-bg); }
+        .theme-message-bg { background-color: var(--message-bg); }
+        .theme-border { border-color: var(--border-color); }
+        .theme-text { color: var(--text-primary) !important; }
+        .theme-text-secondary { color: var(--text-secondary) !important; }
+        
+        /* Force text visibility in light theme */
+        [data-theme="light"] .theme-text,
+        [data-theme="light"] h1,
+        [data-theme="light"] h2,
+        [data-theme="light"] h3,
+        [data-theme="light"] p,
+        [data-theme="light"] span,
+        [data-theme="light"] div {
+            color: #1f2937 !important;
+        }
+        
+        [data-theme="light"] .theme-text-secondary,
+        [data-theme="light"] .text-gray-400,
+        [data-theme="light"] .text-gray-500 {
+            color: #6b7280 !important;
+        }
+        
+        /* Force text visibility in dark theme */
+        [data-theme="dark"] .theme-text,
+        [data-theme="dark"] h1,
+        [data-theme="dark"] h2,
+        [data-theme="dark"] h3,
+        [data-theme="dark"] p,
+        [data-theme="dark"] span,
+        [data-theme="dark"] div {
+            color: #ffffff !important;
+        }
+        
+        [data-theme="dark"] .theme-text-secondary,
+        [data-theme="dark"] .text-gray-400,
+        [data-theme="dark"] .text-gray-500 {
+            color: #9ca3af !important;
         }
         
         /* Smooth animations */
@@ -65,13 +143,13 @@
         }
     </style>
 </head>
-<body class="bg-chat-bg text-white h-screen overflow-hidden">
+<body class="theme-bg theme-text h-screen overflow-hidden transition-colors duration-300" data-theme="dark">
     <div class="flex h-full">
         <!-- Sidebar -->
-        <div id="sidebar" class="w-64 bg-sidebar-bg border-r border-border-color flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 -translate-x-full lg:static fixed inset-y-0 z-50">
+        <div id="sidebar" class="w-64 theme-sidebar-bg border-r theme-border flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 -translate-x-full lg:static fixed inset-y-0 z-50">
             <!-- Header -->
-            <div class="p-4 border-b border-border-color">
-                <button id="newChatBtn" class="w-full bg-transparent border border-border-color rounded-lg px-4 py-2 text-sm hover:bg-message-bg transition-colors flex items-center justify-center gap-2">
+            <div class="p-4 border-b theme-border">
+                <button id="newChatBtn" class="w-full bg-transparent border theme-border rounded-lg px-4 py-2 text-sm hover:theme-message-bg transition-colors flex items-center justify-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                     </svg>
@@ -87,8 +165,8 @@
             </div>
             
             <!-- Footer -->
-            <div class="p-4 border-t border-border-color">
-                <div class="text-xs text-gray-400 text-center">
+            <div class="p-4 border-t theme-border">
+                <div class="text-xs theme-text-secondary text-center">
                     RAG AI Chatbot
                 </div>
             </div>
@@ -97,7 +175,7 @@
         <!-- Main Content -->
         <div class="flex-1 flex flex-col">
             <!-- Top Bar -->
-            <div class="bg-sidebar-bg border-b border-border-color p-4 flex items-center justify-between">
+            <div class="theme-sidebar-bg border-b theme-border p-4 flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <button id="sidebarToggle" class="lg:hidden p-2 hover:bg-message-bg rounded-lg transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -108,7 +186,12 @@
                 </div>
                 
                 <div class="flex items-center gap-2">
-                    <select id="modeSelect" class="bg-message-bg border border-border-color rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button id="themeToggle" class="p-2 hover:theme-message-bg rounded-lg transition-colors" title="Toggle theme">
+                        <svg id="themeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                    </button>
+                    <select id="modeSelect" class="theme-message-bg border theme-border rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 theme-text">
                         <option value="auto">Auto Mode</option>
                         <option value="ai_ml">AI/ML Focus</option>
                         <option value="data_eng">Data Engineering</option>
@@ -125,20 +208,20 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
                         </svg>
                     </div>
-                    <div class="bg-message-bg rounded-2xl rounded-tl-md px-4 py-3 max-w-3xl">
-                        <p class="text-gray-100">Hello! I'm your AI/ML and Data Engineering assistant. How can I help you today?</p>
+                    <div class="theme-message-bg rounded-2xl rounded-tl-md px-4 py-3 max-w-3xl">
+                        <p class="theme-text">Hello! I'm your AI/ML and Data Engineering assistant. How can I help you today?</p>
                     </div>
                 </div>
             </div>
             
             <!-- Input Area -->
-            <div class="p-4 border-t border-border-color">
+            <div class="p-4 border-t theme-border">
                 <div class="max-w-4xl mx-auto">
                     <div class="relative">
                         <textarea 
                             id="messageInput" 
                             placeholder="Type your message here..." 
-                            class="w-full bg-message-bg border border-border-color rounded-2xl px-4 py-3 pr-12 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-white placeholder-gray-400"
+                            class="w-full theme-message-bg border theme-border rounded-2xl px-4 py-3 pr-12 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 theme-text placeholder-gray-400"
                             rows="1"
                             style="min-height: 48px; max-height: 120px;"
                         ></textarea>
@@ -205,12 +288,15 @@
         const sidebar = document.getElementById('sidebar');
         const sidebarToggle = document.getElementById('sidebarToggle');
         const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             loadChatHistory();
             setupEventListeners();
             autoResizeTextarea();
+            loadTheme();
         });
 
         function setupEventListeners() {
@@ -232,6 +318,9 @@
             // Sidebar toggle (mobile)
             sidebarToggle.addEventListener('click', toggleSidebar);
             sidebarOverlay.addEventListener('click', closeSidebar);
+
+            // Theme toggle
+            themeToggle.addEventListener('click', toggleTheme);
 
             // Auto-resize textarea
             messageInput.addEventListener('input', autoResizeTextarea);
@@ -356,7 +445,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
                     </svg>
                 </div>
-                <div class="bg-message-bg rounded-2xl rounded-tl-md px-4 py-3">
+                <div class="theme-message-bg rounded-2xl rounded-tl-md px-4 py-3">
                     <div class="flex items-center gap-1">
                         <div class="typing-indicator"></div>
                         <div class="typing-indicator"></div>
@@ -520,8 +609,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
                         </svg>
                     </div>
-                    <div class="bg-message-bg rounded-2xl rounded-tl-md px-4 py-3 max-w-3xl">
-                        <p class="text-gray-100">Hello! I'm your AI/ML and Data Engineering assistant. How can I help you today?</p>
+                    <div class="theme-message-bg rounded-2xl rounded-tl-md px-4 py-3 max-w-3xl">
+                        <p class="theme-text">Hello! I'm your AI/ML and Data Engineering assistant. How can I help you today?</p>
                     </div>
                 </div>
             `;
@@ -640,6 +729,81 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            body.setAttribute('data-theme', newTheme);
+            updateThemeClasses(newTheme);
+            updateThemeIcon(newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.body.setAttribute('data-theme', savedTheme);
+            updateThemeClasses(savedTheme);
+            updateThemeIcon(savedTheme);
+        }
+
+        function updateThemeClasses(theme) {
+            // Update all elements with theme-aware classes
+            const elements = document.querySelectorAll('[class*="bg-"], [class*="text-"], [class*="border-"]');
+            
+            elements.forEach(element => {
+                let className = element.className.toString();
+                
+                if (theme === 'light') {
+                    // Update background classes
+                    className = className.replace(/bg-chat-bg-dark/g, 'bg-chat-bg-light');
+                    className = className.replace(/bg-sidebar-bg-dark/g, 'bg-sidebar-bg-light');
+                    className = className.replace(/bg-message-bg-dark/g, 'bg-message-bg-light');
+                    
+                    // Update border classes
+                    className = className.replace(/border-border-color-dark/g, 'border-border-color-light');
+                    
+                    // Update text classes
+                    className = className.replace(/text-white/g, 'text-text-light');
+                    className = className.replace(/text-gray-100/g, 'text-text-light');
+                    className = className.replace(/text-gray-400/g, 'text-text-secondary-light');
+                    className = className.replace(/text-gray-500/g, 'text-text-secondary-light');
+                    
+                    // Update hover classes
+                    className = className.replace(/hover:bg-message-bg-dark/g, 'hover:bg-message-bg-light');
+                } else {
+                    // Update background classes
+                    className = className.replace(/bg-chat-bg-light/g, 'bg-chat-bg-dark');
+                    className = className.replace(/bg-sidebar-bg-light/g, 'bg-sidebar-bg-dark');
+                    className = className.replace(/bg-message-bg-light/g, 'bg-message-bg-dark');
+                    
+                    // Update border classes
+                    className = className.replace(/border-border-color-light/g, 'border-border-color-dark');
+                    
+                    // Update text classes
+                    className = className.replace(/text-text-light/g, 'text-white');
+                    className = className.replace(/text-text-secondary-light/g, 'text-gray-400');
+                    
+                    // Update hover classes
+                    className = className.replace(/hover:bg-message-bg-light/g, 'hover:bg-message-bg-dark');
+                }
+                
+                element.className = className;
+            });
+        }
+
+        function updateThemeIcon(theme) {
+            if (theme === 'light') {
+                themeIcon.innerHTML = `
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                `;
+            } else {
+                themeIcon.innerHTML = `
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                `;
+            }
         }
     </script>
 </body>
