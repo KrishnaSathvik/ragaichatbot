@@ -6,11 +6,17 @@ This uses FastAPI for Render's web service deployment.
 
 import json
 import os
-from fastapi import FastAPI, HTTPException
+import tempfile
+from fastapi import FastAPI, HTTPException, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from api.utils_simple import answer_question, health_check
+from openai import OpenAI
+from dotenv import load_dotenv
+
+load_dotenv()
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 app = FastAPI(title="RAG AI Chatbot", version="1.0.0")
 
@@ -40,6 +46,16 @@ async def health():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/debug")
+async def debug():
+    """Debug endpoint to check environment variables"""
+    return {
+        "openai_key_set": bool(os.getenv("OPENAI_API_KEY")),
+        "openai_key_length": len(os.getenv("OPENAI_API_KEY", "")),
+        "python_version": os.sys.version,
+        "openai_version": "1.40.0"  # From requirements.txt
+    }
+
 @app.post("/api/chat")
 async def chat(data: dict):
     """Chat endpoint"""
@@ -63,9 +79,37 @@ async def chat(data: dict):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/transcribe")
-async def transcribe():
-    """Transcribe endpoint (placeholder)"""
-    return {"error": "Transcription not implemented yet"}
+async def transcribe(audio: UploadFile = File(...)):
+    """Transcribe audio to text using OpenAI Whisper"""
+    try:
+        # Create a temporary file to store the uploaded audio
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as temp_file:
+            # Read the uploaded file and write to temp file
+            contents = await audio.read()
+            temp_file.write(contents)
+            temp_file_path = temp_file.name
+        
+        try:
+            # Use OpenAI Whisper API to transcribe
+            with open(temp_file_path, "rb") as audio_file:
+                transcript = client.audio.transcriptions.create(
+                    model="whisper-1",
+                    file=audio_file,
+                    response_format="text"
+                )
+            
+            # transcript is already a string when response_format="text"
+            print(f"Transcription result: {repr(transcript)}")
+            print(f"Transcription type: {type(transcript)}")
+            return {"transcript": transcript}
+            
+        finally:
+            # Clean up the temporary file
+            if os.path.exists(temp_file_path):
+                os.unlink(temp_file_path)
+                
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Transcription error: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
