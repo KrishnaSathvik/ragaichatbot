@@ -346,7 +346,7 @@
                         
                         // Then load the chat history
                         chatHistory.forEach(chat => {
-                            addMessage(chat.message, chat.role, chat.type || 'success');
+                            addMessage(chat.message, chat.role, chat.type || 'success', false); // Don't save to history when loading
                         });
                     } else {
                         // Add welcome message for new profile with no history
@@ -470,7 +470,7 @@
             }
         }
 
-        function addMessage(content, sender, type = 'normal') {
+        function addMessage(content, sender, type = 'normal', saveToHistory = true) {
             const messageDiv = document.createElement('div');
             messageDiv.className = 'flex items-start gap-3 fade-in';
             
@@ -507,8 +507,8 @@
             messagesContainer.appendChild(messageDiv);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
             
-            // Save to chat history for current profile
-            if (type !== 'error') {
+            // Save to chat history for current profile (only if saveToHistory is true)
+            if (saveToHistory && type !== 'error') {
                 chatHistory.push({
                     message: content,
                     role: sender,
@@ -811,8 +811,10 @@
                 
                 // Load current profile's chat history if it exists
                 if (chatHistory.length > 0) {
+                    // Clear the messages container first
+                    messagesContainer.innerHTML = '';
                     chatHistory.forEach(chat => {
-                        addMessage(chat.message, chat.role, chat.type || 'success');
+                        addMessage(chat.message, chat.role, chat.type || 'success', false); // Don't save to history when loading
                     });
                 }
             }
