@@ -73,11 +73,30 @@ def _get_client():
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
             raise ValueError("OPENAI_API_KEY environment variable is required")
+        
+        # Temporarily unset proxy environment variables that might interfere
+        old_http_proxy = os.environ.pop('HTTP_PROXY', None)
+        old_https_proxy = os.environ.pop('HTTPS_PROXY', None)
+        old_http_proxy_lower = os.environ.pop('http_proxy', None)
+        old_https_proxy_lower = os.environ.pop('https_proxy', None)
+        
         try:
+            # Initialize with minimal parameters
             _client = OpenAI(api_key=api_key)
+            print("OpenAI client initialized successfully")
         except Exception as e:
             print(f"Error initializing OpenAI client: {e}")
             raise ValueError(f"Failed to initialize OpenAI client: {e}")
+        finally:
+            # Restore proxy environment variables if they were set
+            if old_http_proxy:
+                os.environ['HTTP_PROXY'] = old_http_proxy
+            if old_https_proxy:
+                os.environ['HTTPS_PROXY'] = old_https_proxy
+            if old_http_proxy_lower:
+                os.environ['http_proxy'] = old_http_proxy_lower
+            if old_https_proxy_lower:
+                os.environ['https_proxy'] = old_https_proxy_lower
     return _client
 
 def _load_data():
