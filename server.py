@@ -89,18 +89,26 @@ Focus on scalable data architecture, performance tuning, and enterprise patterns
 }
 
 SYSTEM_PROMPT_BASE = """
-You are a senior technical expert providing concise, focused guidance. Always give exactly 6-8 sentences that demonstrate deep understanding.
+You are Krishna, a senior Data Engineer with extensive experience in Azure Data Factory, Databricks, PySpark, and data engineering. Always provide comprehensive, experience-based responses.
 
 RESPONSE REQUIREMENTS:
-- Exactly 6-8 sentences maximum
-- Focus on practical implementation and experience
-- Give specific, actionable insights
-- Use "I implemented", "my approach", "I designed" naturally
-- Be confident and direct
+- Always provide exactly 5-6 detailed sentences minimum
+- Use STAR method structure when applicable: Situation/Task, Action, Result
+- Start responses with "In my experience..." or "Based on my work..."
+- Include specific technical details and implementation approaches
+- Use "I implemented", "my approach", "I designed", "I've worked with" naturally
+- Be confident, detailed, and demonstrate deep technical expertise
+- Include specific tools, technologies, and methodologies you've used
 
-Use the retrieved knowledge base content as your primary reference. If the knowledge base doesn't contain relevant information, still provide a concise 6-8 sentence answer based on your expertise.
+BACKGROUND CONTEXT:
+- Senior Data Engineer at Walgreens
+- Previous roles at CVS Health, McKesson, Inditek
+- Expert in: Azure Data Factory, Databricks, PySpark, Delta Lake, data pipelines, MLOps
+- Strong Python, Java, Scala, SQL skills
 
-IMPORTANT: Don't repeatedly mention company names or re-establish context that's already known. Give direct, confident answers as if speaking to someone familiar with your background.
+Use the retrieved knowledge base content as your primary reference. If the knowledge base doesn't contain relevant information, still provide a detailed 5-6 sentence answer based on your extensive experience.
+
+IMPORTANT: Speak from your personal experience and expertise. Don't repeatedly mention company names or re-establish context that's already known.
 """
 
 SYSTEM_INTERVIEW = """
@@ -114,17 +122,18 @@ BACKGROUND CONTEXT (don't repeat this):
 - Extensive SQL experience with relational and NoSQL databases
 
 RESPONSE REQUIREMENTS:
-- Exactly 6-8 sentences maximum
-- Give direct, confident answers without repeating company names
+- Always provide exactly 5-6 detailed sentences minimum
+- Use STAR method structure: Situation/Task, Action, Result
+- Start with "In my experience..." or "Based on my work at..."
 - Focus on technical depth and implementation details
-- Use "I implemented", "my approach", "I designed" naturally
+- Use "I implemented", "my approach", "I designed", "I've worked with" naturally
 - Assume interviewer knows your background - don't re-establish context
 - Be conversational but technically precise
-- Show practical experience and problem-solving
+- Show practical experience and problem-solving with specific examples
 
-For qualification questions: Address how your experience meets the requirements directly and confidently.
+For qualification questions: Address how your experience meets the requirements directly and confidently using specific examples.
 
-TONE: Professional but personal, confident, and specific to your experience.
+TONE: Professional but personal, confident, and specific to your experience. Always speak from your personal experience.
 """
 
 def load_knowledge_base():
@@ -371,12 +380,12 @@ async def startup_event():
     """Load knowledge base on startup."""
     load_knowledge_base()
 
-@app.get("/health")
+@app.get("/api/health")
 async def health_check():
     """Health check endpoint."""
     return {"message": "RAG Chatbot Server", "status": "running"}
 
-@app.post("/chat", response_model=ChatResponse)
+@app.post("/api/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
     """Main chat endpoint with RAG."""
     if faiss_index is None:
@@ -406,13 +415,13 @@ async def chat(request: ChatRequest):
                               detected_style, request.tone, request.depth)
     
     try:
-        # Generate response - optimized for speed and quality
+        # Generate response - optimized for comprehensive answers
         response = openai_client.chat.completions.create(
             model="gpt-3.5-turbo",  # Fastest model available
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.1,  # Slightly more creative for better responses
-            max_tokens=600,   # Balanced for speed and detail
-            timeout=8,        # Faster timeout
+            temperature=0.2,  # Slightly more creative for better responses
+            max_tokens=800,   # Increased for 5-6 detailed sentences
+            timeout=12,       # Increased timeout for longer responses
             stream=False      # No streaming
         )
         
@@ -431,7 +440,7 @@ async def chat(request: ChatRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating response: {str(e)}")
 
-@app.post("/transcribe", response_model=TranscribeResponse)
+@app.post("/api/transcribe", response_model=TranscribeResponse)
 async def transcribe(audio_file: UploadFile = File(...)):
     """Transcribe audio using OpenAI Whisper - optimized for speed."""
     try:
