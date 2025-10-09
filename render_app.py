@@ -29,13 +29,31 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static files for production build
-app.mount("/static", StaticFiles(directory="frontend/build/static"), name="static")
+# Check if frontend build exists
+FRONTEND_BUILD_DIR = "frontend/build"
+FRONTEND_STATIC_DIR = os.path.join(FRONTEND_BUILD_DIR, "static")
+FRONTEND_EXISTS = os.path.exists(FRONTEND_BUILD_DIR) and os.path.exists(FRONTEND_STATIC_DIR)
 
-@app.get("/")
-async def serve_frontend():
-    """Serve the frontend HTML file"""
-    return FileResponse("frontend/build/index.html")
+if FRONTEND_EXISTS:
+    # Mount static files for production build
+    app.mount("/static", StaticFiles(directory=FRONTEND_STATIC_DIR), name="static")
+    
+    @app.get("/")
+    async def serve_frontend():
+        """Serve the frontend HTML file"""
+        return FileResponse(os.path.join(FRONTEND_BUILD_DIR, "index.html"))
+else:
+    print("⚠️  Frontend build not found. Running in API-only mode.")
+    
+    @app.get("/")
+    async def root():
+        """Root endpoint - API only mode"""
+        return {
+            "message": "RAG AI Chatbot API",
+            "status": "running",
+            "mode": "api-only",
+            "note": "Frontend not built. Access API endpoints at /api/*"
+        }
 
 @app.get("/api/health")
 async def health():
@@ -113,8 +131,9 @@ async def transcribe(audio: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Transcription error: {str(e)}")
 
-# Mount static files for all frontend assets (logo, favicon, etc.)
-app.mount("/", StaticFiles(directory="frontend/build", html=True), name="frontend")
+# Mount static files for all frontend assets (logo, favicon, etc.) only if frontend exists
+if FRONTEND_EXISTS:
+    app.mount("/", StaticFiles(directory=FRONTEND_BUILD_DIR, html=True), name="frontend")
 
 if __name__ == "__main__":
     import uvicorn
