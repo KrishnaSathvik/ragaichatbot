@@ -2,23 +2,7 @@
   "buildCommand": "cd frontend && npm run build",
   "outputDirectory": "frontend/build",
   "installCommand": "cd frontend && npm install",
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/:path((?!.*\\.).*)",
-      "destination": "/index.html"
-    }
-  ],
+  "framework": "create-react-app",
   "env": {
     "REACT_APP_API_URL": "https://rag-chatbot-api-33r9.onrender.com"
   }
