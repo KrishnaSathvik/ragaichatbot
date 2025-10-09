@@ -3,7 +3,23 @@ module.exports = {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
+  darkMode: 'class',
   theme: {
+    screens: {
+      'xs': '320px',
+      'sm': '640px',
+      'md': '768px',
+      'lg': '1024px',
+      'xl': '1280px',
+      '2xl': '1536px',
+      // Custom breakpoints for better mobile control
+      'mobile-xs': '320px',
+      'mobile-sm': '375px',
+      'mobile-md': '414px',
+      'mobile-lg': '768px',
+      'tablet': '768px',
+      'desktop': '1024px',
+    },
     extend: {
       colors: {
         primary: {
@@ -34,10 +50,85 @@ module.exports = {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
+      fontSize: {
+        'xs': '0.75rem',
+        'sm': '0.875rem',
+        'base': '1rem',
+        'lg': '1.125rem',
+        'xl': '1.25rem',
+        '2xl': '1.5rem',
+        '3xl': '1.875rem',
+        '4xl': '2.25rem',
+        '5xl': '3rem',
+        '6xl': '3.75rem',
+        '7xl': '4.5rem',
+        '8xl': '6rem',
+        '9xl': '8rem',
+        // Mobile-specific font sizes
+        'mobile-xs': '0.6rem',
+        'mobile-sm': '0.75rem',
+        'mobile-base': '0.875rem',
+        'mobile-lg': '1rem',
+        'mobile-xl': '1.125rem',
+      },
+      spacing: {
+        '18': '4.5rem',
+        '88': '22rem',
+        '128': '32rem',
+        '144': '36rem',
+        // Mobile-specific spacing
+        'mobile-xs': '0.125rem',
+        'mobile-sm': '0.25rem',
+        'mobile-md': '0.5rem',
+        'mobile-lg': '0.75rem',
+        'mobile-xl': '1rem',
+      },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
         'slide-up': 'slideUp 0.3s ease-out',
         'bounce-in': 'bounceIn 0.6s ease-out',
+      },
+      height: {
+        'screen-safe': 'calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom))',
+        'screen-safe-top': 'calc(100vh - env(safe-area-inset-top))',
+        'screen-safe-bottom': 'calc(100vh - env(safe-area-inset-bottom))',
+        'mobile-xs': '320px',
+        'mobile-sm': '375px',
+        'mobile-md': '414px',
+        'mobile-lg': '768px',
+      },
+      minHeight: {
+        'screen-safe': 'calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom))',
+        'screen-safe-top': 'calc(100vh - env(safe-area-inset-top))',
+        'screen-safe-bottom': 'calc(100vh - env(safe-area-inset-bottom))',
+        'mobile-xs': '320px',
+        'mobile-sm': '375px',
+        'mobile-md': '414px',
+        'mobile-lg': '768px',
+      },
+      maxHeight: {
+        'mobile-xs': '320px',
+        'mobile-sm': '375px',
+        'mobile-md': '414px',
+        'mobile-lg': '768px',
+      },
+      width: {
+        'mobile-xs': '320px',
+        'mobile-sm': '375px',
+        'mobile-md': '414px',
+        'mobile-lg': '768px',
+      },
+      minWidth: {
+        'mobile-xs': '320px',
+        'mobile-sm': '375px',
+        'mobile-md': '414px',
+        'mobile-lg': '768px',
+      },
+      maxWidth: {
+        'mobile-xs': '320px',
+        'mobile-sm': '375px',
+        'mobile-md': '414px',
+        'mobile-lg': '768px',
       },
       keyframes: {
         fadeIn: {

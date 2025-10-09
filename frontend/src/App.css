@@ -203,8 +203,21 @@
 html, body, #root {
   margin: 0;
   padding: 0;
-  height: 100%;
-  overflow: hidden;
+  min-height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Ensure proper mobile viewport handling */
+html {
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  touch-action: manipulation;
 }
 
 /* Mobile-specific improvements */
@@ -218,6 +231,7 @@ html, body, #root {
   /* Smooth scrolling on mobile */
   .overflow-y-auto {
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
 
   /* Prevent text selection on buttons */
@@ -242,6 +256,254 @@ html, body, #root {
   /* Backdrop animation */
   .mobile-backdrop {
     transition: opacity 0.3s ease-in-out;
+  }
+
+  /* Mobile viewport fixes */
+  body {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  /* Ensure proper flex layout on mobile */
+  .min-h-screen {
+    height: 100vh;
+    height: -webkit-fill-available;
+  }
+
+  /* Fix for iOS Safari viewport issues */
+  .flex-1 {
+    flex: 1 1 0%;
+    min-height: 0;
+  }
+
+  /* Mobile input area fixes */
+  textarea {
+    font-size: 16px !important; /* Prevents zoom on iOS */
+  }
+
+  /* Mobile header fixes */
+  .mobile-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  /* Mobile chat container fixes */
+  .mobile-chat-container {
+    min-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    min-height: calc(100vh - constant(safe-area-inset-top) - constant(safe-area-inset-bottom));
+  }
+
+  /* Ensure mobile layout uses full height */
+  .mobile-full-height {
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+
+  /* Fix for mobile chat input positioning */
+  .mobile-chat-area {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    min-height: -webkit-fill-available;
+  }
+
+  .mobile-chat-messages-area {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    min-height: 0;
+  }
+
+  .mobile-chat-input-area {
+    flex-shrink: 0;
+    position: sticky;
+    bottom: 0;
+    background: inherit;
+    border-top: 1px solid;
+  }
+
+  /* Enhanced mobile responsiveness for all screen sizes */
+  
+  /* Extra small screens (320px and below) */
+  @media (max-width: 320px) {
+    .mobile-header h1 {
+      font-size: 0.75rem !important;
+    }
+    
+    .mobile-header button {
+      padding: 0.25rem 0.5rem !important;
+      font-size: 0.6rem !important;
+    }
+    
+    .mobile-header .flex.space-x-3 {
+      gap: 0.25rem !important;
+    }
+    
+    .message-bubble {
+      padding: 0.5rem !important;
+      margin: 0.25rem !important;
+    }
+    
+    .chat-input textarea {
+      padding: 0.5rem !important;
+      font-size: 14px !important;
+    }
+  }
+
+  /* Small screens (321px - 375px) */
+  @media (min-width: 321px) and (max-width: 375px) {
+    .mobile-header h1 {
+      font-size: 0.875rem !important;
+    }
+    
+    .mobile-header button {
+      padding: 0.375rem 0.75rem !important;
+      font-size: 0.7rem !important;
+    }
+    
+    .message-bubble {
+      padding: 0.75rem !important;
+    }
+  }
+
+  /* Medium screens (376px - 414px) */
+  @media (min-width: 376px) and (max-width: 414px) {
+    .mobile-header h1 {
+      font-size: 0.9rem !important;
+    }
+    
+    .mobile-header button {
+      padding: 0.5rem 1rem !important;
+      font-size: 0.75rem !important;
+    }
+  }
+
+  /* Large screens (415px - 768px) */
+  @media (min-width: 415px) and (max-width: 768px) {
+    .mobile-header h1 {
+      font-size: 1rem !important;
+    }
+    
+    .mobile-header button {
+      padding: 0.5rem 1rem !important;
+      font-size: 0.8rem !important;
+    }
+  }
+
+  /* Landscape orientation fixes */
+  @media (max-height: 500px) and (orientation: landscape) {
+    .mobile-header {
+      padding: 0.5rem 1rem !important;
+    }
+    
+    .mobile-header h1 {
+      font-size: 0.8rem !important;
+    }
+    
+    .mobile-header button {
+      padding: 0.25rem 0.5rem !important;
+      font-size: 0.7rem !important;
+    }
+    
+    .chat-messages {
+      padding: 0.5rem !important;
+    }
+    
+    .chat-input {
+      padding: 0.5rem !important;
+    }
+  }
+
+  /* Ultra-wide screens (foldables, tablets in portrait) */
+  @media (min-width: 768px) and (max-width: 1024px) {
+    .mobile-header {
+      padding: 1rem 1.5rem !important;
+    }
+    
+    .mobile-header h1 {
+      font-size: 1.125rem !important;
+    }
+    
+    .mobile-header button {
+      padding: 0.75rem 1.25rem !important;
+      font-size: 0.875rem !important;
+    }
+    
+    .message-bubble {
+      max-width: 80% !important;
+      padding: 1rem !important;
+    }
+  }
+
+  /* Common responsive fixes for all mobile sizes */
+  
+  /* Ensure text doesn't overflow */
+  .mobile-header h1,
+  .message-content,
+  .chat-input textarea {
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    hyphens: auto !important;
+  }
+
+  /* Improve button spacing on very small screens */
+  .mobile-header .flex.items-center.space-x-3 {
+    gap: 0.25rem !important;
+  }
+
+  /* Ensure proper spacing for touch targets */
+  .mobile-header button,
+  .chat-input button {
+    margin: 0.125rem !important;
+  }
+
+  /* Fix for very small screens - reduce padding */
+  @media (max-width: 360px) {
+    .mobile-header {
+      padding: 0.5rem !important;
+    }
+    
+    .chat-messages {
+      padding: 0.5rem !important;
+    }
+    
+    .chat-input {
+      padding: 0.5rem !important;
+    }
+    
+    .message-bubble {
+      padding: 0.5rem !important;
+      margin: 0.25rem 0 !important;
+    }
+  }
+
+  /* Fix for screens with notches (iPhone X and newer) */
+  @supports (padding: max(0px)) {
+    .mobile-full-height {
+      padding-left: max(0px, env(safe-area-inset-left)) !important;
+      padding-right: max(0px, env(safe-area-inset-right)) !important;
+    }
+    
+    .mobile-header {
+      padding-top: max(0.75rem, env(safe-area-inset-top)) !important;
+    }
+    
+    .mobile-chat-input-area {
+      padding-bottom: max(0.75rem, env(safe-area-inset-bottom)) !important;
+    }
+  }
+
+  /* High DPI screens */
+  @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .mobile-header button,
+    .chat-input button {
+      border-width: 0.5px !important;
+    }
   }
 }
 

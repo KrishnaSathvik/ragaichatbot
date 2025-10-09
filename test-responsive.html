@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Test - RAG AI Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f0f0f0;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .screen-size {
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 10px;
+        }
+        iframe {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            background: white;
+        }
+        .test-info {
+            background: #fef3c7;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #f59e0b;
+        }
+        .checklist {
+            background: #f0fdf4;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #10b981;
+        }
+        .checklist ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .checklist li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 RAG AI Chatbot - Responsive Testing</h1>
+    
+    <div class="test-info">
+        <h3>📋 Testing Instructions:</h3>
+        <p>This page helps you test your RAG AI Chatbot across different screen sizes. Check each iframe for:</p>
+        <ul>
+            <li>Proper layout and spacing</li>
+            <li>Readable text and buttons</li>
+            <li>Working navigation and interactions</li>
+            <li>Chat input visibility and functionality</li>
+        </ul>
+    </div>
+
+    <div class="test-container">
+        <div class="screen-size">📱 Small Mobile (320×568) - iPhone SE</div>
+        <iframe src="http://localhost:3000" width="320" height="568"></iframe>
+    </div>
+
+    <div class="test-container">
+        <div class="screen-size">📱 Standard Mobile (375×667) - iPhone 6/7/8</div>
+        <iframe src="http://localhost:3000" width="375" height="667"></iframe>
+    </div>
+
+    <div class="test-container">
+        <div class="screen-size">📱 Large Mobile (414×896) - iPhone XR/11</div>
+        <iframe src="http://localhost:3000" width="414" height="896"></iframe>
+    </div>
+
+    <div class="test-container">
+        <div class="screen-size">📱 Extra Large Mobile (428×926) - iPhone 12 Pro Max</div>
+        <iframe src="http://localhost:3000" width="428" height="926"></iframe>
+    </div>
+
+    <div class="test-container">
+        <div class="screen-size">📱 Android (360×800) - Samsung Galaxy</div>
+        <iframe src="http://localhost:3000" width="360" height="800"></iframe>
+    </div>
+
+    <div class="test-container">
+        <div class="screen-size">📱 Tablet Portrait (768×1024) - iPad</div>
+        <iframe src="http://localhost:3000" width="768" height="1024"></iframe>
+    </div>
+
+    <div class="test-container">
+        <div class="screen-size">💻 Desktop (1024×768)</div>
+        <iframe src="http://localhost:3000" width="1024" height="768"></iframe>
+    </div>
+
+    <div class="checklist">
+        <h3>✅ Responsive Design Checklist:</h3>
+        <ul>
+            <li><strong>Mobile Layout:</strong> Chat input is visible and accessible at bottom</li>
+            <li><strong>Header:</strong> App title and buttons are properly displayed</li>
+            <li><strong>Scrolling:</strong> Can scroll through chat messages smoothly</li>
+            <li><strong>Touch Targets:</strong> Buttons are large enough for touch (44px minimum)</li>
+            <li><strong>Text Readability:</strong> Text is readable without zooming</li>
+            <li><strong>Navigation:</strong> Profile and History buttons work properly</li>
+            <li><strong>Sidebar:</strong> Desktop sidebar appears on larger screens</li>
+            <li><strong>Breakpoints:</strong> Layout adapts smoothly between screen sizes</li>
+            <li><strong>Dark Mode:</strong> Theme toggle works across all sizes</li>
+            <li><strong>Performance:</strong> App loads quickly on all screen sizes</li>
+        </ul>
+    </div>
+
+    <div class="test-info">
+        <h3>🔧 Additional Testing Tools:</h3>
+        <ul>
+            <li><strong>Browser DevTools:</strong> F12 → Device Toggle (📱)</li>
+            <li><strong>Online Tools:</strong> BrowserStack, Responsinator</li>
+            <li><strong>Real Devices:</strong> Test on actual phones and tablets</li>
+            <li><strong>Network Throttling:</strong> Test on slow connections</li>
+        </ul>
+    </div>
+</body>
+</html>

@@ -251,22 +251,7 @@ function App() {
       timestamp: new Date()
     };
 
-    // Add to conversations list
-    if (inputValue.length > 0) {
-      const conversationTitle = inputValue.substring(0, 30) + (inputValue.length > 30 ? '...' : '');
-      const isDuplicate = conversations.some(conv => conv.title.trim() === conversationTitle.trim());
-      
-      if (!isDuplicate) {
-        const conversationData = {
-          title: conversationTitle,
-          messages: [],
-          timestamp: Date.now()
-        };
-        const newConversations = [conversationData, ...conversations.slice(0, 9)];
-        setConversations(newConversations);
-        localStorage.setItem('ragConversations', JSON.stringify(newConversations));
-      }
-    }
+    // Note: Conversation will be saved after getting the assistant's response
 
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
@@ -300,6 +285,41 @@ function App() {
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+      
+      // Only save conversation if it's a meaningful exchange (multiple messages or explicit new conversation)
+      const currentMessages = [...messages, userMessage, assistantMessage];
+      const shouldSaveConversation = currentMessages.length > 2 || currentMessages.filter(msg => msg.role === 'user').length > 1;
+      
+      if (shouldSaveConversation) {
+        // Update conversation with complete message history
+        const conversationTitle = inputValue.substring(0, 30) + (inputValue.length > 30 ? '...' : '');
+        const updatedConversations = conversations.map(conv => {
+          if (conv.title.trim() === conversationTitle.trim()) {
+            return {
+              ...conv,
+              messages: currentMessages
+            };
+          }
+          return conv;
+        });
+        
+        // If conversation doesn't exist, create it with full messages
+        const existingConv = updatedConversations.find(conv => conv.title.trim() === conversationTitle.trim());
+        if (!existingConv) {
+          const conversationData = {
+            title: conversationTitle,
+            messages: currentMessages,
+            timestamp: Date.now()
+          };
+          updatedConversations.unshift(conversationData);
+        }
+        
+        // Keep only the most recent 10 conversations
+        const finalConversations = updatedConversations.slice(0, 10);
+        setConversations(finalConversations);
+        localStorage.setItem('ragConversations', JSON.stringify(finalConversations));
+      }
+      
     } catch (error) {
       console.error('Error sending message:', error);
       const errorMessage: Message = {
@@ -309,6 +329,40 @@ function App() {
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
+      
+      // Only save conversation if it's a meaningful exchange (multiple messages or explicit new conversation)
+      const currentMessages = [...messages, userMessage, errorMessage];
+      const shouldSaveConversation = currentMessages.length > 2 || currentMessages.filter(msg => msg.role === 'user').length > 1;
+      
+      if (shouldSaveConversation) {
+        // Update conversation with user message and error message
+        const conversationTitle = inputValue.substring(0, 30) + (inputValue.length > 30 ? '...' : '');
+        const updatedConversations = conversations.map(conv => {
+          if (conv.title.trim() === conversationTitle.trim()) {
+            return {
+              ...conv,
+              messages: currentMessages
+            };
+          }
+          return conv;
+        });
+        
+        // If conversation doesn't exist, create it with messages including error
+        const existingConv = updatedConversations.find(conv => conv.title.trim() === conversationTitle.trim());
+        if (!existingConv) {
+          const conversationData = {
+            title: conversationTitle,
+            messages: currentMessages,
+            timestamp: Date.now()
+          };
+          updatedConversations.unshift(conversationData);
+        }
+        
+        const finalConversations = updatedConversations.slice(0, 10);
+        setConversations(finalConversations);
+        localStorage.setItem('ragConversations', JSON.stringify(finalConversations));
+      }
+      
     } finally {
       setIsLoading(false);
     }
@@ -453,20 +507,7 @@ function App() {
           timestamp: new Date()
         };
 
-        // Add to conversations list
-        const conversationTitle = transcribedText.substring(0, 30) + (transcribedText.length > 30 ? '...' : '');
-        const isDuplicate = conversations.some(conv => conv.title.trim() === conversationTitle.trim());
-        
-        if (!isDuplicate) {
-          const conversationData = {
-            title: conversationTitle,
-            messages: [],
-            timestamp: Date.now()
-          };
-          const newConversations = [conversationData, ...conversations.slice(0, 9)];
-          setConversations(newConversations);
-          localStorage.setItem('ragConversations', JSON.stringify(newConversations));
-        }
+        // Note: Conversation will be saved after getting the assistant's response
 
         // Add user message to chat
         setMessages(prev => [...prev, userMessage]);
@@ -474,6 +515,7 @@ function App() {
         setIsLoading(true);
 
         try {
+          const conversationTitle = transcribedText.substring(0, 30) + (transcribedText.length > 30 ? '...' : '');
           const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
           const response = await fetch(`${apiUrl}/api/chat`, {
             method: 'POST',
@@ -502,21 +544,42 @@ function App() {
 
           setMessages(prev => [...prev, botMessage]);
           
-          // Update conversation with full messages
-          const updatedConversations = conversations.map(conv => {
-            if (conv.title.trim() === conversationTitle.trim()) {
-              return {
-                ...conv,
-                messages: [...messages, userMessage, botMessage]
+          // Only save conversation if it's a meaningful exchange (multiple messages or explicit new conversation)
+          const currentMessages = [...messages, userMessage, botMessage];
+          const shouldSaveConversation = currentMessages.length > 2 || currentMessages.filter(msg => msg.role === 'user').length > 1;
+          
+          if (shouldSaveConversation) {
+            // Update conversation with complete message history
+            const updatedConversations = conversations.map(conv => {
+              if (conv.title.trim() === conversationTitle.trim()) {
+                return {
+                  ...conv,
+                  messages: currentMessages
+                };
+              }
+              return conv;
+            });
+            
+            // If conversation doesn't exist, create it with full messages
+            const existingConv = updatedConversations.find(conv => conv.title.trim() === conversationTitle.trim());
+            if (!existingConv) {
+              const conversationData = {
+                title: conversationTitle,
+                messages: currentMessages,
+                timestamp: Date.now()
               };
+              updatedConversations.unshift(conversationData);
             }
-            return conv;
-          });
-          setConversations(updatedConversations);
-          localStorage.setItem('ragConversations', JSON.stringify(updatedConversations));
+            
+            // Keep only the most recent 10 conversations
+            const finalConversations = updatedConversations.slice(0, 10);
+            setConversations(finalConversations);
+            localStorage.setItem('ragConversations', JSON.stringify(finalConversations));
+          }
 
         } catch (error) {
           console.error('Error getting bot response:', error);
+          const conversationTitle = transcribedText.substring(0, 30) + (transcribedText.length > 30 ? '...' : '');
           const errorMessage: Message = {
             id: (Date.now() + 1).toString(),
             content: 'Sorry, I encountered an error. Please try again.',
@@ -524,6 +587,39 @@ function App() {
             timestamp: new Date()
           };
           setMessages(prev => [...prev, errorMessage]);
+          
+          // Only save conversation if it's a meaningful exchange (multiple messages or explicit new conversation)
+          const currentMessages = [...messages, userMessage, errorMessage];
+          const shouldSaveConversation = currentMessages.length > 2 || currentMessages.filter(msg => msg.role === 'user').length > 1;
+          
+          if (shouldSaveConversation) {
+            // Update conversation with user message and error message
+            const updatedConversations = conversations.map(conv => {
+              if (conv.title.trim() === conversationTitle.trim()) {
+                return {
+                  ...conv,
+                  messages: currentMessages
+                };
+              }
+              return conv;
+            });
+            
+            // If conversation doesn't exist, create it with messages including error
+            const existingConv = updatedConversations.find(conv => conv.title.trim() === conversationTitle.trim());
+            if (!existingConv) {
+              const conversationData = {
+                title: conversationTitle,
+                messages: currentMessages,
+                timestamp: Date.now()
+              };
+              updatedConversations.unshift(conversationData);
+            }
+            
+            const finalConversations = updatedConversations.slice(0, 10);
+            setConversations(finalConversations);
+            localStorage.setItem('ragConversations', JSON.stringify(finalConversations));
+          }
+          
         } finally {
           setIsLoading(false);
         }
@@ -624,10 +720,10 @@ function App() {
   const currentProfileData = profiles.find(p => p.id === currentProfile);
 
   return (
-    <div className={`h-screen w-screen p-0 flex ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
-      <div className={`w-full h-full overflow-hidden relative ${isDarkMode ? 'bg-[#1E1E1E]' : 'bg-white'}`}>
+    <div className={`min-h-screen w-full p-0 flex flex-col mobile-full-height ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <div className={`w-full flex-1 flex flex-col ${isDarkMode ? 'bg-[#1E1E1E]' : 'bg-white'}`}>
         {/* Window Controls Bar - Visible on both mobile and desktop */}
-        <div className={`flex h-6 items-center px-3 ${isDarkMode ? 'bg-[#2A2A2A]' : 'bg-gray-100'}`}>
+        <div className={`flex h-6 items-center px-3 flex-shrink-0 ${isDarkMode ? 'bg-[#2A2A2A]' : 'bg-gray-100'}`}>
           <div className="flex items-center space-x-1.5">
             <div className="w-3 h-3 rounded-full bg-red-500"></div>
             <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
@@ -636,9 +732,9 @@ function App() {
         </div>
         
         {/* App Content */}
-        <div className="flex h-[calc(100%-1.5rem)]">
+        <div className="flex flex-1 min-h-0">
           {/* Desktop Sidebar - Always visible on desktop */}
-          <div className={`w-64 flex flex-col border-r hidden md:flex ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-300'}`}>
+          <div className={`w-64 flex flex-col border-r hidden md:flex flex-shrink-0 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-300'}`}>
             {/* Brand Name */}
             <div className={`p-4 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-300'}`}>
               <div className="flex items-center justify-center space-x-2">
@@ -724,7 +820,7 @@ function App() {
                           e.stopPropagation();
                           deleteConversation(idx);
                         }}
-                        className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-gray-600 transition-all"
+                        className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-500 hover:bg-opacity-20 transition-all"
                         title="Delete conversation"
                       >
                         <Trash2 className="h-3 w-3 text-red-400 hover:text-red-300" />
@@ -757,73 +853,73 @@ function App() {
 
 
           {/* Main Chat Area */}
-          <div className="flex-1 flex flex-col overflow-hidden relative">
-        {/* Mobile Header - Compact Design */}
-        <div className={`md:hidden relative border-b ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-100 border-gray-300'}`}>
-          {/* Main Header Bar */}
-          <div className="flex items-center justify-between px-4 py-3">
-            <div className="flex items-center space-x-3">
-              {/* App Logo + Name */}
-              <div className="flex items-center space-x-3">
-                <img src={FaviconLogo} alt="Logo" className="h-5 w-5" />
-                <h1 className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>RAG AI CHAT BOT</h1>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-3">
-              {/* Profile Dropdown Button */}
-              <button 
-                onClick={toggleProfileDropdown}
-                className={`px-3 py-2 rounded-lg text-xs transition-all duration-200 flex items-center space-x-2 shadow-sm ${
-                  isDarkMode 
-                    ? 'bg-gray-700 text-white hover:bg-gray-600' 
-                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
-                }`}
-              >
-                <span>👤</span>
-                <span>Profile</span>
-                <span className="text-xs opacity-70">{isProfileDropdownOpen ? '▲' : '▼'}</span>
-              </button>
-              
-              {/* History Button */}
-              <button 
-                onClick={toggleFullHistory}
-                className={`px-3 py-2 rounded-lg text-xs transition-all duration-200 flex items-center space-x-2 shadow-sm ${
-                  isDarkMode 
-                    ? 'bg-gray-700 text-white hover:bg-gray-600' 
-                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
-                }`}
-              >
-                <span>📋</span>
-                <span>History</span>
-              </button>
-              
-              {/* Theme Toggle Button */}
-              <button 
-                onClick={toggleTheme}
-                className={`p-2 rounded-lg flex items-center justify-center transition-all duration-200 shadow-sm ${
-                  isDarkMode 
-                    ? 'bg-gray-700 hover:bg-gray-600 text-white' 
-                    : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300'
-                }`}
-                title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
-              >
-                {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              </button>
+          <div className="flex-1 flex flex-col min-h-0 relative mobile-chat-area">
+            {/* Mobile Header - Compact Design */}
+            <div className={`md:hidden relative border-b flex-shrink-0 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-100 border-gray-300'}`}>
+              {/* Main Header Bar */}
+              <div className="flex items-center justify-between px-4 py-3">
+                <div className="flex items-center space-x-3">
+                  {/* App Logo + Name */}
+                  <div className="flex items-center space-x-3">
+                    <img src={FaviconLogo} alt="Logo" className="h-5 w-5" />
+                    <h1 className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>RAG AI CHAT BOT</h1>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-3">
+                  {/* Profile Dropdown Button */}
+                  <button 
+                    onClick={toggleProfileDropdown}
+                    className={`px-3 py-2 rounded-lg text-xs transition-all duration-200 flex items-center space-x-2 shadow-sm ${
+                      isDarkMode 
+                        ? 'bg-gray-700 text-white hover:bg-gray-600' 
+                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                    }`}
+                  >
+                    <span>👤</span>
+                    <span>Profile</span>
+                    <span className="text-xs opacity-70">{isProfileDropdownOpen ? '▲' : '▼'}</span>
+                  </button>
+                  
+                  {/* History Button */}
+                  <button 
+                    onClick={toggleFullHistory}
+                    className={`px-3 py-2 rounded-lg text-xs transition-all duration-200 flex items-center space-x-2 shadow-sm ${
+                      isDarkMode 
+                        ? 'bg-gray-700 text-white hover:bg-gray-600' 
+                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                    }`}
+                  >
+                    <span>📋</span>
+                    <span>History</span>
+                  </button>
+                  
+                  {/* Theme Toggle Button */}
+                  <button 
+                    onClick={toggleTheme}
+                    className={`p-2 rounded-lg flex items-center justify-center transition-all duration-200 shadow-sm ${
+                      isDarkMode 
+                        ? 'bg-gray-700 hover:bg-gray-600 text-white' 
+                        : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300'
+                    }`}
+                    title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+                  >
+                    {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                  </button>
 
-              {/* New Chat Button */}
-              <button 
-                onClick={clearChat}
-                className={`p-2 rounded-lg transition-all duration-200 shadow-sm ${
-                  isDarkMode 
-                    ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-                    : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300'
-                }`}
-                title="New chat"
-              >
-                <span className="text-sm font-bold">+</span>
-              </button>
-              
+                  {/* New Chat Button */}
+                  <button 
+                    onClick={clearChat}
+                    className={`p-2 rounded-lg transition-all duration-200 shadow-sm ${
+                      isDarkMode 
+                        ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                        : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300'
+                    }`}
+                    title="New chat"
+                  >
+                    <span className="text-sm font-bold">+</span>
+                  </button>
+                  
                   {/* Refresh Button */}
                   <button 
                     onClick={clearChat}
@@ -836,8 +932,8 @@ function App() {
                   >
                     <RotateCcw className="h-4 w-4" />
                   </button>
-            </div>
-          </div>
+                </div>
+              </div>
 
               {/* Profile Dropdown */}
               {isProfileDropdownOpen && (
@@ -888,7 +984,7 @@ function App() {
             </div>
 
             {/* Desktop Chat Header - Minimal and Clean */}
-            <div className={`hidden md:flex border-b p-4 items-center justify-between ${isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-300 bg-gray-100'}`}>
+            <div className={`hidden md:flex border-b p-4 items-center justify-between flex-shrink-0 ${isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-300 bg-gray-100'}`}>
               <div className="flex items-center space-x-4">
                 <h2 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                   Chat with {currentProfileData?.name}
@@ -930,7 +1026,7 @@ function App() {
             </div>
             
             {/* Chat Messages */}
-            <div className={`flex-1 overflow-y-auto p-3 md:p-4 space-y-4 md:space-y-6 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+            <div className={`flex-1 overflow-y-auto p-3 md:p-4 space-y-4 md:space-y-6 min-h-0 mobile-chat-messages-area ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
               {messages.map((message) => (
                 <div key={message.id} className="flex items-start animate-fade-in">
                   <div className={`h-8 w-8 md:h-8 md:w-8 rounded-full ${
@@ -981,7 +1077,7 @@ function App() {
             </div>
             
             {/* Input Area */}
-            <div className={`p-3 md:p-4 border-t ${isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-300 bg-gray-100'}`}>
+            <div className={`p-3 md:p-4 border-t flex-shrink-0 mobile-chat-input-area ${isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-300 bg-gray-100'}`}>
               <div className={`relative rounded-lg border shadow-sm ${isDarkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300 bg-white'}`}>
                 <textarea
                   ref={textareaRef}
@@ -1043,7 +1139,12 @@ function App() {
           <div className={`rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
             {/* History Header */}
             <div className={`flex items-center justify-between p-6 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-300'}`}>
-              <h2 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Conversation History</h2>
+              <div>
+                <h2 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Conversation History</h2>
+                <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Tap the 🗑️ icon to delete conversations
+                </p>
+              </div>
               <button
                 onClick={toggleFullHistory}
                 className={`p-2 rounded-lg transition-colors ${
@@ -1088,7 +1189,7 @@ function App() {
                               e.stopPropagation();
                               deleteConversation(idx);
                             }}
-                            className="opacity-0 group-hover:opacity-100 p-2 rounded-lg hover:bg-gray-500 transition-all duration-200"
+                            className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-2 rounded-lg hover:bg-red-500 hover:bg-opacity-20 transition-all duration-200"
                             title="Delete conversation"
                           >
                             <Trash2 className="h-4 w-4 text-red-400 hover:text-red-300" />
