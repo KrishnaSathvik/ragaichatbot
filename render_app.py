@@ -35,8 +35,11 @@ FRONTEND_STATIC_DIR = os.path.join(FRONTEND_BUILD_DIR, "static")
 FRONTEND_EXISTS = os.path.exists(FRONTEND_BUILD_DIR) and os.path.exists(FRONTEND_STATIC_DIR)
 
 if FRONTEND_EXISTS:
-    # Mount static files for production build
+    # Mount static files for production build (CSS, JS, etc.)
     app.mount("/static", StaticFiles(directory=FRONTEND_STATIC_DIR), name="static")
+    
+    # Mount all other frontend assets (logo, favicon, etc.) at root level
+    app.mount("/", StaticFiles(directory=FRONTEND_BUILD_DIR, html=True), name="frontend")
     
     @app.get("/")
     async def serve_frontend():
@@ -130,10 +133,6 @@ async def transcribe(audio: UploadFile = File(...)):
                 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Transcription error: {str(e)}")
-
-# Mount static files for all frontend assets (logo, favicon, etc.) only if frontend exists
-if FRONTEND_EXISTS:
-    app.mount("/", StaticFiles(directory=FRONTEND_BUILD_DIR, html=True), name="frontend")
 
 if __name__ == "__main__":
     import uvicorn
