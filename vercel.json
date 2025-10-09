@@ -2,13 +2,11 @@
   "version": 2,
   "builds": [
     { "src": "index.py",   "use": "@vercel/python" },
-    { "src": "index.html", "use": "@vercel/static" },
     { "src": "api/**",     "use": "@vercel/static" }
   ],
   "routes": [
     { "src": "/api/(chat|health|transcribe)", "dest": "/index.py" },
     { "src": "/api/?$",                        "dest": "/index.py" },
-    { "src": "/$",                             "dest": "/index.html" },
-    { "src": "/(.*)",                          "dest": "/index.html" }
+    { "src": "/(.*)",                          "dest": "https://frontend-hh8bu3rlz-shadowdevils-projects-ae938de8.vercel.app/$1" }
   ]
 }
