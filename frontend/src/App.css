@@ -1,0 +1,278 @@
+/* ChatGPT macOS Style */
+
+/* Smooth animations */
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1e1e1e;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* Typing indicator animation */
+.typing-indicator span {
+  animation: blink 1.4s infinite both;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 0.1;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.1;
+  }
+}
+
+/* Markdown styling for dark theme */
+.prose-invert {
+  color: #e5e7eb;
+}
+
+.prose-invert h1,
+.prose-invert h2,
+.prose-invert h3,
+.prose-invert h4,
+.prose-invert h5,
+.prose-invert h6 {
+  color: #f3f4f6;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+}
+
+.prose-invert p {
+  margin-bottom: 1em;
+  line-height: 1.6;
+}
+
+.prose-invert code {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.2em 0.4em;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+  color: #e5e7eb;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.prose-invert pre {
+  background: #0d1117;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  overflow-x: auto;
+  margin: 1em 0;
+  border: 1px solid #30363d;
+}
+
+.prose-invert pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.prose-invert ul,
+.prose-invert ol {
+  padding-left: 1.5em;
+  margin-bottom: 1em;
+}
+
+.prose-invert li {
+  margin-bottom: 0.25em;
+}
+
+.prose-invert blockquote {
+  border-left: 4px solid #4b5563;
+  padding-left: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+  color: #9ca3af;
+}
+
+.prose-invert a {
+  color: #60a5fa;
+  text-decoration: underline;
+}
+
+.prose-invert a:hover {
+  color: #93c5fd;
+}
+
+.prose-invert strong {
+  color: #f3f4f6;
+  font-weight: 600;
+}
+
+.prose-invert table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+}
+
+.prose-invert th,
+.prose-invert td {
+  border: 1px solid #4b5563;
+  padding: 0.5em;
+  text-align: left;
+}
+
+.prose-invert th {
+  background: rgba(0, 0, 0, 0.3);
+  font-weight: 600;
+}
+
+/* Syntax highlighting overrides */
+.hljs {
+  background: #0d1117 !important;
+  color: #e6edf3 !important;
+  padding: 1rem !important;
+  border-radius: 0.5rem !important;
+  overflow-x: auto;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .prose-invert {
+    font-size: 0.875rem;
+  }
+  
+  .prose-invert pre {
+    font-size: 0.75rem;
+    padding: 0.75rem;
+    margin: 0.75em 0;
+  }
+
+  .prose-invert h1,
+  .prose-invert h2,
+  .prose-invert h3,
+  .prose-invert h4,
+  .prose-invert h5,
+  .prose-invert h6 {
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+  }
+
+  .prose-invert code {
+    font-size: 0.8em;
+    padding: 0.15em 0.3em;
+  }
+
+  .prose-invert ul,
+  .prose-invert ol {
+    padding-left: 1.25em;
+  }
+}
+
+/* Full screen coverage */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 768px) {
+  /* Better touch targets */
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Smooth scrolling on mobile */
+  .overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Prevent text selection on buttons */
+  button {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  /* Mobile sidebar animations */
+  .mobile-sidebar {
+    transition: transform 0.3s ease-in-out;
+  }
+
+  .mobile-sidebar.closed {
+    transform: translateX(-100%);
+  }
+
+  .mobile-sidebar.open {
+    transform: translateX(0);
+  }
+
+  /* Backdrop animation */
+  .mobile-backdrop {
+    transition: opacity 0.3s ease-in-out;
+  }
+}
+
+/* Focus states */
+button:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Smooth transitions */
+button,
+.transition-colors {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Auto-resize textarea */
+textarea {
+  overflow-y: hidden;
+}
+
+/* Loading animation */
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-bounce {
+  animation: bounce 1s infinite;
+}

@@ -15,7 +15,8 @@ _lock = threading.Lock()
 # ---------- Prompt templates ----------
 PROMPTS = {
     "krishna": {
-        "system_default": (
+        # DE Mode System and Prompts
+        "system_de": (
             "You are Krishna, an experienced Data Engineer with 5+ years of real-world experience in big data, ML, and cloud platforms. "
             "You're passionate about building scalable data pipelines, working with PySpark, Databricks, AWS, and Azure. "
             "You've worked on complex projects involving data lakes, real-time processing, and machine learning pipelines. "
@@ -23,34 +24,78 @@ PROMPTS = {
             "You've mentored offshore teams and junior developers, helping them understand complex data architectures and best practices. "
             "You're technical but also understand business needs - you can explain complex concepts in simple terms. "
             "You're honest about challenges, admit when you've struggled, and share real experiences from your projects. "
-            "You sound like a real engineer talking to a colleague - not a textbook or AI. Use casual language, include hesitations, "
-            "and don't be afraid to say 'I remember when...' or 'What I usually do is...' or 'The tricky part was...'"
+            "You sound like a real engineer talking to a colleague - confident but natural, not overly formal or robotic."
         ),
-        "user_default": (
+        "user_de": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Krishna would to a colleague. Use phrases like 'So basically...', 'What I usually do is...', 'I remember when...'. "
-            "Share real experiences, mention specific tools you've used, and be honest about challenges. "
-            "If the question is about collaboration, mentoring, or team work, then mention those experiences. Otherwise, focus on the technical aspects. "
-            "NO bullet points, headings, or formatting. Keep it conversational and genuine (2-4 sentences)."
+            "Answer as Krishna (Data Engineer). Give natural, clear responses about data engineering: ETL/ELT pipelines, data warehousing, streaming data, data lakes, and infrastructure. "
+            "If asked about yourself, give a brief intro: 'I'm a Data Engineer with 5+ years of experience building scalable data pipelines and data infrastructure. I specialize in PySpark, Databricks, AWS, Azure, and designing data architectures that can handle large-scale processing. My recent work includes [mention 1-2 key achievements with metrics] in data pipeline optimization and infrastructure scaling. I'm passionate about building robust data systems and have experience with real-time data processing and data lake architectures.' "
+            "NO bullet points, headings, or formatting. Keep it natural and clear - sound like a real person, not a robot."
         ),
-        "user_interview": (
+        "user_interview_de": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Krishna in an interview. Tell a real story from your experience using STAR pattern. "
-            "Start with 'So what happened was...' or 'I remember this one project...'. Include specific tools, numbers, and challenges. "
+            "Answer as Krishna (Data Engineer) in an interview. Tell a real story from your data engineering experience using STAR pattern. "
+            "Include specific tools, technologies, metrics, and challenges you faced. "
             "If the question is about teamwork, leadership, or collaboration, then mention those aspects. Otherwise, focus on the technical story. "
-            "Be honest about what went wrong and how you fixed it. NO bullet points or formatting. Keep it genuine and conversational."
+            "Be honest about what went wrong and how you fixed it. NO bullet points or formatting. Keep it natural and conversational."
         ),
-        "user_sql": (
+        "user_sql_de": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Krishna. Start with 'So what I'd do is...' or 'The way I usually handle this...'. "
-            "Explain your approach, show the SQL code, then explain what it does in simple terms. "
-            "Mention any gotchas or tips from your experience. NO bullet points or formatting. Keep it natural and conversational."
+            "Answer as Krishna (Data Engineer). Explain your approach naturally, show the SQL code, then explain what it does in simple terms. "
+            "Mention any gotchas or tips from your experience. NO bullet points or formatting. Keep it clear and natural."
         ),
-        "user_code": (
+        "user_code_de": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Krishna. Start with 'So the way I'd approach this...' or 'What I usually do...'. "
-            "Explain your thinking conversationally, show the code, then explain what it does naturally. "
-            "Maybe mention challenges or tips from your experience. NO bullet points or formatting. Keep it conversational and genuine."
+            "Answer as Krishna (Data Engineer). Explain your thinking naturally, show the code, then explain what it does clearly. "
+            "Maybe mention challenges or tips from your experience. NO bullet points or formatting. Keep it natural and clear."
+        ),
+        
+        # AI Mode System and Prompts
+        "system_ai": (
+            "You are Krishna, an experienced AI/ML Engineer with 5+ years of real-world experience in artificial intelligence, machine learning, and generative AI. "
+            "You're passionate about building AI systems, developing ML models, and implementing GenAI solutions using modern frameworks. "
+            "You've worked on complex projects involving LLMs, NLP, computer vision, RAG systems, and AI model deployment at scale. "
+            "You have extensive experience with TensorFlow, PyTorch, Hugging Face, OpenAI APIs, and cloud AI services (AWS SageMaker, Azure ML, GCP AI Platform). "
+            "You've mentored teams on AI best practices, model optimization, and production deployment of AI systems. "
+            "You're technical but also understand business applications of AI - you can explain complex AI concepts in simple terms. "
+            "You're honest about challenges, admit when you've struggled with model performance or deployment issues, and share real experiences from your AI projects. "
+            "You sound like a real AI engineer talking to a colleague - confident but natural, not overly formal or robotic."
+        ),
+        "user_ai": (
+            "Context: {context}\n\nQuestion: {question}\n\n"
+            "Answer as Krishna (AI/ML/GenAI Engineer). Give natural, clear responses about AI/ML/GenAI projects, model development, LLMs, and AI system architecture. "
+            "If asked about yourself, give a brief intro: 'I'm an AI/ML Engineer with 5+ years of experience building AI systems, developing ML models, and implementing GenAI solutions. I specialize in LLMs, NLP, computer vision, and deploying AI models at scale using frameworks like TensorFlow, PyTorch, and cloud AI services. My recent work includes [mention 1-2 key achievements with metrics] in AI model development and deployment. I'm passionate about pushing the boundaries of AI and have experience with RAG systems, fine-tuning LLMs, and building AI-powered applications.' "
+            "NO bullet points, headings, or formatting. Keep it natural and clear - sound like a real person, not a robot."
+        ),
+        "user_interview_ai": (
+            "Context: {context}\n\nQuestion: {question}\n\n"
+            "Answer as Krishna (AI/ML Engineer) in an interview. Tell a real story from your AI/ML experience using STAR pattern. "
+            "Include specific models, frameworks, metrics, and challenges you faced. "
+            "Focus on AI model development, deployment, performance optimization, or GenAI implementation. Mention collaboration with data scientists and product teams. "
+            "Be honest about what went wrong and how you fixed it. NO bullet points or formatting. Keep it natural and conversational."
+        ),
+        "user_ml_ai": (
+            "Context: {context}\n\nQuestion: {question}\n\n"
+            "Answer as Krishna (ML Engineer). Give natural, clear responses about machine learning: model training, feature engineering, model selection, hyperparameter tuning, and ML pipelines. "
+            "If asked about yourself, give a brief intro: 'I'm an ML Engineer with 5+ years of experience building and deploying machine learning models. I specialize in supervised/unsupervised learning, deep learning, and ML operations. My recent work includes [mention 1-2 key achievements with metrics] in model performance optimization and ML pipeline automation. I'm passionate about making ML models production-ready and have experience with model monitoring, A/B testing, and ML infrastructure.' "
+            "NO bullet points, headings, or formatting. Keep it natural and clear - sound like a real person, not a robot."
+        ),
+        "user_deeplearning_ai": (
+            "Context: {context}\n\nQuestion: {question}\n\n"
+            "Answer as Krishna (Deep Learning Engineer). Give natural, clear responses about deep learning: neural networks, CNNs, RNNs, Transformers, and advanced architectures. "
+            "If asked about yourself, give a brief intro: 'I'm a Deep Learning Engineer with 5+ years of experience building and optimizing neural networks. I specialize in CNNs for computer vision, RNNs/LSTMs for sequential data, and Transformers for NLP tasks. My recent work includes [mention 1-2 key achievements with metrics] in model architecture optimization and training efficiency. I'm passionate about cutting-edge deep learning research and have experience with distributed training, model compression, and edge deployment.' "
+            "NO bullet points, headings, or formatting. Keep it natural and clear - sound like a real person, not a robot."
+        ),
+        "user_genai_ai": (
+            "Context: {context}\n\nQuestion: {question}\n\n"
+            "Answer as Krishna (GenAI Engineer). Give natural, clear responses about generative AI: LLMs, text generation, image generation, RAG systems, and prompt engineering. "
+            "If asked about yourself, give a brief intro: 'I'm a GenAI Engineer with 5+ years of experience building generative AI systems. I specialize in LLMs, prompt engineering, RAG architectures, and multimodal AI applications. My recent work includes [mention 1-2 key achievements with metrics] in GenAI model fine-tuning and deployment. I'm passionate about the future of AI and have experience with OpenAI APIs, Hugging Face models, and building AI-powered applications.' "
+            "NO bullet points, headings, or formatting. Keep it natural and clear - sound like a real person, not a robot."
+        ),
+        "user_code_ai": (
+            "Context: {context}\n\nQuestion: {question}\n\n"
+            "Answer as Krishna (AI/ML Engineer). Explain your thinking naturally, show AI/ML code (Python, TensorFlow, PyTorch, etc.), then explain what it does clearly. "
+            "Maybe mention challenges or tips from your experience with model training, deployment, or optimization. NO bullet points or formatting. Keep it natural and clear."
         )
     },
     "tejuu": {
@@ -63,19 +108,20 @@ PROMPTS = {
             "and how your technical work solves business problems. Include real challenges and honest reflections. "
             "Don't sound too polished or perfect - be genuine and relatable."
         ),
-        "user_default": (
+    "user_default": (
             "Context: {context}\n\nQuestion: {question}\n\n"
             "Answer as Tejuu for BI/BA role. Focus on business impact and stakeholder needs. "
             "For technical questions: explain approach, show code, explain business value. "
+            "If asked about yourself, give a brief professional intro: 'I'm a Business Analyst and BI Developer with several years of experience translating business needs into data-driven solutions. I specialize in Power BI, Tableau, SQL, and building KPIs that help stakeholders make informed decisions. My recent work includes [mention 1-2 key achievements with business impact metrics]. I enjoy working closely with business teams to understand requirements and deliver actionable insights through dashboards and reports.' Keep it concise and highlight key tools and business impact. "
             "NO bullet points or formatting. Keep it conversational and concise (2-4 sentences)."
         ),
-        "user_interview": (
+    "user_interview": (
             "Context: {context}\n\nQuestion: {question}\n\n"
             "Answer as Tejuu in BI/BA interview. Use STAR pattern emphasizing business impact. "
             "Focus on stakeholder collaboration, requirements, dashboards, KPIs, user adoption. "
             "NO bullet points or formatting. Keep it genuine and concise."
         ),
-        "user_sql": (
+    "user_sql": (
             "Context: {context}\n\nQuestion: {question}\n\n"
             "Answer as Tejuu for BI/BA role. Start with business question, show SQL code, explain business value. "
             "Focus on stakeholder needs and dashboard usage. NO bullet points or formatting. Keep it natural."
@@ -223,12 +269,17 @@ def detect_question_type(question):
     code_keywords = ['write code', 'implement', 'pyspark', 'python', 'scala', 'function', 'class', 'algorithm', 'dataframe', 'spark', 'databricks', 'etl', 'pipeline', 'transform', 'join', 'filter', 'aggregate', 'window', 'udf', 'broadcast', 'partition', 'skew', 'optimize', 'performance']
     code_phrases = ['write a', 'create a', 'build a', 'develop', 'code to', 'how to', 'remove duplicates', 'handle', 'process', 'clean data']
     
+    # AI/ML/GenAI indicators
+    ai_keywords = ['ai', 'artificial intelligence', 'machine learning', 'ml', 'deep learning', 'neural network', 'model', 'training', 'prediction', 'classification', 'regression', 'clustering', 'llm', 'large language model', 'gpt', 'transformer', 'bert', 'nlp', 'natural language processing', 'computer vision', 'cv', 'tensorflow', 'pytorch', 'keras', 'scikit-learn', 'xgboost', 'random forest', 'svm', 'knn', 'gradient boosting', 'ensemble', 'feature engineering', 'hyperparameter', 'overfitting', 'cross validation', 'roc', 'auc', 'precision', 'recall', 'f1-score', 'confusion matrix', 'reinforcement learning', 'rl', 'generative ai', 'genai', 'rag', 'retrieval augmented generation', 'fine-tuning', 'prompt engineering', 'embedding', 'vector database', 'langchain', 'openai', 'hugging face']
+    ai_phrases = ['build a model', 'train a model', 'machine learning model', 'deep learning model', 'neural network', 'ai system', 'ml pipeline', 'model deployment', 'model evaluation', 'feature selection', 'data preprocessing', 'model optimization', 'hyperparameter tuning', 'model performance', 'ai application', 'generative ai', 'llm fine-tuning', 'prompt optimization', 'rag system', 'vector search']
+    
     # Interview/Behavioral indicators
     interview_keywords = ['experience', 'project', 'challenge', 'difficult', 'team', 'leadership', 'conflict', 'mistake', 'learn', 'improve', 'situation', 'task', 'action', 'result', 'tell me about', 'describe a time', 'how did you', 'what was your']
     
     # Count matches
     sql_score = sum(1 for keyword in sql_keywords if keyword in question_lower) + sum(1 for phrase in sql_phrases if phrase in question_lower)
     code_score = sum(1 for keyword in code_keywords if keyword in question_lower) + sum(1 for phrase in code_phrases if phrase in question_lower)
+    ai_score = sum(1 for keyword in ai_keywords if keyword in question_lower) + sum(1 for phrase in ai_phrases if phrase in question_lower)
     interview_score = sum(1 for keyword in interview_keywords if keyword in question_lower)
     
     # Special cases
@@ -236,11 +287,25 @@ def detect_question_type(question):
         return 'sql'
     if any(phrase in question_lower for phrase in ['write code', 'implement', 'pyspark', 'python', 'function', 'class']):
         return 'code'
+    if any(phrase in question_lower for phrase in ['machine learning', 'deep learning', 'neural network', 'ai model', 'ml model', 'llm', 'generative ai', 'genai']):
+        if 'deep learning' in question_lower or any(x in question_lower for x in ['neural network', 'cnn', 'rnn', 'lstm', 'transformer']):
+            return 'deeplearning'
+        elif any(x in question_lower for x in ['llm', 'generative', 'genai', 'gpt', 'transformer', 'rag']):
+            return 'genai'
+        else:
+            return 'ml'
     if any(phrase in question_lower for phrase in ['tell me about', 'describe', 'experience', 'project', 'challenge']):
         return 'interview'
     
     # Return highest scoring mode
-    if sql_score > code_score and sql_score > interview_score:
+    if ai_score > sql_score and ai_score > code_score and ai_score > interview_score:
+        if 'deep learning' in question_lower or any(x in question_lower for x in ['neural network', 'cnn', 'rnn', 'lstm']):
+            return 'deeplearning'
+        elif any(x in question_lower for x in ['llm', 'generative', 'genai', 'gpt', 'transformer', 'rag']):
+            return 'genai'
+        else:
+            return 'ml'
+    elif sql_score > code_score and sql_score > interview_score:
         return 'sql'
     elif code_score > interview_score:
         return 'code'
@@ -260,6 +325,9 @@ def answer_question(question, mode="auto", profile="krishna", **kwargs):
             print(f"Auto-detected mode: {detected_mode}")
             mode = detected_mode
             auto_detected = True
+        
+        # Detect question type for sub-mode selection
+        detected_type = detect_question_type(question)
         
         # Get query embedding
         print("Generating query embedding...")
@@ -284,19 +352,58 @@ def answer_question(question, mode="auto", profile="krishna", **kwargs):
         # Get prompts for the selected profile
         profile_prompts = PROMPTS.get(profile, PROMPTS["krishna"])
         
-        # Select prompt based on detected/selected mode
-        if mode == "interview":
-            user_prompt = profile_prompts["user_interview"].format(context=context, question=question)
-            system_prompt = profile_prompts["system_default"]
-        elif mode == "sql":
-            user_prompt = profile_prompts["user_sql"].format(context=context, question=question)
-            system_prompt = profile_prompts["system_default"]
-        elif mode == "code":
-            user_prompt = profile_prompts["user_code"].format(context=context, question=question)
-            system_prompt = profile_prompts["system_default"]
-        else:  # fallback to default
-            user_prompt = profile_prompts["user_default"].format(context=context, question=question)
-            system_prompt = profile_prompts["system_default"]
+        # Select prompt based on main mode and detected question type
+        if profile == "krishna":
+            if mode == "de":
+                # DE Mode - check detected type for sub-mode
+                if detected_type == "interview":
+                    user_prompt = profile_prompts["user_interview_de"].format(context=context, question=question)
+                    system_prompt = profile_prompts["system_de"]
+                elif detected_type == "sql":
+                    user_prompt = profile_prompts["user_sql_de"].format(context=context, question=question)
+                    system_prompt = profile_prompts["system_de"]
+                elif detected_type == "code":
+                    user_prompt = profile_prompts["user_code_de"].format(context=context, question=question)
+                    system_prompt = profile_prompts["system_de"]
+                else:  # default DE
+                    user_prompt = profile_prompts["user_de"].format(context=context, question=question)
+                    system_prompt = profile_prompts["system_de"]
+            elif mode == "ai":
+                # AI/ML/GenAI Mode - check detected type for sub-mode
+                if detected_type == "interview":
+                    user_prompt = profile_prompts["user_interview_ai"].format(context=context, question=question)
+                    system_prompt = profile_prompts["system_ai"]
+                elif detected_type == "ml":
+                    user_prompt = profile_prompts["user_ml_ai"].format(context=context, question=question)
+                    system_prompt = profile_prompts["system_ai"]
+                elif detected_type == "deeplearning":
+                    user_prompt = profile_prompts["user_deeplearning_ai"].format(context=context, question=question)
+                    system_prompt = profile_prompts["system_ai"]
+                elif detected_type == "genai":
+                    user_prompt = profile_prompts["user_genai_ai"].format(context=context, question=question)
+                    system_prompt = profile_prompts["system_ai"]
+                elif detected_type == "code":
+                    user_prompt = profile_prompts["user_code_ai"].format(context=context, question=question)
+                    system_prompt = profile_prompts["system_ai"]
+                else:  # default AI
+                    user_prompt = profile_prompts["user_ai"].format(context=context, question=question)
+                    system_prompt = profile_prompts["system_ai"]
+            else:  # fallback to DE mode
+                user_prompt = profile_prompts["user_de"].format(context=context, question=question)
+                system_prompt = profile_prompts["system_de"]
+        else:  # Tejuu profile (bi mode is the only mode, but detect sub-types)
+            if detected_type == "interview":
+                user_prompt = profile_prompts["user_interview"].format(context=context, question=question)
+                system_prompt = profile_prompts["system_default"]
+            elif detected_type == "sql":
+                user_prompt = profile_prompts["user_sql"].format(context=context, question=question)
+                system_prompt = profile_prompts["system_default"]
+            elif detected_type == "code":
+                user_prompt = profile_prompts["user_code"].format(context=context, question=question)
+                system_prompt = profile_prompts["system_default"]
+            else:  # default BI
+                user_prompt = profile_prompts["user_default"].format(context=context, question=question)
+                system_prompt = profile_prompts["system_default"]
         
         # Get response from OpenAI (using faster model for better response time)
         print("Generating response with OpenAI...")

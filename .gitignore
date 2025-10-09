@@ -1,1 +1,37 @@
 .vercel
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+venv312/
+env/
+ENV/
+*.egg-info/
+
+# Environment
+.env
+.env.local
+.env.production.local
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# System files
+.DS_Store
+.playwright-mcp/
+
+# Build files
+*.pyc
+
+# Backup files
+*.backup
+
+# Documentation files
+*.docx
