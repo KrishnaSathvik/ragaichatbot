@@ -30,8 +30,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static files
-app.mount("/static", StaticFiles(directory="frontend"), name="static")
+# Static files will be mounted at the end after API routes
 
 # Global variables for loaded index and metadata
 faiss_index: Optional[faiss.Index] = None
@@ -41,21 +40,16 @@ openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 @app.get("/")
 async def read_root():
     """Serve the main HTML file."""
-    return FileResponse("frontend/index.html")
+    return FileResponse("frontend/build/index.html")
 
 # Request/Response models
 class ChatRequest(BaseModel):
     message: str
-    mode: str = "auto"  # "auto", "ai", "de"
-    conversation_history: List[Dict[str, Any]] = []
-    style: str = "standard"  # "standard", "interview"
-    tone: str = "confident"  # "confident", "collaborative", "cautious"
-    depth: str = "mid"  # "short", "mid", "deep"
+    mode: str = "auto"  # "auto", "ai", "de", "bi", "ae"
+    profile: str = "krishna"  # "krishna", "tejuu"
 
 class ChatResponse(BaseModel):
     answer: str
-    sources: List[Dict[str, str]]
-    mode_used: str
 
 class TranscribeResponse(BaseModel):
     transcript: str
@@ -141,7 +135,19 @@ def load_knowledge_base():
     global faiss_index, metadata_list
     
     try:
-        if os.path.exists("store/faiss.index") and os.path.exists("store/meta.json"):
+        # Check for new embeddings first (api directory)
+        if os.path.exists("api/embeddings.npy") and os.path.exists("api/meta.json"):
+            # Load numpy embeddings and convert to FAISS
+            embeddings = np.load("api/embeddings.npy")
+            faiss_index = faiss.IndexFlatIP(embeddings.shape[1])  # Inner product index
+            faiss_index.add(embeddings.astype('float32'))
+            
+            with open("api/meta.json", 'r', encoding='utf-8') as f:
+                metadata_list = json.load(f)
+            
+            print(f"Loaded FAISS index with {faiss_index.ntotal} vectors and {len(metadata_list)} metadata entries")
+        elif os.path.exists("store/faiss.index") and os.path.exists("store/meta.json"):
+            # Fallback to old format
             faiss_index = faiss.read_index("store/faiss.index")
             
             with open("store/meta.json", 'r', encoding='utf-8') as f:
@@ -149,7 +155,7 @@ def load_knowledge_base():
             
             print(f"Loaded FAISS index with {faiss_index.ntotal} vectors and {len(metadata_list)} metadata entries")
         else:
-            print("No knowledge base found. Run python ingest.py first.")
+            print("No knowledge base found. Run python generate_embeddings_complete.py first.")
     except Exception as e:
         print(f"Error loading knowledge base: {e}")
 
@@ -388,56 +394,17 @@ async def health_check():
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
     """Main chat endpoint with RAG."""
-    if faiss_index is None:
-        raise HTTPException(status_code=500, detail="Knowledge base not loaded")
-    
-    # Determine persona
-    if request.mode == "auto":
-        persona = classify_query(request.message)
-    else:
-        persona = request.mode
-    
-    # Auto-detect style if not explicitly set
-    if request.style == "standard":  # Only auto-detect if using default
-        detected_style = detect_question_style(request.message)
-    else:
-        detected_style = request.style
-    
-    # Retrieve relevant chunks - with timeout fallback
     try:
-        relevant_chunks = retrieve_relevant_chunks(request.message, persona)
-    except Exception as e:
-        print(f"Retrieval error: {e}")
-        relevant_chunks = []  # Fallback to empty chunks for speed
-    
-    # Build prompt
-    prompt = build_chat_prompt(request.message, persona, relevant_chunks, request.conversation_history,
-                              detected_style, request.tone, request.depth)
-    
-    try:
-        # Generate response - optimized for comprehensive answers
-        response = openai_client.chat.completions.create(
-            model="gpt-3.5-turbo",  # Fastest model available
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.2,  # Slightly more creative for better responses
-            max_tokens=800,   # Increased for 5-6 detailed sentences
-            timeout=12,       # Increased timeout for longer responses
-            stream=False      # No streaming
-        )
+        # Import the answer_question function from utils_simple
+        from api.utils_simple import answer_question
         
-        answer = response.choices[0].message.content.strip()
+        # Call the new answer_question function
+        result = answer_question(request.message, mode=request.mode, profile=request.profile)
         
-        # Clean up answer format - remove Q&A formatting artifacts
-        answer = clean_answer_format(answer)
-        
-        # Return clean answer without sources for better readability
-        return ChatResponse(
-            answer=answer,
-            sources=[],  # No sources shown to user
-            mode_used=persona
-        )
+        return ChatResponse(answer=result)
         
     except Exception as e:
+        print(f"Chat error: {e}")
         raise HTTPException(status_code=500, detail=f"Error generating response: {str(e)}")
 
 @app.post("/api/transcribe", response_model=TranscribeResponse)
@@ -477,6 +444,10 @@ async def transcribe(audio_file: UploadFile = File(...)):
         if 'temp_path' in locals() and os.path.exists(temp_path):
             os.remove(temp_path)
         raise HTTPException(status_code=500, detail=f"Transcription error: {str(e)}")
+
+# Mount static files at the end (after API routes)
+app.mount("/static", StaticFiles(directory="frontend/build/static"), name="static")
+app.mount("/", StaticFiles(directory="frontend/build", html=True), name="frontend")
 
 if __name__ == "__main__":
     import uvicorn
