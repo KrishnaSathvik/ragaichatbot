@@ -424,8 +424,8 @@ def detect_question_type(question):
     """Intelligently detect the type of question to choose the best mode"""
     question_lower = question.lower().strip()
     
-    # Intro/Self-introduction indicators (highest priority)
-    intro_phrases = ['tell me about yourself', 'about yourself', 'introduce yourself', 'who are you', 'what do you do', 'your background', 'your experience', 'your skills']
+    # Intro/Self-introduction indicators (highest priority - be very specific)
+    intro_phrases = ['tell me about yourself', 'about yourself', 'introduce yourself', 'who are you', 'what do you do', 'your background', 'your skills']
     if any(phrase in question_lower for phrase in intro_phrases):
         return 'intro'
     
@@ -444,15 +444,15 @@ def detect_question_type(question):
     if any(phrase in question_lower for phrase in interview_phrases):
         return 'interview'
     
+    # Experience/Skills discussion (check this BEFORE technical)
+    experience_keywords = ['experience with', 'worked with', 'used', 'familiar with', 'expertise in', 'knowledge of', 'proficient in', 'what is your experience']
+    if any(keyword in question_lower for keyword in experience_keywords):
+        return 'experience'
+    
     # Technical discussion indicators (but not asking for code)
     tech_keywords = ['explain', 'how does', 'what is', 'difference between', 'compare', 'advantages', 'disadvantages', 'best practices', 'approach', 'strategy']
     if any(keyword in question_lower for keyword in tech_keywords):
         return 'technical'
-    
-    # Experience/Skills discussion (but not intro)
-    experience_keywords = ['experience with', 'worked with', 'used', 'familiar with', 'expertise in', 'knowledge of', 'proficient in']
-    if any(keyword in question_lower for keyword in experience_keywords):
-        return 'experience'
     
     # Add these to match your routing branches
     if any(p in question_lower for p in ['hyperparameter', 'feature engineering', 'model training', 'ml pipeline', 'machine learning model', 'ml model']):
