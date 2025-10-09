@@ -9,6 +9,7 @@ import {
   MicOff,
   Moon,
   Sun,
+  RotateCcw,
   Trash2,
   History,
   X,
@@ -83,13 +84,13 @@ export default function App() {
     const saved = localStorage.getItem("ragModeByProfile");
     return saved ? JSON.parse(saved) : { krishna: "de", tejuu: "ae" };
   });
-  const [messagesByProfile, setMessagesByProfile] = useState<Record<ProfileId, Message[]>>(() => {
-    const saved = localStorage.getItem("ragMessagesByProfile");
-    return saved ? JSON.parse(saved) : { krishna: [], tejuu: [] };
+  const [messagesByProfileMode, setMessagesByProfileMode] = useState<Record<string, Message[]>>(() => {
+    const saved = localStorage.getItem("ragMessagesByProfileMode");
+    return saved ? JSON.parse(saved) : {};
   });
-  const [conversationsByProfile, setConversationsByProfile] = useState<Record<ProfileId, { title: string; messages: Message[]; ts: number }[]>>(() => {
-    const saved = localStorage.getItem("ragConversationsByProfile");
-    return saved ? JSON.parse(saved) : { krishna: [], tejuu: [] };
+  const [conversationsByProfileMode, setConversationsByProfileMode] = useState<Record<string, { title: string; messages: Message[]; ts: number }[]>>(() => {
+    const saved = localStorage.getItem("ragConversationsByProfileMode");
+    return saved ? JSON.parse(saved) : {};
   });
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -118,33 +119,32 @@ export default function App() {
     localStorage.setItem("ragModeByProfile", JSON.stringify(modeByProfile));
   }, [modeByProfile]);
 
-  // Persist messages by profile
+  // Persist messages by profile+mode
   useEffect(() => {
-    localStorage.setItem("ragMessagesByProfile", JSON.stringify(messagesByProfile));
-  }, [messagesByProfile]);
+    localStorage.setItem("ragMessagesByProfileMode", JSON.stringify(messagesByProfileMode));
+  }, [messagesByProfileMode]);
 
-  // Persist conversations by profile
+  // Persist conversations by profile+mode
   useEffect(() => {
-    localStorage.setItem("ragConversationsByProfile", JSON.stringify(conversationsByProfile));
-  }, [conversationsByProfile]);
+    localStorage.setItem("ragConversationsByProfileMode", JSON.stringify(conversationsByProfileMode));
+  }, [conversationsByProfileMode]);
 
-  const activeMessages = messagesByProfile[profile] || [];
   const activeMode = modeByProfile[profile];
-  const activeConversations = conversationsByProfile[profile] || [];
+  const profileModeKey = `${profile}-${activeMode}`;
+  const activeMessages = messagesByProfileMode[profileModeKey] || [];
+  const activeConversations = conversationsByProfileMode[profileModeKey] || [];
   const activeProfileCfg = useMemo(() => PROFILES.find(p => p.id === profile)!, [profile]);
 
-  // Ensure welcome message exists per profile
+  // Ensure welcome message exists per profile+mode
   useEffect(() => {
     if (activeMessages.length === 0) {
       const m: Message = { id: String(Date.now()), role: "assistant", content: welcome(profile, activeMode), ts: Date.now() };
-      setMessagesByProfile(prev => ({ ...prev, [profile]: [m] }));
+      setMessagesByProfileMode(prev => ({ ...prev, [profileModeKey]: [m] }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile]);
+  }, [profile, activeMode, profileModeKey]);
 
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messagesByProfile, loading]);
-  useEffect(() => { localStorage.setItem("ragChatHistory", JSON.stringify(messagesByProfile)); }, [messagesByProfile]);
-  useEffect(() => { localStorage.setItem("ragConversations", JSON.stringify(conversationsByProfile)); }, [conversationsByProfile]);
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messagesByProfileMode, loading]);
 
   // Actions
   const clearChat = () => {
@@ -152,13 +152,13 @@ export default function App() {
     if (umsgs.length) {
       const titleSrc = umsgs[0].content.trim();
       const title = titleSrc.length > 60 ? titleSrc.slice(0, 60) + "…" : titleSrc || `Conversation ${new Date().toLocaleString()}`;
-      setConversationsByProfile(prev => ({
+      setConversationsByProfileMode(prev => ({
         ...prev,
-        [profile]: [{ title, messages: activeMessages, ts: Date.now() }, ...(prev[profile] || [])].slice(0, 12)
+        [profileModeKey]: [{ title, messages: activeMessages, ts: Date.now() }, ...(prev[profileModeKey] || [])].slice(0, 12)
       }));
     }
     const w: Message = { id: String(Date.now()), role: "assistant", content: welcome(profile, activeMode), ts: Date.now() };
-    setMessagesByProfile(prev => ({ ...prev, [profile]: [w] }));
+    setMessagesByProfileMode(prev => ({ ...prev, [profileModeKey]: [w] }));
   };
 
   const send = async () => {
@@ -166,7 +166,7 @@ export default function App() {
     if (!text || loading) return;
     const user: Message = { id: String(Date.now()), role: "user", content: text, ts: Date.now() };
     setInput("");
-    setMessagesByProfile(prev => ({ ...prev, [profile]: [...(prev[profile] || []), user] }));
+    setMessagesByProfileMode(prev => ({ ...prev, [profileModeKey]: [...(prev[profileModeKey] || []), user] }));
     setLoading(true);
     try {
       const r = await fetch(`${API_URL}/api/chat`, {
@@ -177,10 +177,10 @@ export default function App() {
       if (!r.ok) throw new Error(await r.text());
       const data = await r.json();
       const bot: Message = { id: String(Date.now() + 1), role: "assistant", content: data.answer || "(no content)", ts: Date.now() };
-      setMessagesByProfile(prev => ({ ...prev, [profile]: [...(prev[profile] || []), bot] }));
+      setMessagesByProfileMode(prev => ({ ...prev, [profileModeKey]: [...(prev[profileModeKey] || []), bot] }));
     } catch (e) {
       const err: Message = { id: String(Date.now() + 1), role: "assistant", content: "Sorry, something went wrong. Please try again.", ts: Date.now() };
-      setMessagesByProfile(prev => ({ ...prev, [profile]: [...(prev[profile] || []), err] }));
+      setMessagesByProfileMode(prev => ({ ...prev, [profileModeKey]: [...(prev[profileModeKey] || []), err] }));
     } finally {
       setLoading(false);
     }
@@ -239,7 +239,7 @@ export default function App() {
             
             // Send the transcribed text directly to chat
             const user: Message = { id: String(Date.now()), role: "user", content: text, ts: Date.now() };
-            setMessagesByProfile(prev => ({ ...prev, [profile]: [...(prev[profile] || []), user] }));
+            setMessagesByProfileMode(prev => ({ ...prev, [profileModeKey]: [...(prev[profileModeKey] || []), user] }));
             setLoading(true);
             
             try {
@@ -251,10 +251,10 @@ export default function App() {
               if (!r.ok) throw new Error(await r.text());
               const chatData = await r.json();
               const bot: Message = { id: String(Date.now() + 1), role: "assistant", content: chatData.answer || "(no content)", ts: Date.now() };
-              setMessagesByProfile(prev => ({ ...prev, [profile]: [...(prev[profile] || []), bot] }));
+              setMessagesByProfileMode(prev => ({ ...prev, [profileModeKey]: [...(prev[profileModeKey] || []), bot] }));
             } catch (e) {
               const err: Message = { id: String(Date.now() + 1), role: "assistant", content: "Sorry, something went wrong. Please try again.", ts: Date.now() };
-              setMessagesByProfile(prev => ({ ...prev, [profile]: [...(prev[profile] || []), err] }));
+              setMessagesByProfileMode(prev => ({ ...prev, [profileModeKey]: [...(prev[profileModeKey] || []), err] }));
             } finally {
               setLoading(false);
             }
@@ -278,12 +278,12 @@ export default function App() {
   const loadConversation = (idx: number) => {
     const conv = activeConversations[idx];
     if (!conv) return;
-    setMessagesByProfile(prev => ({ ...prev, [profile]: conv.messages }));
+    setMessagesByProfileMode(prev => ({ ...prev, [profileModeKey]: conv.messages }));
     setSidebarOpen(false);
   };
-  const deleteConversation = (idx: number) => setConversationsByProfile(prev => ({
+  const deleteConversation = (idx: number) => setConversationsByProfileMode(prev => ({
     ...prev,
-    [profile]: (prev[profile] || []).filter((_, i) => i !== idx)
+    [profileModeKey]: (prev[profileModeKey] || []).filter((_: any, i: number) => i !== idx)
   }));
 
   // UI atoms
@@ -325,7 +325,8 @@ export default function App() {
         </div>
         <div className="flex items-center justify-center gap-3">
           <button onClick={() => setDark(d => !d)} className={cls("p-2 rounded-md min-w-[44px] min-h-[44px] flex items-center justify-center", dark ? "bg-gray-600 text-white" : "bg-gray-100 text-gray-700")} aria-label="Toggle theme">{dark ? <Sun className="w-5 h-5"/> : <Moon className="w-5 h-5"/>}</button>
-          <button onClick={clearChat} className={cls("p-2 rounded-md min-w-[44px] min-h-[44px] flex items-center justify-center", dark ? "bg-gray-600 text-white" : "bg-gray-100 text-gray-700")} aria-label="New chat"><Plus className="w-5 h-5"/></button>
+          <button onClick={clearChat} className={cls("p-2 rounded-md min-w-[44px] min-h-[44px] flex items-center justify-center", dark ? "bg-gray-600 hover:bg-gray-500 text-white" : "bg-gray-100 hover:bg-gray-200 text-gray-700")} aria-label="Clear current chat"><RotateCcw className="w-5 h-5"/></button>
+          <button onClick={clearChat} className={cls("p-2 rounded-md min-w-[44px] min-h-[44px] flex items-center justify-center", dark ? "bg-gray-600 hover:bg-gray-500 text-white" : "bg-gray-100 hover:bg-gray-200 text-gray-700")} aria-label="Start new chat"><Plus className="w-5 h-5"/></button>
           </div>
         </div>
         
@@ -429,7 +430,9 @@ export default function App() {
                 aria-label="Toggle theme"
               >{dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}</button>
               <button onClick={clearChat} className={cls("p-2 rounded-md min-w-[44px] min-h-[44px] flex items-center justify-center",
-                dark ? "bg-gray-600 hover:bg-gray-500 text-white" : "bg-gray-100 hover:bg-gray-200 text-gray-700")} aria-label="New chat"><Plus className="w-4 h-4"/></button>
+                dark ? "bg-gray-600 hover:bg-gray-500 text-white" : "bg-gray-100 hover:bg-gray-200 text-gray-700")} aria-label="Clear current chat"><RotateCcw className="w-4 h-4"/></button>
+              <button onClick={clearChat} className={cls("p-2 rounded-md min-w-[44px] min-h-[44px] flex items-center justify-center",
+                dark ? "bg-gray-600 hover:bg-gray-500 text-white" : "bg-gray-100 hover:bg-gray-200 text-gray-700")} aria-label="Start new chat"><Plus className="w-4 h-4"/></button>
                     </div>
                   </div>
 
