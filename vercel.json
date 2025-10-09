@@ -1,12 +1,16 @@
 {
   "version": 2,
+  "buildCommand": "cd frontend && npm run build",
+  "outputDirectory": "frontend/build",
+  "installCommand": "cd frontend && npm install",
   "builds": [
-    { "src": "index.py",   "use": "@vercel/python" },
-    { "src": "api/**",     "use": "@vercel/static" }
+    { "src": "frontend/package.json", "use": "@vercel/static-build", "config": { "distDir": "build" } }
   ],
   "routes": [
-    { "src": "/api/(chat|health|transcribe)", "dest": "/index.py" },
-    { "src": "/api/?$",                        "dest": "/index.py" },
-    { "src": "/(.*)",                          "dest": "https://frontend-hh8bu3rlz-shadowdevils-projects-ae938de8.vercel.app/$1" }
-  ]
+    { "src": "/static/(.*)", "dest": "/static/$1" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ],
+  "env": {
+    "REACT_APP_API_URL": "https://rag-chatbot-api-33r9.onrender.com"
+  }
 }
