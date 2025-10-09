@@ -29,13 +29,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static files (for the frontend)
-app.mount("/static", StaticFiles(directory="."), name="static")
+# Mount static files for production build
+app.mount("/static", StaticFiles(directory="frontend/build/static"), name="static")
 
 @app.get("/")
 async def serve_frontend():
     """Serve the frontend HTML file"""
-    return FileResponse("index.html")
+    return FileResponse("frontend/build/index.html")
 
 @app.get("/api/health")
 async def health():
@@ -112,6 +112,9 @@ async def transcribe(audio: UploadFile = File(...)):
                 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Transcription error: {str(e)}")
+
+# Mount static files for all frontend assets (logo, favicon, etc.)
+app.mount("/", StaticFiles(directory="frontend/build", html=True), name="frontend")
 
 if __name__ == "__main__":
     import uvicorn
