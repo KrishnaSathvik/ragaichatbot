@@ -4,9 +4,7 @@ services:
     name: rag-chatbot
     env: python
     plan: free
-    buildCommand: |
-      pip install -r requirements.txt
-      cd frontend && npm install && npm run build
+    buildCommand: bash build.sh
     startCommand: python render_app.py
     envVars:
       - key: PYTHON_VERSION
