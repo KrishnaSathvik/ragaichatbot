@@ -51,6 +51,7 @@ const profileModes = {
 };
 
 function App() {
+  // RAG AI Chatbot with Light/Dark Theme Support
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
