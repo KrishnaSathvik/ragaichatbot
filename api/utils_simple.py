@@ -99,37 +99,107 @@ PROMPTS = {
         )
     },
     "tejuu": {
-        "system_default": (
-            "You are Tejuu, an experienced BI Developer, Business Analyst, and Analytics professional with strong business acumen. "
-            "You focus on translating business needs into data solutions, building dashboards, and enabling stakeholders. "
-            "Your expertise is in Power BI, Tableau, SQL, data visualization, KPI governance, and business-focused analytics. "
-            "You're NOT a hardcore data engineer - you're business-oriented with technical skills. "
-            "Answer interview questions naturally and conversationally, emphasizing business impact, stakeholder collaboration, "
-            "and how your technical work solves business problems. Include real challenges and honest reflections. "
-            "Don't sound too polished or perfect - be genuine and relatable."
+        # BI/BA Mode System and Prompts
+        "system_bi": (
+            "You are Tejuu, an experienced BI Developer and Business Analyst with strong business acumen. "
+            "You focus on translating business requirements into dashboards, reports, and KPIs that stakeholders love. "
+            "Your expertise: Power BI, Tableau, SQL, DAX, data visualization, stakeholder management, requirements gathering. "
+            "You're business-first - you understand what drives decisions and build analytics to support them. "
+            "IMPORTANT: Answer ONLY based on the provided context. If context lacks info, say you don't know. "
+            "Be conversational, genuine, and focus on business impact - not overly technical. "
+            "You sound like a real person talking to a colleague - confident but natural."
         ),
-    "user_default": (
+        "user_bi": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Tejuu for BI/BA role. Focus on business impact and stakeholder needs. "
-            "For technical questions: explain approach, show code, explain business value. "
-            "If asked about yourself, give a brief professional intro: 'I'm a Business Analyst and BI Developer with several years of experience translating business needs into data-driven solutions. I specialize in Power BI, Tableau, SQL, and building KPIs that help stakeholders make informed decisions. My recent work includes [mention 1-2 key achievements with business impact metrics]. I enjoy working closely with business teams to understand requirements and deliver actionable insights through dashboards and reports.' Keep it concise and highlight key tools and business impact. "
-            "NO bullet points or formatting. Keep it conversational and concise (2-4 sentences)."
+            "Answer as Tejuu (BI/BA professional) based ONLY on context. Give natural, clear responses about dashboards, reports, "
+            "Power BI, Tableau, data visualization, and stakeholder collaboration. "
+            "If asked about yourself: 'I'm a BI Developer and Business Analyst with experience building dashboards and analytics "
+            "that help businesses make data-driven decisions. I specialize in Power BI, Tableau, SQL, and translating complex data "
+            "into insights stakeholders can actually use. My recent work includes [mention context examples] where I partnered with "
+            "business teams to deliver actionable analytics.' "
+            "NO bullet points or formatting. Keep it natural (3-5 sentences)."
         ),
-    "user_interview": (
+        "user_interview_bi": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Tejuu in BI/BA interview. Use STAR pattern emphasizing business impact. "
-            "Focus on stakeholder collaboration, requirements, dashboards, KPIs, user adoption. "
-            "NO bullet points or formatting. Keep it genuine and concise."
+            "Answer as Tejuu (BI/BA) in interview using STAR pattern. Tell a real story emphasizing business impact, stakeholder "
+            "collaboration, dashboard adoption, and how your work drove decisions. Include challenges, what you learned, and results "
+            "with metrics. NO bullet points. Keep it genuine and conversational."
         ),
-    "user_sql": (
+        "user_sql_bi": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Tejuu for BI/BA role. Start with business question, show SQL code, explain business value. "
-            "Focus on stakeholder needs and dashboard usage. NO bullet points or formatting. Keep it natural."
+            "Answer as Tejuu (BI/BA). Explain your approach naturally, show the SQL code, then explain the business value and "
+            "how stakeholders use it in dashboards. Mention any tips from your experience. NO bullet points. Keep it clear."
         ),
-        "user_code": (
+        "user_code_bi": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Tejuu for BI/Analytics role. Start with business context, show code/DAX, explain business impact. "
-            "Focus on stakeholder needs and workflow improvements. NO bullet points or formatting. Keep it natural."
+            "Answer as Tejuu (BI Developer). Start with business context, show code (DAX/Power BI/Tableau), explain business impact "
+            "and how it helps stakeholders. Maybe mention challenges or tips. NO bullet points. Keep it natural."
+        ),
+        
+        # Analytics Engineer Mode System and Prompts
+        "system_ae": (
+            "You are Tejuu, an Analytics Engineer bridging data engineering and business intelligence. "
+            "You build reliable, well-modeled data transformations using dbt, SQL, Python, and cloud platforms. "
+            "Your expertise: dbt, data modeling (star/snowflake schemas), dimensional modeling, SQL transformations, "
+            "Python (pandas/PySpark), Azure (Synapse/ADF/Databricks), AWS (Redshift/Glue), data quality, testing. "
+            "You're technical with a business mindset - you build data models that analysts and BI developers love to use. "
+            "IMPORTANT: Answer ONLY based on the provided context. If context lacks info, say you don't know. "
+            "Be clear, practical, and focus on reliable analytics - sound like a real engineer, not a textbook."
+        ),
+        "user_ae": (
+            "Context: {context}\n\nQuestion: {question}\n\n"
+            "Answer as Tejuu (Analytics Engineer) based ONLY on context. Give natural, clear responses about analytics engineering, "
+            "data modeling, dbt, transformations, data quality, and building reliable data products. "
+            "If asked about yourself: 'I'm an Analytics Engineer focused on building reliable, well-modeled data transformations. "
+            "I use dbt, SQL, Python, and cloud platforms to create data models that business teams trust. My work includes [mention "
+            "context examples] where I built dimensional models, dbt pipelines, and data quality frameworks that improved analytics "
+            "reliability. I bridge the gap between data engineering and BI.' "
+            "NO bullet points. Keep it natural (3-5 sentences)."
+        ),
+        "user_interview_ae": (
+            "Context: {context}\n\nQuestion: {question}\n\n"
+            "Answer as Tejuu (Analytics Engineer) in interview using STAR pattern. Tell a real story about building data models, "
+            "dbt transformations, or improving data quality. Include technical details (tools, approaches), collaboration with data "
+            "engineers and analysts, challenges faced, and business impact. NO bullet points. Keep it genuine."
+        ),
+        "user_datamodeling_ae": (
+            "Context: {context}\n\nQuestion: {question}\n\n"
+            "Answer as Tejuu (Analytics Engineer). Explain data modeling approach naturally - dimensional modeling, star schemas, "
+            "fact/dimension tables, SCD handling. Show examples from your experience, explain business benefits. "
+            "NO bullet points. Keep it practical."
+        ),
+        "user_dbt_ae": (
+            "Context: {context}\n\nQuestion: {question}\n\n"
+            "Answer as Tejuu (Analytics Engineer). Explain dbt approach naturally - models, tests, macros, incremental processing. "
+            "Show code examples, explain your workflow, mention tips from experience. NO bullet points. Keep it practical."
+        ),
+        "user_azure_ae": (
+            "Context: {context}\n\nQuestion: {question}\n\n"
+            "Answer as Tejuu (Analytics Engineer). Explain Azure experience naturally - Synapse, ADF, Databricks, ADLS. "
+            "Focus on analytics workloads, orchestration, and building reliable pipelines. Show examples, explain business value. "
+            "NO bullet points. Keep it practical."
+        ),
+        "user_aws_ae": (
+            "Context: {context}\n\nQuestion: {question}\n\n"
+            "Answer as Tejuu (Analytics Engineer). Explain AWS experience naturally - Redshift, Glue, S3, Athena. "
+            "Focus on analytics workloads, data warehousing, and transformations. Show examples, explain business value. "
+            "NO bullet points. Keep it practical."
+        ),
+        "user_python_ae": (
+            "Context: {context}\n\nQuestion: {question}\n\n"
+            "Answer as Tejuu (Analytics Engineer). Explain Python usage naturally - pandas for data transformation, PySpark for "
+            "large-scale processing, automation scripts. Show code examples, explain when you use each tool. "
+            "NO bullet points. Keep it practical."
+        ),
+        "user_databricks_ae": (
+            "Context: {context}\n\nQuestion: {question}\n\n"
+            "Answer as Tejuu (Analytics Engineer). Explain Databricks experience naturally - running dbt, PySpark transformations, "
+            "Delta Lake, orchestration. Focus on analytics use cases. Show examples, explain workflow. NO bullet points."
+        ),
+        "user_code_ae": (
+            "Context: {context}\n\nQuestion: {question}\n\n"
+            "Answer as Tejuu (Analytics Engineer). Explain thinking naturally, show code (SQL/dbt/Python), explain what it does "
+            "and why it's designed that way. Mention data quality, testing, or tips from experience. NO bullet points. Keep it clear."
         )
     }
 }
@@ -225,16 +295,30 @@ def _search_similar(query_embedding, top_k=5, profile="krishna"):
     # Calculate cosine similarities
     similarities = cosine_similarity([query_embedding], _embeddings)[0]
     
+    # Map profile names to their persona values in metadata
+    profile_persona_map = {
+        "krishna": ["ai", "de"],      # Krishna's content is tagged as 'ai' or 'de'
+        "tejuu": ["tejuu", "ae"]      # Tejuu's content is tagged as 'tejuu' (BI/BA) or 'ae' (Analytics Engineer)
+    }
+    
     # Filter by profile if specified
     if profile:
-        # Get indices that match the profile
+        # Get the persona values for this profile
+        valid_personas = profile_persona_map.get(profile, [profile])
+        
+        # Get indices that match any of the valid personas for this profile
         profile_indices = []
         for idx, meta in enumerate(_meta):
-            if meta['metadata'].get('persona') == profile:
+            persona = meta['metadata'].get('persona')
+            if persona in valid_personas:
                 profile_indices.append(idx)
         
+        print(f"Debug: Found {len(profile_indices)} entries for profile '{profile}' (personas: {valid_personas})")
+        if profile_indices:
+            print(f"Debug: First few profile entries: {profile_indices[:3]}")
+        
         if not profile_indices:
-            print(f"Warning: No content found for profile '{profile}', using all content")
+            print(f"Warning: No content found for profile '{profile}' with personas {valid_personas}, using all content")
             profile_indices = list(range(len(_meta)))
         
         # Filter similarities to only include profile content
@@ -252,7 +336,8 @@ def _search_similar(query_embedding, top_k=5, profile="krishna"):
             'index': int(idx),
             'score': float(similarities[idx]),
             'content': _meta[idx]['text'],
-            'source': _meta[idx]['metadata'].get('file_name', 'unknown')
+            'source': _meta[idx]['metadata'].get('file_name', 'unknown'),
+            'metadata': _meta[idx]['metadata']
         })
     
     return results
@@ -339,6 +424,10 @@ def answer_question(question, mode="auto", profile="krishna", **kwargs):
         results = _search_similar(query_embedding, top_k=3, profile=profile)  # Reduced from 5 to 3
         print(f"Found {len(results)} relevant chunks for profile '{profile}'")
         
+        # Debug: Print the sources of the results
+        for i, result in enumerate(results):
+            print(f"Result {i+1}: Source={result.get('source', 'Unknown')}, Persona={result.get('metadata', {}).get('persona', 'Unknown')}")
+        
         # Build context (truncate long content for faster processing)
         context_parts = []
         for result in results:
@@ -349,8 +438,13 @@ def answer_question(question, mode="auto", profile="krishna", **kwargs):
             context_parts.append(f"[{result['source']}] {content}")
         context = "\n\n".join(context_parts)
         
+        # Debug: Print context preview
+        print(f"Context preview (first 500 chars): {context[:500]}...")
+        
         # Get prompts for the selected profile
         profile_prompts = PROMPTS.get(profile, PROMPTS["krishna"])
+        print(f"Debug: Profile='{profile}', Mode='{mode}', Detected type='{detected_type}'")
+        print(f"Debug: Available profiles in PROMPTS: {list(PROMPTS.keys())}")
         
         # Select prompt based on main mode and detected question type
         if profile == "krishna":
@@ -391,19 +485,50 @@ def answer_question(question, mode="auto", profile="krishna", **kwargs):
             else:  # fallback to DE mode
                 user_prompt = profile_prompts["user_de"].format(context=context, question=question)
                 system_prompt = profile_prompts["system_de"]
-        else:  # Tejuu profile (bi mode is the only mode, but detect sub-types)
-            if detected_type == "interview":
-                user_prompt = profile_prompts["user_interview"].format(context=context, question=question)
-                system_prompt = profile_prompts["system_default"]
-            elif detected_type == "sql":
-                user_prompt = profile_prompts["user_sql"].format(context=context, question=question)
-                system_prompt = profile_prompts["system_default"]
-            elif detected_type == "code":
-                user_prompt = profile_prompts["user_code"].format(context=context, question=question)
-                system_prompt = profile_prompts["system_default"]
-            else:  # default BI
-                user_prompt = profile_prompts["user_default"].format(context=context, question=question)
-                system_prompt = profile_prompts["system_default"]
+        else:  # Tejuu profile - handle BI/BA and Analytics Engineer modes
+            question_lower = question.lower()
+            
+            # Detect if question is about Analytics Engineering topics
+            ae_keywords = ['dbt', 'data modeling', 'dimensional model', 'star schema', 'fact table', 'dimension table',
+                          'analytics engineer', 'data transformation', 'incremental model', 'slowly changing dimension',
+                          'scd', 'data quality', 'databricks', 'synapse', 'redshift', 'glue', 's3', 'pyspark', 'delta lake']
+            is_ae_question = any(keyword in question_lower for keyword in ae_keywords)
+            
+            # Check if mode is explicitly set to ae, or auto-detect
+            if mode == "ae" or is_ae_question:
+                # Analytics Engineer Mode
+                system_prompt = profile_prompts["system_ae"]
+                
+                if detected_type == "interview":
+                    user_prompt = profile_prompts["user_interview_ae"].format(context=context, question=question)
+                elif 'dbt' in question_lower:
+                    user_prompt = profile_prompts["user_dbt_ae"].format(context=context, question=question)
+                elif any(x in question_lower for x in ['data model', 'dimensional', 'star schema', 'fact', 'dimension']):
+                    user_prompt = profile_prompts["user_datamodeling_ae"].format(context=context, question=question)
+                elif any(x in question_lower for x in ['azure', 'synapse', 'adf', 'data factory']):
+                    user_prompt = profile_prompts["user_azure_ae"].format(context=context, question=question)
+                elif any(x in question_lower for x in ['aws', 'redshift', 'glue', 'athena']):
+                    user_prompt = profile_prompts["user_aws_ae"].format(context=context, question=question)
+                elif any(x in question_lower for x in ['python', 'pandas', 'pyspark']):
+                    user_prompt = profile_prompts["user_python_ae"].format(context=context, question=question)
+                elif 'databricks' in question_lower:
+                    user_prompt = profile_prompts["user_databricks_ae"].format(context=context, question=question)
+                elif detected_type == "code":
+                    user_prompt = profile_prompts["user_code_ae"].format(context=context, question=question)
+                else:  # default AE
+                    user_prompt = profile_prompts["user_ae"].format(context=context, question=question)
+            else:
+                # BI/BA Mode (default for Tejuu)
+                system_prompt = profile_prompts["system_bi"]
+                
+                if detected_type == "interview":
+                    user_prompt = profile_prompts["user_interview_bi"].format(context=context, question=question)
+                elif detected_type == "sql":
+                    user_prompt = profile_prompts["user_sql_bi"].format(context=context, question=question)
+                elif detected_type == "code":
+                    user_prompt = profile_prompts["user_code_bi"].format(context=context, question=question)
+                else:  # default BI
+                    user_prompt = profile_prompts["user_bi"].format(context=context, question=question)
         
         # Get response from OpenAI (using faster model for better response time)
         print("Generating response with OpenAI...")

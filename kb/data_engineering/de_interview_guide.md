@@ -1,8 +1,14 @@
 ---
-tags: [data-engineering, pyspark, databricks, azure-data-factory, delta-lake, optimization, governance, walgreens, interview-prep, scenarios]
+tags: [data-engineer, interview, questions, answers, behavioral, technical, star-method, pyspark, databricks, azure, comprehensive]
+persona: de
 ---
 
-# Comprehensive Data Engineering Q&A - 120 Questions
+# Comprehensive Data Engineering Interview Guide - Krishna's 120+ Q&A
+
+## Introduction
+**Krishna's Interview Preparation:**
+This comprehensive guide contains 120+ real interview questions covering PySpark, Databricks, Azure Data Factory, Delta Lake, SQL, Python, data governance, and behavioral questions. All answers are based on my real experience at Walgreens with specific examples, metrics, and STAR method format.
+
 
 ## Section A: Core PySpark + Databricks (20 Questions)
 

@@ -1,11 +1,18 @@
-from utils import (
-    detect_question_style, clean_answer_format, retrieve_relevant_chunks,
-    load_knowledge_base, build_chat_prompt, handler_response, openai_client
-)
+from utils_simple import answer_question
 import json
 
-# Load knowledge base on module import
-load_knowledge_base()
+def handler_response(data, status_code=200):
+    """Simple response handler for Vercel."""
+    return {
+        'statusCode': status_code,
+        'headers': {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
+        },
+        'body': json.dumps(data)
+    }
 
 def handler(event, context):
     """Handle chat requests."""
@@ -21,48 +28,23 @@ def handler(event, context):
         body = json.loads(event['body'])
         query = body.get('message', '').strip()
         mode = body.get('mode', 'auto')
-        conversation_history = body.get('conversation_history', [])
-        style = body.get('style', 'standard')
-        tone = body.get('tone', 'confident')
-        depth = body.get('depth', 'mid')
+        profile = body.get('profile', 'krishna')  # Get profile parameter
         
         if not query:
             return handler_response({'error': 'Message is required'}, 400)
         
-        # Auto-detect style if not specified
-        if style == 'standard':
-            style = detect_question_style(query)
+        # Use the answer_question function with profile and mode
+        result = answer_question(query, mode=mode, profile=profile)
         
-        # Determine persona based on mode
-        persona = mode if mode in ['ai', 'de'] else 'de'  # Default to DE for auto
+        if 'error' in result:
+            return handler_response({'error': result['error']}, 400)
         
-        # Retrieve relevant chunks
-        relevant_chunks = retrieve_relevant_chunks(query, persona, top_k=2)
-        
-        # Build prompt
-        prompt = build_chat_prompt(query, persona, relevant_chunks, conversation_history,
-                                 style, tone, depth)
-        
-        # Generate response
-        response = openai_client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.1,
-            max_tokens=600,
-            timeout=8,
-            stream=False
-        )
-        
-        answer = response.choices[0].message.content.strip()
-        
-        # Clean up answer format - remove Q&A artifacts
-        answer = clean_answer_format(answer)
-        
-        # Return clean answer without sources for better readability
+        # Return clean answer
         return handler_response({
-            'answer': answer,
+            'answer': result.get('answer', 'No response generated'),
             'sources': [],  # No sources shown to user
-            'mode_used': persona
+            'mode_used': mode,
+            'profile_used': profile
         })
         
     except Exception as e:

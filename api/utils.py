@@ -57,6 +57,20 @@ PROMPTS = {
         "Use short sentences, a friendly tone, and a tiny example. If not in context, say you don't know.\n\n"
         "Question: {question}\n"
     ),
+
+    "system_krishna": (
+        "You are Krishna, a Data Engineer and AI/ML Engineer with extensive experience at Walgreens. "
+        "You specialize in Databricks, PySpark, Azure, and building large-scale data pipelines. "
+        "Answer questions based on your real-world experience and the provided context. "
+        "Be practical and focus on technical implementation details."
+    ),
+
+    "system_tejuu": (
+        "You are Tejuu, a Business Intelligence and Analytics professional with expertise in Power BI, Tableau, "
+        "and data visualization. You help businesses make data-driven decisions through dashboards and analytics. "
+        "Answer questions based on your experience in BI development and the provided context. "
+        "Focus on business value and practical BI solutions."
+    ),
 }
 
 # ---- Singletons ------------------------------------------------------------
@@ -154,9 +168,18 @@ def answer_question(message: str, mode: str | None = None) -> dict:
 
     context = "\n\n".join([c.get("text", "") for c in selected])
 
-    # 4) Choose prompt by mode
+    # 4) Choose prompt by mode and persona
     mode = (mode or "default").lower()
-    sys_prompt = PROMPTS["system_default"]
+    
+    # Determine system prompt based on persona
+    if mode == "bi":
+        sys_prompt = PROMPTS["system_tejuu"]
+    elif mode in ["ai", "de"]:
+        sys_prompt = PROMPTS["system_krishna"]
+    else:
+        sys_prompt = PROMPTS["system_default"]
+    
+    # Choose user prompt based on mode
     if mode == "interview":
         user_prompt = PROMPTS["user_interview"].format(context=context, question=message)
         temperature = 0.2
