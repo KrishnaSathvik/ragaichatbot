@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/github-dark.css';
 import './App.css';
+import FaviconLogo from './favicon.svg';
 
 // Types
 interface Message {
@@ -641,7 +642,7 @@ function App() {
             {/* Brand Name */}
             <div className={`p-4 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-300'}`}>
               <div className="flex items-center justify-center space-x-2">
-                <img src="/favicon.svg" alt="Logo" className="h-6 w-6" />
+                <img src={FaviconLogo} alt="Logo" className="h-6 w-6" />
                 <h1 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>RAG AI CHAT BOT</h1>
               </div>
             </div>
@@ -764,7 +765,7 @@ function App() {
             <div className="flex items-center space-x-3">
               {/* App Logo + Name */}
               <div className="flex items-center space-x-3">
-                <img src="/favicon.svg" alt="Logo" className="h-5 w-5" />
+                <img src={FaviconLogo} alt="Logo" className="h-5 w-5" />
                 <h1 className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>RAG AI CHAT BOT</h1>
               </div>
             </div>
