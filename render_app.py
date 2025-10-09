@@ -34,49 +34,62 @@ FRONTEND_BUILD_DIR = "frontend/build"
 FRONTEND_STATIC_DIR = os.path.join(FRONTEND_BUILD_DIR, "static")
 FRONTEND_EXISTS = os.path.exists(FRONTEND_BUILD_DIR) and os.path.exists(FRONTEND_STATIC_DIR)
 
+# Define static file routes first (before API routes)
 if FRONTEND_EXISTS:
     # Mount static files for production build (CSS, JS, etc.)
     app.mount("/static", StaticFiles(directory=FRONTEND_STATIC_DIR), name="static")
-    
-    # Serve individual static files (logo, favicon, etc.)
-    @app.get("/logo.png")
-    async def serve_logo():
+
+# Static file routes (defined outside the if block to ensure they're always available)
+@app.get("/logo.png")
+async def serve_logo():
+    if FRONTEND_EXISTS and os.path.exists(os.path.join(FRONTEND_BUILD_DIR, "logo.png")):
         return FileResponse(os.path.join(FRONTEND_BUILD_DIR, "logo.png"))
-    
-    @app.get("/favicon.ico")
-    async def serve_favicon():
+    raise HTTPException(status_code=404, detail="Logo not found")
+
+@app.get("/favicon.ico")
+async def serve_favicon():
+    if FRONTEND_EXISTS and os.path.exists(os.path.join(FRONTEND_BUILD_DIR, "favicon.ico")):
         return FileResponse(os.path.join(FRONTEND_BUILD_DIR, "favicon.ico"))
-    
-    @app.get("/favicon.svg")
-    async def serve_favicon_svg():
+    raise HTTPException(status_code=404, detail="Favicon not found")
+
+@app.get("/favicon.svg")
+async def serve_favicon_svg():
+    if FRONTEND_EXISTS and os.path.exists(os.path.join(FRONTEND_BUILD_DIR, "favicon.svg")):
         return FileResponse(os.path.join(FRONTEND_BUILD_DIR, "favicon.svg"))
-    
-    @app.get("/android-chrome-192x192.png")
-    async def serve_android_chrome_192():
+    raise HTTPException(status_code=404, detail="Favicon SVG not found")
+
+@app.get("/android-chrome-192x192.png")
+async def serve_android_chrome_192():
+    if FRONTEND_EXISTS and os.path.exists(os.path.join(FRONTEND_BUILD_DIR, "android-chrome-192x192.png")):
         return FileResponse(os.path.join(FRONTEND_BUILD_DIR, "android-chrome-192x192.png"))
-    
-    @app.get("/android-chrome-512x512.png")
-    async def serve_android_chrome_512():
+    raise HTTPException(status_code=404, detail="Android Chrome 192x192 not found")
+
+@app.get("/android-chrome-512x512.png")
+async def serve_android_chrome_512():
+    if FRONTEND_EXISTS and os.path.exists(os.path.join(FRONTEND_BUILD_DIR, "android-chrome-512x512.png")):
         return FileResponse(os.path.join(FRONTEND_BUILD_DIR, "android-chrome-512x512.png"))
-    
-    @app.get("/apple-touch-icon.png")
-    async def serve_apple_touch_icon():
+    raise HTTPException(status_code=404, detail="Android Chrome 512x512 not found")
+
+@app.get("/apple-touch-icon.png")
+async def serve_apple_touch_icon():
+    if FRONTEND_EXISTS and os.path.exists(os.path.join(FRONTEND_BUILD_DIR, "apple-touch-icon.png")):
         return FileResponse(os.path.join(FRONTEND_BUILD_DIR, "apple-touch-icon.png"))
-    
-    @app.get("/site.webmanifest")
-    async def serve_manifest():
+    raise HTTPException(status_code=404, detail="Apple touch icon not found")
+
+@app.get("/site.webmanifest")
+async def serve_manifest():
+    if FRONTEND_EXISTS and os.path.exists(os.path.join(FRONTEND_BUILD_DIR, "site.webmanifest")):
         return FileResponse(os.path.join(FRONTEND_BUILD_DIR, "site.webmanifest"))
-    
-    @app.get("/")
-    async def serve_frontend():
-        """Serve the frontend HTML file"""
+    raise HTTPException(status_code=404, detail="Web manifest not found")
+
+# Root route
+@app.get("/")
+async def serve_frontend():
+    """Serve the frontend HTML file or API info"""
+    if FRONTEND_EXISTS:
         return FileResponse(os.path.join(FRONTEND_BUILD_DIR, "index.html"))
-else:
-    print("⚠️  Frontend build not found. Running in API-only mode.")
-    
-    @app.get("/")
-    async def root():
-        """Root endpoint - API only mode"""
+    else:
+        print("⚠️  Frontend build not found. Running in API-only mode.")
         return {
             "message": "RAG AI Chatbot API",
             "status": "running",
