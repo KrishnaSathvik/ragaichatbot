@@ -641,7 +641,7 @@ function App() {
             {/* Brand Name */}
             <div className={`p-4 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-300'}`}>
               <div className="flex items-center justify-center space-x-2">
-                <img src={process.env.PUBLIC_URL + "/logo192.png"} alt="RAG AI CHAT BOT" className="h-8 w-8" />
+                <img src="/logo192.png" alt="RAG AI CHAT BOT" className="h-8 w-8" />
                 <h1 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>RAG AI CHAT BOT</h1>
               </div>
             </div>
@@ -764,7 +764,7 @@ function App() {
             <div className="flex items-center space-x-3">
               {/* App Logo + Name */}
               <div className="flex items-center space-x-3">
-                <img src={process.env.PUBLIC_URL + "/logo192.png"} alt="RAG AI CHAT BOT" className="h-6 w-6" />
+                <img src="/logo192.png" alt="RAG AI CHAT BOT" className="h-6 w-6" />
                 <h1 className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>RAG AI CHAT BOT</h1>
               </div>
             </div>
