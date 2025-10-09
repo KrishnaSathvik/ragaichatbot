@@ -7,7 +7,7 @@ persona: krishna
 
 ## Professional Summary
 
-AI/ML Engineer with 5+ years of experience building end-to-end machine learning and generative AI solutions. Skilled in developing data pipelines, training and deploying ML models, and implementing RAG/LLM systems with embeddings and vector databases. Proven ability to deliver cost-efficient, production-ready AI platforms that scale across domains including healthcare, retail, and finance.
+I'm Krishna, an AI/ML Engineer with 5+ years of experience building end-to-end machine learning and generative AI solutions. I'm skilled in developing data pipelines, training and deploying ML models, and implementing RAG/LLM systems with embeddings and vector databases. I have a proven ability to deliver cost-efficient, production-ready AI platforms that scale across domains including healthcare, retail, and finance.
 
 ## Professional Experience
 
@@ -16,15 +16,15 @@ AI/ML Engineer with 5+ years of experience building end-to-end machine learning 
 
 **Key Responsibilities and Achievements:**
 
-At Walgreens through TCS, I designed and deployed RAG pipeline with Databricks, Pinecone, and OpenAI, enabling pharmacists to query compliance docs in natural language with source-cited answers.
+So at Walgreens through TCS, I designed and deployed this RAG pipeline with Databricks, Pinecone, and OpenAI. The goal was to enable pharmacists to query compliance documents in natural language with source-cited answers. This was a game-changer because pharmacists could now get instant answers instead of spending hours searching through documents.
 
-I engineered ingestion of structured/unstructured data (PDFs, transcripts) via PySpark pipelines, transforming data into embeddings and cutting manual search effort by 60%.
+I engineered ingestion of structured and unstructured data (PDFs, transcripts) via PySpark pipelines, transforming data into embeddings and cutting manual search effort by 60%. The pharmacists were really happy with this improvement.
 
-I automated retraining and re-indexing workflows using Airflow, improving model freshness and reducing knowledge gaps across pharmacy operations.
+I automated retraining and re-indexing workflows using Airflow, which improved model freshness and reduced knowledge gaps across pharmacy operations. This was important because compliance documents change frequently, and we needed to keep the system up-to-date.
 
-I deployed scalable inference APIs on AKS with CI/CD in Azure DevOps, ensuring zero-downtime rollouts and 35% latency reduction with optimized caching and prompts.
+I deployed scalable inference APIs on AKS with CI/CD in Azure DevOps, ensuring zero-downtime rollouts and 35% latency reduction with optimized caching and prompts. The performance improvement was significant, and the system was much more reliable.
 
-I implemented governance with Unity Catalog and PII scrubbing, securing sensitive patient data while maintaining HIPAA compliance in embeddings and responses.
+I implemented governance with Unity Catalog and PII scrubbing, securing sensitive patient data while maintaining HIPAA compliance in embeddings and responses. This was crucial because we were dealing with healthcare data and needed to ensure patient privacy.
 
 **Technologies Used:**
 - Databricks, PySpark, Pinecone, OpenAI API
@@ -37,13 +37,13 @@ I implemented governance with Unity Catalog and PII scrubbing, securing sensitiv
 
 **Key Responsibilities and Achievements:**
 
-At CVS Health, I built demand forecasting models in PySpark and TensorFlow predicting sales and supply trends, improving procurement accuracy and saving $15M annually.
+At CVS Health, I built demand forecasting models in PySpark and TensorFlow that predicted sales and supply trends. This was really exciting because I got to work with both data engineering and machine learning. I improved procurement accuracy and saved $15M annually, which was a huge win for the business.
 
-I engineered feature pipelines with dbt and Databricks for model-ready datasets, cutting preparation time by 40% and ensuring consistency across teams.
+I engineered feature pipelines with dbt and Databricks for model-ready datasets, cutting preparation time by 40% and ensuring consistency across teams. This was important because data scientists were spending too much time on data preparation instead of building models.
 
-I tracked experiments with MLflow and automated retraining pipelines, boosting model performance by 18% over baseline.
+I tracked experiments with MLflow and automated retraining pipelines, which boosted model performance by 18% over baseline. The automated retraining was crucial because it kept the models fresh and accurate.
 
-I deployed models to production via Azure ML, implementing monitoring for drift and automating retraining triggers.
+I deployed models to production via Azure ML, implementing monitoring for drift and automating retraining triggers. This was my first experience with MLOps, and I learned a lot about production ML systems.
 
 **Technologies Used:**
 - PySpark, TensorFlow, MLflow
@@ -62,11 +62,11 @@ I deployed models to production via Azure ML, implementing monitoring for drift 
 
 **Key Responsibilities and Achievements:**
 
-At McKesson, I developed ETL and ML scripts in Python reducing ingestion latency by 50%, powering dashboards for executive decisions on financial integrity.
+At McKesson, I developed ETL and ML scripts in Python that reduced ingestion latency by 50%. This was my first real experience with ETL and ML, and it was really exciting to see the impact. The scripts powered dashboards for executive decisions on financial integrity, which was really important for the business.
 
-I built regression and time series models forecasting patient demand, preventing supply mismatches and reducing stockouts by 22%.
+I built regression and time series models that forecasted patient demand, preventing supply mismatches and reducing stockouts by 22%. This was really satisfying because it directly improved patient care by ensuring medications were available when needed.
 
-I produced compliance-focused ML insights aligning with audit requirements and informing leadership's strategic reviews.
+I produced compliance-focused ML insights that aligned with audit requirements and informed leadership's strategic reviews. This was important because healthcare companies need to maintain strict compliance standards.
 
 **Technologies Used:**
 - Python, SQL, Pandas, NumPy
@@ -85,9 +85,9 @@ I produced compliance-focused ML insights aligning with audit requirements and i
 
 **Key Responsibilities and Achievements:**
 
-At Indietek, I built backend APIs and optimized SQL queries for ERP modules, strengthening transactional accuracy and improving response times by 35%.
+At Indietek, I built backend APIs and optimized SQL queries for ERP modules, which strengthened transactional accuracy and improved response times by 35%. This was where I started my career, and it was a great foundation for learning about system performance and optimization.
 
-I designed reporting modules surfacing anomalies in contracts and payments, reducing manual reconciliation workload.
+I designed reporting modules that surfaced anomalies in contracts and payments, reducing manual reconciliation workload. This was really satisfying because it helped the business team work more efficiently.
 
 **Technologies Used:**
 - SQL Server, Oracle

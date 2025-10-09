@@ -249,8 +249,8 @@ export default function App() {
         <div className="flex items-center gap-2">
           <button onClick={() => setSidebarOpen(true)} className={cls("p-2 rounded-md min-w-[44px] min-h-[44px]", dark ? "bg-gray-600 text-white" : "bg-gray-100 text-gray-700")} aria-label="Open menu"> <Menu className="w-5 h-5"/> </button>
           <div className="flex items-center gap-2">
-            <div className={cls("w-6 h-6 rounded-full flex items-center justify-center", activeProfileCfg.color)}>
-              <span className="text-white text-xs font-semibold">{activeProfileCfg.initials}</span>
+            <div className={cls("w-10 h-10 rounded-full flex items-center justify-center shadow-lg", activeProfileCfg.color)}>
+              <span className="text-white text-sm font-bold">{activeProfileCfg.initials}</span>
             </div>
             <div>
               <div className={cls("text-sm font-semibold", dark ? "text-white" : "text-gray-900")}>{activeProfileCfg.name}</div>
@@ -274,7 +274,7 @@ export default function App() {
           {/* Brand */}
           <div className={cls("p-4 border-b", dark ? "border-gray-700" : "border-gray-200")}>            
             <div className="flex items-center gap-2">
-              <div className="w-5 h-5 rounded bg-blue-500 flex items-center justify-center text-white text-xs font-bold">🤖</div>
+              <div className="w-8 h-8 flex items-center justify-center text-xl">🤖</div>
               <h1 className={cls("font-semibold", dark ? "text-white" : "text-gray-900")}>Kish RagAIChatbot</h1>
               </div>
             </div>
@@ -348,8 +348,8 @@ export default function App() {
             dark ? "bg-gray-900 border-gray-700" : "bg-gray-50 border-gray-200")}
           >
             <div className="flex items-center gap-3">
-              <div className={cls("w-8 h-8 rounded-full flex items-center justify-center", activeProfileCfg.color)}>
-                <span className="text-white text-xs font-semibold">{activeProfileCfg.initials}</span>
+              <div className={cls("w-12 h-12 rounded-full flex items-center justify-center shadow-lg", activeProfileCfg.color)}>
+                <span className="text-white text-base font-bold">{activeProfileCfg.initials}</span>
                 </div>
               <div>
                 <div className={cls("text-sm font-semibold", dark ? "text-white" : "text-gray-900")}>Chat with {activeProfileCfg.name}</div>
@@ -373,13 +373,13 @@ export default function App() {
             <div className="mx-auto w-full max-w-4xl xl:max-w-5xl 2xl:max-w-6xl space-y-4">
               {activeMessages.map(m => (
                 <motion.div key={m.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }} className="flex items-start gap-3">
-                  <div className={cls("w-8 h-8 rounded-full shrink-0 flex items-center justify-center",
+                  <div className={cls("w-10 h-10 rounded-full shrink-0 flex items-center justify-center shadow-md",
                     m.role === "user" ? activeProfileCfg.color : (dark ? "bg-gray-700" : "bg-gray-100"))}
                   >
                     {m.role === "user" ? (
-                      <span className="text-white text-xs font-semibold">{activeProfileCfg.initials}</span>
+                      <span className="text-white text-sm font-bold">{activeProfileCfg.initials}</span>
                     ) : (
-                      <div className="w-4 h-4 rounded bg-blue-500 flex items-center justify-center text-white text-xs">🤖</div>
+                      <div className="w-10 h-10 flex items-center justify-center text-2xl">🤖</div>
                     )}
                   </div>
 
@@ -409,9 +409,7 @@ export default function App() {
 
               {loading && (
                 <div className="flex items-center gap-3">
-                  <div className={cls("w-8 h-8 rounded-full flex items-center justify-center", dark ? "bg-gray-700" : "bg-gray-100")}>
-                    <div className="w-4 h-4 rounded bg-blue-500 flex items-center justify-center text-white text-xs">🤖</div>
-                  </div>
+                  <div className="w-10 h-10 flex items-center justify-center text-2xl">🤖</div>
                   <div className={cls("rounded-2xl px-4 py-3 border backdrop-blur-sm shadow-sm",
                     dark ? "bg-gray-800/90 border-gray-700 shadow-lg" : "bg-white/90 border-gray-200 shadow-md")}>                  
                     <TypingDots />
@@ -493,7 +491,7 @@ export default function App() {
             >
               <div className={cls("flex items-center justify-between p-3 border-b", dark ? "border-gray-700" : "border-gray-200")}>                
                 <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded bg-blue-500 flex items-center justify-center text-white text-xs font-bold">🤖</div>
+                  <div className="w-8 h-8 flex items-center justify-center text-xl">🤖</div>
                   <div className="font-semibold">Kish RagAIChatbot</div>
                 </div>
                 <button onClick={() => setSidebarOpen(false)} className={cls("p-2 rounded-md min-w-[44px] min-h-[44px]", dark ? "bg-gray-600 text-white" : "bg-gray-100 text-gray-700")} aria-label="Close menu"><X className="w-5 h-5"/></button>

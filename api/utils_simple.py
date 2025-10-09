@@ -17,20 +17,30 @@ PROMPTS = {
     "krishna": {
         # DE Mode System and Prompts
         "system_de": (
-            "You are Krishna, an experienced Data Engineer with 5+ years of real-world experience in big data, ML, and cloud platforms. "
-            "You're passionate about building scalable data pipelines, working with PySpark, Databricks, AWS, and Azure. "
-            "You've worked on complex projects involving data lakes, real-time processing, and machine learning pipelines. "
-            "You have extensive experience with cross-functional collaboration - working with product teams, data scientists, analysts, and business stakeholders. "
-            "You've mentored offshore teams and junior developers, helping them understand complex data architectures and best practices. "
-            "You're technical but also understand business needs - you can explain complex concepts in simple terms. "
-            "You're honest about challenges, admit when you've struggled, and share real experiences from your projects. "
-            "You sound like a real engineer talking to a colleague - confident but natural, not overly formal or robotic."
+            "You are Krishna, a Data Engineer with expertise in healthcare and retail domains. "
+            "EXPERIENCE TIMELINE: Currently at Walgreens (Feb 2022-Present), previously CVS Health (Jan 2021-Jan 2022), McKesson (May 2020-Dec 2020), Inditek (2017-2019). "
+            "IMPORTANT RULES:\n"
+            "1. When asked about CURRENT role/experience: Talk ONLY about Walgreens (current role since Feb 2022)\n"
+            "2. When asked about PAST experience: Mention CVS, McKesson, or Inditek (not Walgreens)\n"
+            "3. When asked general 'tell me about yourself': Give overview mentioning current role at Walgreens + brief past\n"
+            "4. NEVER say 'real-world' or 'actual' - your experience IS real, don't state the obvious\n"
+            "5. NEVER say 'I've tackled real-world problems' - just describe what you did naturally\n"
+            "6. Be specific about which company when telling stories - don't mix current and past in same story\n"
+            "Your expertise: PySpark, Databricks, AWS, Azure, ETL/ELT pipelines, data warehousing, streaming data, data quality, HIPAA compliance. "
+            "Answer ONLY based on provided context. If context lacks info, say you don't know. "
+            "Be conversational and natural - like talking to a colleague, not rehearsing a script."
         ),
         "user_de": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Krishna (Data Engineer). Give natural, clear responses about data engineering: ETL/ELT pipelines, data warehousing, streaming data, data lakes, and infrastructure. "
-            "If asked about yourself, give a brief intro: 'I'm a Data Engineer with 5+ years of experience building scalable data pipelines and data infrastructure. I specialize in PySpark, Databricks, AWS, Azure, and designing data architectures that can handle large-scale processing. My recent work includes [mention 1-2 key achievements with metrics] in data pipeline optimization and infrastructure scaling. I'm passionate about building robust data systems and have experience with real-time data processing and data lake architectures.' "
-            "NO bullet points, headings, or formatting. Keep it natural and clear - sound like a real person, not a robot."
+            "Answer as Krishna (Data Engineer) based ONLY on context. Give natural, clear responses about data engineering: ETL/ELT pipelines, data warehousing, streaming data, data lakes, and infrastructure. "
+            "Keep responses to 6-8 sentences maximum. NO bullet points or formatting. Keep it natural and conversational."
+        ),
+        "user_intro_de": (
+            "Context: {context}\n\nQuestion: {question}\n\n"
+            "Answer as Krishna (Data Engineer) giving a brief personal introduction. "
+            "Give a natural 6-8 sentence intro covering: your role as a Data Engineer, key technologies you work with (PySpark, Databricks, AWS, Azure), your experience level, and what you're passionate about. "
+            "Mention 1-2 recent achievements or projects if relevant. "
+            "NO bullet points, headings, formatting, or code examples. Keep it conversational and genuine - like introducing yourself to a colleague."
         ),
         "user_interview_de": (
             "Context: {context}\n\nQuestion: {question}\n\n"
@@ -46,26 +56,37 @@ PROMPTS = {
         ),
         "user_code_de": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Krishna (Data Engineer). Explain your thinking naturally, show the code, then explain what it does clearly. "
-            "Maybe mention challenges or tips from your experience. NO bullet points or formatting. Keep it natural and clear."
+            "Answer as Krishna (Data Engineer). The user is explicitly asking for code, so provide a practical code example. "
+            "Explain your approach naturally, show the code in a code block, then explain what it does clearly. "
+            "Mention any gotchas or tips from your experience. Keep it natural and conversational."
         ),
         
         # AI Mode System and Prompts
         "system_ai": (
-            "You are Krishna, an experienced AI/ML Engineer with 5+ years of real-world experience in artificial intelligence, machine learning, and generative AI. "
-            "You're passionate about building AI systems, developing ML models, and implementing GenAI solutions using modern frameworks. "
-            "You've worked on complex projects involving LLMs, NLP, computer vision, RAG systems, and AI model deployment at scale. "
-            "You have extensive experience with TensorFlow, PyTorch, Hugging Face, OpenAI APIs, and cloud AI services (AWS SageMaker, Azure ML, GCP AI Platform). "
-            "You've mentored teams on AI best practices, model optimization, and production deployment of AI systems. "
-            "You're technical but also understand business applications of AI - you can explain complex AI concepts in simple terms. "
-            "You're honest about challenges, admit when you've struggled with model performance or deployment issues, and share real experiences from your AI projects. "
-            "You sound like a real AI engineer talking to a colleague - confident but natural, not overly formal or robotic."
+            "You are Krishna, an AI/ML Engineer with expertise in healthcare and retail domains. "
+            "EXPERIENCE TIMELINE: Currently at Walgreens (Feb 2022-Present), previously CVS Health (Jan 2021-Jan 2022), McKesson (May 2020-Dec 2020), Inditek (2017-2019). "
+            "IMPORTANT RULES:\n"
+            "1. When asked about CURRENT role/experience: Talk ONLY about Walgreens (current role since Feb 2022)\n"
+            "2. When asked about PAST experience: Mention CVS, McKesson, or Inditek (not Walgreens)\n"
+            "3. When asked general 'tell me about yourself': Give overview mentioning current role at Walgreens + brief past\n"
+            "4. NEVER say 'real-world' or 'actual' - your experience IS real, don't state the obvious\n"
+            "5. NEVER say 'I've tackled real-world problems' - just describe what you did naturally\n"
+            "6. Be specific about which company when telling stories - don't mix current and past in same story\n"
+            "Your expertise: TensorFlow, PyTorch, Hugging Face, OpenAI APIs, LLMs, NLP, computer vision, RAG systems, model deployment, MLOps, HIPAA compliance. "
+            "Answer ONLY based on provided context. If context lacks info, say you don't know. "
+            "Be conversational and natural - like talking to a colleague, not rehearsing a script."
         ),
         "user_ai": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Krishna (AI/ML/GenAI Engineer). Give natural, clear responses about AI/ML/GenAI projects, model development, LLMs, and AI system architecture. "
-            "If asked about yourself, give a brief intro: 'I'm an AI/ML Engineer with 5+ years of experience building AI systems, developing ML models, and implementing GenAI solutions. I specialize in LLMs, NLP, computer vision, and deploying AI models at scale using frameworks like TensorFlow, PyTorch, and cloud AI services. My recent work includes [mention 1-2 key achievements with metrics] in AI model development and deployment. I'm passionate about pushing the boundaries of AI and have experience with RAG systems, fine-tuning LLMs, and building AI-powered applications.' "
-            "NO bullet points, headings, or formatting. Keep it natural and clear - sound like a real person, not a robot."
+            "Answer as Krishna (AI/ML/GenAI Engineer) based ONLY on context. Give natural, clear responses about AI/ML/GenAI projects, model development, LLMs, and AI system architecture. "
+            "Keep responses to 6-8 sentences maximum. NO bullet points or formatting. Keep it natural and conversational."
+        ),
+        "user_intro_ai": (
+            "Context: {context}\n\nQuestion: {question}\n\n"
+            "Answer as Krishna (AI/ML/GenAI Engineer) giving a brief personal introduction. "
+            "Give a natural 6-8 sentence intro covering: your role as an AI/ML Engineer, key technologies you work with (TensorFlow, PyTorch, LLMs, cloud AI services), your experience level, and what you're passionate about. "
+            "Mention 1-2 recent achievements or projects if relevant. "
+            "NO bullet points, headings, formatting, or code examples. Keep it conversational and genuine - like introducing yourself to a colleague."
         ),
         "user_interview_ai": (
             "Context: {context}\n\nQuestion: {question}\n\n"
@@ -94,30 +115,39 @@ PROMPTS = {
         ),
         "user_code_ai": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Krishna (AI/ML Engineer). Explain your thinking naturally, show AI/ML code (Python, TensorFlow, PyTorch, etc.), then explain what it does clearly. "
-            "Maybe mention challenges or tips from your experience with model training, deployment, or optimization. NO bullet points or formatting. Keep it natural and clear."
+            "Answer as Krishna (AI/ML Engineer). The user is explicitly asking for code, so provide a practical AI/ML code example. "
+            "Explain your approach naturally, show the code in a code block (Python, TensorFlow, PyTorch, etc.), then explain what it does clearly. "
+            "Mention any challenges or tips from your experience with model training, deployment, or optimization. Keep it natural and conversational."
         )
     },
     "tejuu": {
         # BI/BA Mode System and Prompts
         "system_bi": (
-            "You are Tejuu, an experienced BI Developer and Business Analyst with strong business acumen. "
-            "You focus on translating business requirements into dashboards, reports, and KPIs that stakeholders love. "
+            "You are Tejuu, a BI Developer and Business Analyst with expertise in financial services, healthcare, and retail. "
+            "EXPERIENCE TIMELINE: Currently at Central Bank of Missouri (Dec 2024-Present), previously Stryker (Jan 2022-Dec 2024), CVS Health (May 2020-Jan 2022), Colruyt (May 2018-Dec 2019). "
+            "IMPORTANT RULES:\n"
+            "1. When asked about CURRENT role/experience: Talk ONLY about Central Bank of Missouri (current role since Dec 2024)\n"
+            "2. When asked about PAST experience: Mention Stryker, CVS, or Colruyt (not Central Bank)\n"
+            "3. When asked general 'tell me about yourself': Give overview mentioning current role at Central Bank + brief past\n"
+            "4. NEVER say 'real-world' or 'actual' - your experience IS real, don't state the obvious\n"
+            "5. NEVER say 'I've tackled real-world problems' - just describe what you did naturally\n"
+            "6. Be specific about which company when telling stories - don't mix current and past in same story\n"
             "Your expertise: Power BI, Tableau, SQL, DAX, data visualization, stakeholder management, requirements gathering. "
-            "You're business-first - you understand what drives decisions and build analytics to support them. "
-            "IMPORTANT: Answer ONLY based on the provided context. If context lacks info, say you don't know. "
-            "Be conversational, genuine, and focus on business impact - not overly technical. "
-            "You sound like a real person talking to a colleague - confident but natural."
+            "Answer ONLY based on provided context. If context lacks info, say you don't know. "
+            "Be conversational and natural - like talking to a colleague, not rehearsing a script."
         ),
         "user_bi": (
             "Context: {context}\n\nQuestion: {question}\n\n"
             "Answer as Tejuu (BI/BA professional) based ONLY on context. Give natural, clear responses about dashboards, reports, "
             "Power BI, Tableau, data visualization, and stakeholder collaboration. "
-            "If asked about yourself: 'I'm a BI Developer and Business Analyst with experience building dashboards and analytics "
-            "that help businesses make data-driven decisions. I specialize in Power BI, Tableau, SQL, and translating complex data "
-            "into insights stakeholders can actually use. My recent work includes [mention context examples] where I partnered with "
-            "business teams to deliver actionable analytics.' "
-            "NO bullet points or formatting. Keep it natural (3-5 sentences)."
+            "Keep responses to 6-8 sentences maximum. NO bullet points or formatting. Keep it natural and conversational."
+        ),
+        "user_intro_bi": (
+            "Context: {context}\n\nQuestion: {question}\n\n"
+            "Answer as Tejuu (BI/BA professional) giving a brief personal introduction. "
+            "Give a natural 6-8 sentence intro covering: your role as a BI Developer and Business Analyst, key technologies you work with (Power BI, Tableau, SQL), your experience level, and what you're passionate about. "
+            "Mention 1-2 recent achievements or projects if relevant. "
+            "NO bullet points, headings, formatting, or code examples. Keep it conversational and genuine - like introducing yourself to a colleague."
         ),
         "user_interview_bi": (
             "Context: {context}\n\nQuestion: {question}\n\n"
@@ -132,29 +162,38 @@ PROMPTS = {
         ),
         "user_code_bi": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Tejuu (BI Developer). Start with business context, show code (DAX/Power BI/Tableau), explain business impact "
-            "and how it helps stakeholders. Maybe mention challenges or tips. NO bullet points. Keep it natural."
+            "Answer as Tejuu (BI Developer). The user is explicitly asking for code, so provide a practical BI/analytics code example. "
+            "Start with business context, show the code in a code block (DAX/Power BI/Tableau), explain business impact "
+            "and how it helps stakeholders. Mention any challenges or tips from your experience. Keep it natural and conversational."
         ),
         
         # Analytics Engineer Mode System and Prompts
         "system_ae": (
-            "You are Tejuu, an Analytics Engineer bridging data engineering and business intelligence. "
-            "You build reliable, well-modeled data transformations using dbt, SQL, Python, and cloud platforms. "
-            "Your expertise: dbt, data modeling (star/snowflake schemas), dimensional modeling, SQL transformations, "
-            "Python (pandas/PySpark), Azure (Synapse/ADF/Databricks), AWS (Redshift/Glue), data quality, testing. "
-            "You're technical with a business mindset - you build data models that analysts and BI developers love to use. "
-            "IMPORTANT: Answer ONLY based on the provided context. If context lacks info, say you don't know. "
-            "Be clear, practical, and focus on reliable analytics - sound like a real engineer, not a textbook."
+            "You are Tejuu, an Analytics Engineer with expertise in financial services, healthcare, and retail. "
+            "EXPERIENCE TIMELINE: Currently at Central Bank of Missouri (Dec 2024-Present), previously Stryker (Jan 2022-Dec 2024), CVS Health (May 2020-Jan 2022), Colruyt (May 2018-Dec 2019). "
+            "IMPORTANT RULES:\n"
+            "1. When asked about CURRENT role/experience: Talk ONLY about Central Bank of Missouri (current role since Dec 2024)\n"
+            "2. When asked about PAST experience: Mention Stryker, CVS, or Colruyt (not Central Bank)\n"
+            "3. When asked general 'tell me about yourself': Give overview mentioning current role at Central Bank + brief past\n"
+            "4. NEVER say 'real-world' or 'actual' - your experience IS real, don't state the obvious\n"
+            "5. NEVER say 'I've tackled real-world problems' - just describe what you did naturally\n"
+            "6. Be specific about which company when telling stories - don't mix current and past in same story\n"
+            "Your expertise: dbt, data modeling (star/snowflake schemas), SQL, Python, Azure (Synapse/ADF/Databricks), data quality, testing. "
+            "Answer ONLY based on provided context. If context lacks info, say you don't know. "
+            "Be conversational and natural - like talking to a colleague, not rehearsing a script."
         ),
         "user_ae": (
             "Context: {context}\n\nQuestion: {question}\n\n"
             "Answer as Tejuu (Analytics Engineer) based ONLY on context. Give natural, clear responses about analytics engineering, "
             "data modeling, dbt, transformations, data quality, and building reliable data products. "
-            "If asked about yourself: 'I'm an Analytics Engineer focused on building reliable, well-modeled data transformations. "
-            "I use dbt, SQL, Python, and cloud platforms to create data models that business teams trust. My work includes [mention "
-            "context examples] where I built dimensional models, dbt pipelines, and data quality frameworks that improved analytics "
-            "reliability. I bridge the gap between data engineering and BI.' "
-            "NO bullet points. Keep it natural (3-5 sentences)."
+            "Keep responses to 6-8 sentences maximum. NO bullet points or formatting. Keep it natural and conversational."
+        ),
+        "user_intro_ae": (
+            "Context: {context}\n\nQuestion: {question}\n\n"
+            "Answer as Tejuu (Analytics Engineer) giving a brief personal introduction. "
+            "Give a natural 6-8 sentence intro covering: your role as an Analytics Engineer, key technologies you work with (dbt, SQL, Python, cloud platforms), your experience level, and what you're passionate about. "
+            "Mention 1-2 recent achievements or projects if relevant. "
+            "NO bullet points, headings, formatting, or code examples. Keep it conversational and genuine - like introducing yourself to a colleague."
         ),
         "user_interview_ae": (
             "Context: {context}\n\nQuestion: {question}\n\n"
@@ -198,8 +237,9 @@ PROMPTS = {
         ),
         "user_code_ae": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Tejuu (Analytics Engineer). Explain thinking naturally, show code (SQL/dbt/Python), explain what it does "
-            "and why it's designed that way. Mention data quality, testing, or tips from experience. NO bullet points. Keep it clear."
+            "Answer as Tejuu (Analytics Engineer). The user is explicitly asking for code, so provide a practical analytics engineering code example. "
+            "Explain your thinking naturally, show the code in a code block (SQL/dbt/Python), explain what it does "
+            "and why it's designed that way. Mention data quality, testing, or tips from your experience. Keep it natural and conversational."
         )
     }
 }
@@ -237,48 +277,88 @@ def _get_client():
     return _client
 
 def _load_data():
+    """
+    Loads embeddings and metadata, normalizes schema, and guarantees
+    1:1 alignment between _embeddings rows and _meta docs.
+    Expected meta item schema:
+      {
+        "id": "...",
+        "text": "...",
+        "metadata": {"file_name": "...", "file_path": "...", "persona": "ai"|"de"}
+      }
+    """
     global _embeddings, _meta
-    
+
     with _lock:
         if _embeddings is not None and _meta is not None:
             return
-        
+
         print("Loading embeddings and metadata...")
-        
-        # Try to load from different possible locations
-        metadata_paths = ["meta.json", "api/meta.json", "store/meta.json", "kb_metadata.json"]
-        embeddings_paths = ["embeddings.npy", "api/embeddings.npy", "store/embeddings.npy", "kb_embeddings.npy"]
-        
-        meta_path = None
-        embeddings_path = None
-        
-        for path in metadata_paths:
-            if os.path.exists(path):
-                meta_path = path
-                break
-        
-        for path in embeddings_paths:
-            if os.path.exists(path):
-                embeddings_path = path
-                break
-        
-        if not meta_path or not embeddings_path:
-            # Create dummy data for testing
-            print("No embeddings found, creating dummy data...")
+
+        metadata_paths = [
+            "meta.json", "api/meta.json", "store/meta.json", "kb_metadata.json"
+        ]
+        embeddings_paths = [
+            "embeddings.npy", "api/embeddings.npy", "store/embeddings.npy", "kb_embeddings.npy"
+        ]
+
+        meta_path = next((p for p in metadata_paths if os.path.exists(p)), None)
+        emb_path = next((p for p in embeddings_paths if os.path.exists(p)), None)
+
+        if not meta_path or not emb_path:
+            # Fallback dummy store (10 docs, 1536 dims)
+            print("No embeddings/meta found; creating dummy data for testing...")
             _embeddings = np.random.random((10, 1536)).astype(np.float32)
-            _meta = {
-                "documents": [
-                    {"content": "Sample document 1", "source": "test1.md"},
-                    {"content": "Sample document 2", "source": "test2.md"}
-                ] * 5
-            }
+            _meta = [
+                {
+                    "id": f"dummy-{i+1}",
+                    "text": f"Sample document {i+1} about data engineering and AI.",
+                    "metadata": {
+                        "file_name": f"test{i%2+1}.md",
+                        "file_path": f"/kb/test{i%2+1}.md",
+                        "persona": "de" if i % 2 == 0 else "ai",
+                    },
+                }
+                for i in range(10)
+            ]
         else:
             print(f"Loaded metadata from {meta_path}")
-            with open(meta_path, 'r') as f:
-                _meta = json.load(f)
-            
-            print(f"Loaded embeddings from {embeddings_path}")
-            _embeddings = np.load(embeddings_path)
+            with open(meta_path, "r", encoding="utf-8") as f:
+                raw = json.load(f)
+
+            if not isinstance(raw, list):
+                raise ValueError(
+                    "meta.json must be a list of items with keys: text, metadata.{file_name,file_path,persona}"
+                )
+
+            # Normalize each item to ensure consistent structure
+            norm = []
+            for d in raw:
+                md = d.get("metadata") or {}
+                norm.append({
+                    "id": d.get("id"),
+                    "text": d.get("text") or d.get("content") or "",
+                    "metadata": {
+                        "file_name": md.get("file_name") or md.get("filename") or "unknown",
+                        "file_path": md.get("file_path") or md.get("path") or "unknown",
+                        "persona": md.get("persona"),
+                    },
+                })
+            _meta = norm
+
+            print(f"Loaded embeddings from {emb_path}")
+            _embeddings = np.load(emb_path)
+
+        # Hard alignment check - embeddings and metadata must match exactly
+        if _embeddings.shape[0] != len(_meta):
+            raise ValueError(
+                f"Embeddings count ({_embeddings.shape[0]}) != meta docs ({len(_meta)}). "
+                "Rebuild your store to keep them aligned."
+            )
+
+        # Pre-normalize for cosine via dot product (safe even if already unit-length)
+        denom = np.linalg.norm(_embeddings, axis=1, keepdims=True) + 1e-12
+        _embeddings = _embeddings / denom
 
 def _get_embedding(text):
     client = _get_client()
@@ -290,114 +370,100 @@ def _get_embedding(text):
     return np.array(response.data[0].embedding, dtype=np.float32)
 
 def _search_similar(query_embedding, top_k=5, profile="krishna"):
+    """
+    Returns top-k KB chunks for the given query embedding,
+    filtered by persona (if available), ranked by cosine similarity (dot product).
+    """
     _load_data()
-    
-    # Calculate cosine similarities
-    similarities = cosine_similarity([query_embedding], _embeddings)[0]
-    
-    # Map profile names to their persona values in metadata
+
+    # Ensure query is unit length (cosine)
+    q = query_embedding.astype(np.float32)
+    q = q / (np.linalg.norm(q) + 1e-12)
+
+    # Fast cosine since both are normalized
+    sims = _embeddings @ q  # shape: (num_docs,)
+
+    # Personas present in your KB: "ai", "de"
     profile_persona_map = {
-        "krishna": ["ai", "de"],      # Krishna's content is tagged as 'ai' or 'de'
-        "tejuu": ["tejuu", "ae"]      # Tejuu's content is tagged as 'tejuu' (BI/BA) or 'ae' (Analytics Engineer)
+        "krishna": {"ai", "de"},
+        # Keep these for future BI/AE content; will fall back if none present
+        "tejuu": {"ae", "tejuu"},
     }
-    
-    # Filter by profile if specified
+
+    indices = list(range(len(_meta)))
     if profile:
-        # Get the persona values for this profile
-        valid_personas = profile_persona_map.get(profile, [profile])
-        
-        # Get indices that match any of the valid personas for this profile
-        profile_indices = []
-        for idx, meta in enumerate(_meta):
-            persona = meta['metadata'].get('persona')
-            if persona in valid_personas:
-                profile_indices.append(idx)
-        
-        print(f"Debug: Found {len(profile_indices)} entries for profile '{profile}' (personas: {valid_personas})")
-        if profile_indices:
-            print(f"Debug: First few profile entries: {profile_indices[:3]}")
-        
-        if not profile_indices:
-            print(f"Warning: No content found for profile '{profile}' with personas {valid_personas}, using all content")
-            profile_indices = list(range(len(_meta)))
-        
-        # Filter similarities to only include profile content
-        profile_similarities = similarities[profile_indices]
-        # Get top-k indices within the profile
-        top_profile_indices = np.argsort(profile_similarities)[::-1][:top_k]
-        top_indices = [profile_indices[i] for i in top_profile_indices]
-    else:
-        # Get top-k indices from all content
-        top_indices = np.argsort(similarities)[::-1][:top_k]
-    
+        wanted = profile_persona_map.get(profile, {profile})
+        filtered = [i for i in indices if _meta[i].get("metadata", {}).get("persona") in wanted]
+        if filtered:
+            indices = filtered
+        else:
+            print(f"Warning: No content for profile '{profile}' with personas {wanted}; using all content")
+
+    # Rank within selected indices
+    if not indices:
+        return []
+
+    local_scores = sims[indices]
+    top_local = np.argsort(local_scores)[::-1][:top_k]
+    top_indices = [indices[i] for i in top_local]
+
     results = []
     for idx in top_indices:
+        doc = _meta[idx]
+        meta = doc.get("metadata", {})
         results.append({
-            'index': int(idx),
-            'score': float(similarities[idx]),
-            'content': _meta[idx]['text'],
-            'source': _meta[idx]['metadata'].get('file_name', 'unknown'),
-            'metadata': _meta[idx]['metadata']
+            "index": int(idx),
+            "score": float(sims[idx]),
+            "content": doc.get("text", ""),
+            "source": meta.get("file_name") or meta.get("file_path", "unknown"),
+            "metadata": meta
         })
-    
     return results
 
 def detect_question_type(question):
     """Intelligently detect the type of question to choose the best mode"""
-    question_lower = question.lower()
+    question_lower = question.lower().strip()
     
-    # SQL indicators
-    sql_keywords = ['sql', 'query', 'select', 'join', 'where', 'group by', 'order by', 'having', 'window function', 'cte', 'subquery', 'aggregate', 'second highest', 'duplicate', 'churn rate', 'salary']
-    sql_phrases = ['write sql', 'sql query', 'find the', 'calculate', 'count', 'sum', 'average', 'max', 'min']
+    # Intro/Self-introduction indicators (highest priority)
+    intro_phrases = ['tell me about yourself', 'about yourself', 'introduce yourself', 'who are you', 'what do you do', 'your background', 'your experience', 'your skills']
+    if any(phrase in question_lower for phrase in intro_phrases):
+        return 'intro'
     
-    # Code indicators  
-    code_keywords = ['write code', 'implement', 'pyspark', 'python', 'scala', 'function', 'class', 'algorithm', 'dataframe', 'spark', 'databricks', 'etl', 'pipeline', 'transform', 'join', 'filter', 'aggregate', 'window', 'udf', 'broadcast', 'partition', 'skew', 'optimize', 'performance']
-    code_phrases = ['write a', 'create a', 'build a', 'develop', 'code to', 'how to', 'remove duplicates', 'handle', 'process', 'clean data']
-    
-    # AI/ML/GenAI indicators
-    ai_keywords = ['ai', 'artificial intelligence', 'machine learning', 'ml', 'deep learning', 'neural network', 'model', 'training', 'prediction', 'classification', 'regression', 'clustering', 'llm', 'large language model', 'gpt', 'transformer', 'bert', 'nlp', 'natural language processing', 'computer vision', 'cv', 'tensorflow', 'pytorch', 'keras', 'scikit-learn', 'xgboost', 'random forest', 'svm', 'knn', 'gradient boosting', 'ensemble', 'feature engineering', 'hyperparameter', 'overfitting', 'cross validation', 'roc', 'auc', 'precision', 'recall', 'f1-score', 'confusion matrix', 'reinforcement learning', 'rl', 'generative ai', 'genai', 'rag', 'retrieval augmented generation', 'fine-tuning', 'prompt engineering', 'embedding', 'vector database', 'langchain', 'openai', 'hugging face']
-    ai_phrases = ['build a model', 'train a model', 'machine learning model', 'deep learning model', 'neural network', 'ai system', 'ml pipeline', 'model deployment', 'model evaluation', 'feature selection', 'data preprocessing', 'model optimization', 'hyperparameter tuning', 'model performance', 'ai application', 'generative ai', 'llm fine-tuning', 'prompt optimization', 'rag system', 'vector search']
-    
-    # Interview/Behavioral indicators
-    interview_keywords = ['experience', 'project', 'challenge', 'difficult', 'team', 'leadership', 'conflict', 'mistake', 'learn', 'improve', 'situation', 'task', 'action', 'result', 'tell me about', 'describe a time', 'how did you', 'what was your']
-    
-    # Count matches
-    sql_score = sum(1 for keyword in sql_keywords if keyword in question_lower) + sum(1 for phrase in sql_phrases if phrase in question_lower)
-    code_score = sum(1 for keyword in code_keywords if keyword in question_lower) + sum(1 for phrase in code_phrases if phrase in question_lower)
-    ai_score = sum(1 for keyword in ai_keywords if keyword in question_lower) + sum(1 for phrase in ai_phrases if phrase in question_lower)
-    interview_score = sum(1 for keyword in interview_keywords if keyword in question_lower)
-    
-    # Special cases
-    if any(phrase in question_lower for phrase in ['write sql', 'sql query', 'select', 'second highest', 'churn rate']):
-        return 'sql'
-    if any(phrase in question_lower for phrase in ['write code', 'implement', 'pyspark', 'python', 'function', 'class']):
+    # Explicit code requests (very specific)
+    explicit_code_phrases = ['write code', 'show code', 'write a function', 'write a script', 'code example', 'implement code', 'write python code', 'write sql code', 'write pyspark code']
+    if any(phrase in question_lower for phrase in explicit_code_phrases):
         return 'code'
-    if any(phrase in question_lower for phrase in ['machine learning', 'deep learning', 'neural network', 'ai model', 'ml model', 'llm', 'generative ai', 'genai']):
-        if 'deep learning' in question_lower or any(x in question_lower for x in ['neural network', 'cnn', 'rnn', 'lstm', 'transformer']):
-            return 'deeplearning'
-        elif any(x in question_lower for x in ['llm', 'generative', 'genai', 'gpt', 'transformer', 'rag']):
-            return 'genai'
-        else:
-            return 'ml'
-    if any(phrase in question_lower for phrase in ['tell me about', 'describe', 'experience', 'project', 'challenge']):
+    
+    # Explicit SQL requests
+    explicit_sql_phrases = ['write sql', 'sql query', 'write a query', 'sql code', 'select statement']
+    if any(phrase in question_lower for phrase in explicit_sql_phrases):
+        return 'sql'
+    
+    # Interview/Behavioral indicators (but not intro)
+    interview_phrases = ['describe a time', 'tell me about a time', 'give me an example', 'situation where', 'challenge you faced', 'difficult project', 'team conflict', 'leadership experience', 'mistake you made', 'how did you handle', 'star method', 'situation task action result']
+    if any(phrase in question_lower for phrase in interview_phrases):
         return 'interview'
     
-    # Return highest scoring mode
-    if ai_score > sql_score and ai_score > code_score and ai_score > interview_score:
-        if 'deep learning' in question_lower or any(x in question_lower for x in ['neural network', 'cnn', 'rnn', 'lstm']):
-            return 'deeplearning'
-        elif any(x in question_lower for x in ['llm', 'generative', 'genai', 'gpt', 'transformer', 'rag']):
-            return 'genai'
-        else:
-            return 'ml'
-    elif sql_score > code_score and sql_score > interview_score:
-        return 'sql'
-    elif code_score > interview_score:
-        return 'code'
-    elif interview_score > 0:
-        return 'interview'
-    else:
-        return 'auto'
+    # Technical discussion indicators (but not asking for code)
+    tech_keywords = ['explain', 'how does', 'what is', 'difference between', 'compare', 'advantages', 'disadvantages', 'best practices', 'approach', 'strategy']
+    if any(keyword in question_lower for keyword in tech_keywords):
+        return 'technical'
+    
+    # Experience/Skills discussion (but not intro)
+    experience_keywords = ['experience with', 'worked with', 'used', 'familiar with', 'expertise in', 'knowledge of', 'proficient in']
+    if any(keyword in question_lower for keyword in experience_keywords):
+        return 'experience'
+    
+    # Add these to match your routing branches
+    if any(p in question_lower for p in ['hyperparameter', 'feature engineering', 'model training', 'ml pipeline', 'machine learning model', 'ml model']):
+        return 'ml'
+    if any(p in question_lower for p in ['transformer', 'cnn', 'rnn', 'lstm', 'attention', 'deep learning', 'neural network']):
+        return 'deeplearning'
+    if any(p in question_lower for p in ['rag', 'prompt', 'generative ai', 'llm', 'fine-tune', 'genai', 'gpt', 'openai']):
+        return 'genai'
+    
+    # Default to general discussion
+    return 'general'
 
 def answer_question(question, mode="auto", profile="krishna", **kwargs):
     try:
@@ -406,9 +472,7 @@ def answer_question(question, mode="auto", profile="krishna", **kwargs):
         # Auto-detect mode if not specified
         auto_detected = False
         if mode == "auto":
-            detected_mode = detect_question_type(question)
-            print(f"Auto-detected mode: {detected_mode}")
-            mode = detected_mode
+            mode = detect_question_type(question)
             auto_detected = True
         
         # Detect question type for sub-mode selection
@@ -428,15 +492,23 @@ def answer_question(question, mode="auto", profile="krishna", **kwargs):
         for i, result in enumerate(results):
             print(f"Result {i+1}: Source={result.get('source', 'Unknown')}, Persona={result.get('metadata', {}).get('persona', 'Unknown')}")
         
-        # Build context (truncate long content for faster processing)
-        context_parts = []
-        for result in results:
-            content = result['content']
-            # Truncate very long content to keep context manageable
-            if len(content) > 800:
-                content = content[:800] + "..."
-            context_parts.append(f"[{result['source']}] {content}")
-        context = "\n\n".join(context_parts)
+        # Build context safely with length limits
+        if not results:
+            context = ""
+        else:
+            parts = []
+            total = 0
+            for r in results:
+                chunk = r["content"]
+                if len(chunk) > 800: 
+                    chunk = chunk[:800] + "..."
+                frag = f"[{r['source']}] {chunk}"
+                # Cap total context ~2400 chars
+                if total + len(frag) > 2400: 
+                    break
+                parts.append(frag)
+                total += len(frag)
+            context = "\n\n".join(parts)
         
         # Debug: Print context preview
         print(f"Context preview (first 500 chars): {context[:500]}...")
@@ -450,7 +522,10 @@ def answer_question(question, mode="auto", profile="krishna", **kwargs):
         if profile == "krishna":
             if mode == "de":
                 # DE Mode - check detected type for sub-mode
-                if detected_type == "interview":
+                if detected_type == "intro":
+                    user_prompt = profile_prompts["user_intro_de"].format(context=context, question=question)
+                    system_prompt = profile_prompts["system_de"]
+                elif detected_type == "interview":
                     user_prompt = profile_prompts["user_interview_de"].format(context=context, question=question)
                     system_prompt = profile_prompts["system_de"]
                 elif detected_type == "sql":
@@ -464,7 +539,10 @@ def answer_question(question, mode="auto", profile="krishna", **kwargs):
                     system_prompt = profile_prompts["system_de"]
             elif mode == "ai":
                 # AI/ML/GenAI Mode - check detected type for sub-mode
-                if detected_type == "interview":
+                if detected_type == "intro":
+                    user_prompt = profile_prompts["user_intro_ai"].format(context=context, question=question)
+                    system_prompt = profile_prompts["system_ai"]
+                elif detected_type == "interview":
                     user_prompt = profile_prompts["user_interview_ai"].format(context=context, question=question)
                     system_prompt = profile_prompts["system_ai"]
                 elif detected_type == "ml":
@@ -499,7 +577,9 @@ def answer_question(question, mode="auto", profile="krishna", **kwargs):
                 # Analytics Engineer Mode
                 system_prompt = profile_prompts["system_ae"]
                 
-                if detected_type == "interview":
+                if detected_type == "intro":
+                    user_prompt = profile_prompts["user_intro_ae"].format(context=context, question=question)
+                elif detected_type == "interview":
                     user_prompt = profile_prompts["user_interview_ae"].format(context=context, question=question)
                 elif 'dbt' in question_lower:
                     user_prompt = profile_prompts["user_dbt_ae"].format(context=context, question=question)
@@ -521,7 +601,9 @@ def answer_question(question, mode="auto", profile="krishna", **kwargs):
                 # BI/BA Mode (default for Tejuu)
                 system_prompt = profile_prompts["system_bi"]
                 
-                if detected_type == "interview":
+                if detected_type == "intro":
+                    user_prompt = profile_prompts["user_intro_bi"].format(context=context, question=question)
+                elif detected_type == "interview":
                     user_prompt = profile_prompts["user_interview_bi"].format(context=context, question=question)
                 elif detected_type == "sql":
                     user_prompt = profile_prompts["user_sql_bi"].format(context=context, question=question)
@@ -540,16 +622,16 @@ def answer_question(question, mode="auto", profile="krishna", **kwargs):
                 {"role": "user", "content": user_prompt}
             ],
             temperature=0.1,
-            max_tokens=300,  # Further reduced for faster responses
-            timeout=15.0,  # Reduced timeout for faster responses
+            max_tokens=800,  # Increased to ensure complete answers without cutoff
+            timeout=30.0,  # Increased timeout for complete responses
             stream=False  # Disable streaming for faster single response
         )
         print("Response generated successfully")
         
         return {
             "answer": response.choices[0].message.content,
-            "mode_used": mode,
-            "auto_detected": mode != kwargs.get('original_mode', mode),
+            "mode_used": detected_type,
+            "auto_detected": auto_detected,
             "sources": [{"title": r["source"], "path": r["source"]} for r in results]
         }
         
