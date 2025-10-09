@@ -38,8 +38,34 @@ if FRONTEND_EXISTS:
     # Mount static files for production build (CSS, JS, etc.)
     app.mount("/static", StaticFiles(directory=FRONTEND_STATIC_DIR), name="static")
     
-    # Mount all other frontend assets (logo, favicon, etc.) at root level
-    app.mount("/", StaticFiles(directory=FRONTEND_BUILD_DIR, html=True), name="frontend")
+    # Serve individual static files (logo, favicon, etc.)
+    @app.get("/logo.png")
+    async def serve_logo():
+        return FileResponse(os.path.join(FRONTEND_BUILD_DIR, "logo.png"))
+    
+    @app.get("/favicon.ico")
+    async def serve_favicon():
+        return FileResponse(os.path.join(FRONTEND_BUILD_DIR, "favicon.ico"))
+    
+    @app.get("/favicon.svg")
+    async def serve_favicon_svg():
+        return FileResponse(os.path.join(FRONTEND_BUILD_DIR, "favicon.svg"))
+    
+    @app.get("/android-chrome-192x192.png")
+    async def serve_android_chrome_192():
+        return FileResponse(os.path.join(FRONTEND_BUILD_DIR, "android-chrome-192x192.png"))
+    
+    @app.get("/android-chrome-512x512.png")
+    async def serve_android_chrome_512():
+        return FileResponse(os.path.join(FRONTEND_BUILD_DIR, "android-chrome-512x512.png"))
+    
+    @app.get("/apple-touch-icon.png")
+    async def serve_apple_touch_icon():
+        return FileResponse(os.path.join(FRONTEND_BUILD_DIR, "apple-touch-icon.png"))
+    
+    @app.get("/site.webmanifest")
+    async def serve_manifest():
+        return FileResponse(os.path.join(FRONTEND_BUILD_DIR, "site.webmanifest"))
     
     @app.get("/")
     async def serve_frontend():
