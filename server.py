@@ -396,7 +396,7 @@ async def chat(request: ChatRequest):
     """Main chat endpoint with RAG."""
     try:
         # Import the answer_question function from utils_simple
-        from api.utils_simple import answer_question
+        from api.utils import answer_question
         
         # Call the new answer_question function
         result = answer_question(request.message, mode=request.mode, profile=request.profile)

@@ -13,26 +13,22 @@ def handler(event, context):
         if event['httpMethod'] != 'POST':
             return handler_response({'error': 'Method not allowed'}, 405)
         
-        # Parse multipart form data
-        content_type = event.get('headers', {}).get('content-type', '')
+        # Parse JSON request with base64 audio data
+        try:
+            body = json.loads(event['body']) if event['body'] else {}
+        except json.JSONDecodeError:
+            return handler_response({'error': 'Invalid JSON in request body'}, 400)
         
-        if 'multipart/form-data' not in content_type:
-            return handler_response({'error': 'Content-Type must be multipart/form-data'}, 400)
-        
-        # Extract audio file from request body
-        # Note: Vercel handles multipart parsing differently
-        # For now, we'll expect base64 encoded audio data
-        body = json.loads(event['body']) if event['body'] else {}
         audio_data = body.get('audio_data')
         
         if not audio_data:
-            return handler_response({'error': 'No audio file provided'}, 400)
+            return handler_response({'error': 'No audio data provided'}, 400)
         
         # Decode base64 audio data
         try:
             audio_bytes = base64.b64decode(audio_data)
         except Exception as e:
-            return handler_response({'error': 'Invalid audio data format'}, 400)
+            return handler_response({'error': f'Invalid audio data format: {str(e)}'}, 400)
         
         # Create audio file object
         audio_file = io.BytesIO(audio_bytes)

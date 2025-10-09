@@ -74,11 +74,23 @@ export default function App() {
   const [dark, setDark] = useState<boolean>(() => localStorage.getItem("ragTheme") === "dark");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // App state
-  const [profile, setProfile] = useState<ProfileId>("krishna");
-  const [modeByProfile, setModeByProfile] = useState<Record<ProfileId, string>>({ krishna: "de", tejuu: "ae" });
-  const [messagesByProfile, setMessagesByProfile] = useState<Record<ProfileId, Message[]>>({ krishna: [], tejuu: [] });
-  const [conversationsByProfile, setConversationsByProfile] = useState<Record<ProfileId, { title: string; messages: Message[]; ts: number }[]>>({ krishna: [], tejuu: [] });
+  // App state with localStorage persistence
+  const [profile, setProfile] = useState<ProfileId>(() => {
+    const saved = localStorage.getItem("ragProfile");
+    return (saved === "krishna" || saved === "tejuu") ? saved : "krishna";
+  });
+  const [modeByProfile, setModeByProfile] = useState<Record<ProfileId, string>>(() => {
+    const saved = localStorage.getItem("ragModeByProfile");
+    return saved ? JSON.parse(saved) : { krishna: "de", tejuu: "ae" };
+  });
+  const [messagesByProfile, setMessagesByProfile] = useState<Record<ProfileId, Message[]>>(() => {
+    const saved = localStorage.getItem("ragMessagesByProfile");
+    return saved ? JSON.parse(saved) : { krishna: [], tejuu: [] };
+  });
+  const [conversationsByProfile, setConversationsByProfile] = useState<Record<ProfileId, { title: string; messages: Message[]; ts: number }[]>>(() => {
+    const saved = localStorage.getItem("ragConversationsByProfile");
+    return saved ? JSON.parse(saved) : { krishna: [], tejuu: [] };
+  });
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -96,14 +108,25 @@ export default function App() {
     localStorage.setItem("ragTheme", dark ? "dark" : "light");
   }, [dark]);
 
+  // Persist profile selection
   useEffect(() => {
-    try {
-      const savedChats = JSON.parse(localStorage.getItem("ragChatHistory") || "null");
-      const savedConvs = JSON.parse(localStorage.getItem("ragConversations") || "null");
-      if (savedChats) setMessagesByProfile(savedChats);
-      if (savedConvs) setConversationsByProfile(savedConvs);
-    } catch {}
-  }, []);
+    localStorage.setItem("ragProfile", profile);
+  }, [profile]);
+
+  // Persist mode by profile
+  useEffect(() => {
+    localStorage.setItem("ragModeByProfile", JSON.stringify(modeByProfile));
+  }, [modeByProfile]);
+
+  // Persist messages by profile
+  useEffect(() => {
+    localStorage.setItem("ragMessagesByProfile", JSON.stringify(messagesByProfile));
+  }, [messagesByProfile]);
+
+  // Persist conversations by profile
+  useEffect(() => {
+    localStorage.setItem("ragConversationsByProfile", JSON.stringify(conversationsByProfile));
+  }, [conversationsByProfile]);
 
   const activeMessages = messagesByProfile[profile] || [];
   const activeMode = modeByProfile[profile];
@@ -191,20 +214,62 @@ export default function App() {
   const transcribe = async (blob: Blob) => {
     setTranscribing(true);
     try {
-      const fd = new FormData();
-      fd.append("audio_file", blob, "recording.webm");
-      const r = await fetch(`${API_URL}/api/transcribe`, { method: "POST", body: fd });
-      if (!r.ok) throw new Error(await r.text());
-      const data = await r.json();
-      const text = String(data.transcript || "").trim();
-      if (text) {
-        setInput(text);
-        setTranscribing(false); // Clear transcribing state first
-        setTimeout(() => send(), 100); // Small delay to ensure state is updated
-      } else {
-        setTranscribing(false);
-      }
+      // Convert blob to base64
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const base64 = reader.result?.toString().split(',')[1]; // Remove data:audio/webm;base64, prefix
+          const response = await fetch(`${API_URL}/api/transcribe`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ audio_data: base64 }),
+          });
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText);
+          }
+          
+          const data = await response.json();
+          const text = String(data.transcript || "").trim();
+          if (text) {
+            setTranscribing(false);
+            
+            // Send the transcribed text directly to chat
+            const user: Message = { id: String(Date.now()), role: "user", content: text, ts: Date.now() };
+            setMessagesByProfile(prev => ({ ...prev, [profile]: [...(prev[profile] || []), user] }));
+            setLoading(true);
+            
+            try {
+              const r = await fetch(`${API_URL}/api/chat`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: text, mode: activeMode, profile }),
+              });
+              if (!r.ok) throw new Error(await r.text());
+              const chatData = await r.json();
+              const bot: Message = { id: String(Date.now() + 1), role: "assistant", content: chatData.answer || "(no content)", ts: Date.now() };
+              setMessagesByProfile(prev => ({ ...prev, [profile]: [...(prev[profile] || []), bot] }));
+            } catch (e) {
+              const err: Message = { id: String(Date.now() + 1), role: "assistant", content: "Sorry, something went wrong. Please try again.", ts: Date.now() };
+              setMessagesByProfile(prev => ({ ...prev, [profile]: [...(prev[profile] || []), err] }));
+            } finally {
+              setLoading(false);
+            }
+          } else {
+            setTranscribing(false);
+          }
+        } catch (e) {
+          console.error("Transcription error:", e);
+          alert("Transcription failed. Please try again.");
+          setTranscribing(false);
+        }
+      };
+      reader.readAsDataURL(blob);
     } catch (e) {
+      console.error("Transcription error:", e);
       alert("Transcription failed. Please try again.");
       setTranscribing(false);
     }

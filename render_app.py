@@ -6,12 +6,11 @@ This uses FastAPI for Render's web service deployment.
 
 import json
 import os
-import tempfile
-from fastapi import FastAPI, HTTPException, File, UploadFile
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, StreamingResponse
-from api.utils_simple import answer_question, health_check
+from fastapi.responses import FileResponse
+from api.utils import answer_question, health_check
 from openai import OpenAI
 from dotenv import load_dotenv
 
@@ -141,37 +140,35 @@ async def chat(data: dict):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/transcribe")
-async def transcribe(audio: UploadFile = File(...)):
+async def transcribe(data: dict):
     """Transcribe audio to text using OpenAI Whisper"""
     try:
-        # Create a temporary file to store the uploaded audio
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as temp_file:
-            # Read the uploaded file and write to temp file
-            contents = await audio.read()
-            temp_file.write(contents)
-            temp_file_path = temp_file.name
+        audio_data = data.get('audio_data')
         
-        try:
-            # Use OpenAI Whisper API to transcribe
-            with open(temp_file_path, "rb") as audio_file:
-                transcript = client.audio.transcriptions.create(
-                    model="whisper-1",
-                    file=audio_file,
-                    response_format="text"
-                )
-            
-            # transcript is already a string when response_format="text"
-            print(f"Transcription result: {repr(transcript)}")
-            print(f"Transcription type: {type(transcript)}")
-            return {"transcript": transcript}
-            
-        finally:
-            # Clean up the temporary file
-            if os.path.exists(temp_file_path):
-                os.unlink(temp_file_path)
-                
+        if not audio_data:
+            raise HTTPException(status_code=400, detail="No audio data provided")
+        
+        # Decode base64 audio data
+        import base64
+        import io
+        audio_bytes = base64.b64decode(audio_data)
+        
+        # Create audio file object for OpenAI Whisper
+        audio_file = io.BytesIO(audio_bytes)
+        audio_file.name = "recording.webm"  # OpenAI API expects a file-like object with a name
+        
+        # Transcribe using OpenAI Whisper
+        transcript = client.audio.transcriptions.create(
+            model="whisper-1",
+            file=audio_file,
+            response_format="text"
+        )
+        
+        return {"transcript": transcript.strip()}
+        
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Transcription error: {str(e)}")
+        print(f"Error in transcribe endpoint: {e}")
+        raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn

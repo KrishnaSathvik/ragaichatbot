@@ -1,4 +1,4 @@
-from utils_simple import answer_question
+from utils import answer_question
 import json
 
 def handler_response(data, status_code=200):
