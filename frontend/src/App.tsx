@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Send, MoreVertical, Sparkles, RotateCcw, Trash2, Mic, MicOff } from 'lucide-react';
+import { Send, MoreVertical, Sparkles, RotateCcw, Trash2, Mic, MicOff, Moon, Sun } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/github-dark.css';
@@ -70,6 +70,7 @@ function App() {
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -92,6 +93,28 @@ function App() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Load theme from localStorage
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('ragTheme');
+    if (savedTheme) {
+      setIsDarkMode(savedTheme === 'dark');
+    } else {
+      // Default to light mode if no preference is saved
+      setIsDarkMode(false);
+    }
+  }, []);
+
+  // Apply theme to document
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', isDarkMode);
+    localStorage.setItem('ragTheme', isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode]);
+
+  // Toggle theme function
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+  };
 
   // Load chat history from localStorage
   useEffect(() => {
@@ -599,10 +622,10 @@ function App() {
   const currentProfileData = profiles.find(p => p.id === currentProfile);
 
   return (
-    <div className="bg-gray-900 h-screen w-screen p-0 flex">
-      <div className="w-full h-full bg-[#1E1E1E] overflow-hidden relative">
+    <div className={`h-screen w-screen p-0 flex ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <div className={`w-full h-full overflow-hidden relative ${isDarkMode ? 'bg-[#1E1E1E]' : 'bg-white'}`}>
         {/* Window Controls Bar - Visible on both mobile and desktop */}
-        <div className="flex h-6 bg-[#2A2A2A] items-center px-3">
+        <div className={`flex h-6 items-center px-3 ${isDarkMode ? 'bg-[#2A2A2A]' : 'bg-gray-100'}`}>
           <div className="flex items-center space-x-1.5">
             <div className="w-3 h-3 rounded-full bg-red-500"></div>
             <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
@@ -613,12 +636,12 @@ function App() {
         {/* App Content */}
         <div className="flex h-[calc(100%-1.5rem)]">
           {/* Desktop Sidebar - Always visible on desktop */}
-          <div className="w-64 bg-gray-800 flex flex-col border-r border-gray-700 hidden md:flex">
+          <div className={`w-64 flex flex-col border-r hidden md:flex ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-300'}`}>
             {/* Brand Name */}
-            <div className="p-4 border-b border-gray-700">
+            <div className={`p-4 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-300'}`}>
               <div className="flex items-center justify-center space-x-2">
-                <img src="/logo.png" alt="RAG AI CHAT BOT" className="h-8 w-8" />
-                <h1 className="text-lg font-bold text-white">RAG AI CHAT BOT</h1>
+                <img src={process.env.PUBLIC_URL + "/logo.png"} alt="RAG AI CHAT BOT" className="h-8 w-8" />
+                <h1 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>RAG AI CHAT BOT</h1>
               </div>
             </div>
             
@@ -626,7 +649,11 @@ function App() {
             <div className="p-4">
               <button 
                 onClick={clearChat}
-                className="w-full flex items-center justify-center rounded-md border border-gray-600 px-3 py-2 text-sm font-medium hover:bg-gray-700 text-white transition-colors"
+                className={`w-full flex items-center justify-center rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
+                  isDarkMode 
+                    ? 'border-gray-600 hover:bg-gray-700 text-white' 
+                    : 'border-gray-300 hover:bg-gray-100 text-gray-700'
+                }`}
               >
                 New chat
               </button>
@@ -634,11 +661,15 @@ function App() {
             
             {/* Profile Selection */}
             <div className="px-4 pb-4">
-              <h3 className="text-xs text-gray-400 font-medium mb-2">Profile</h3>
+              <h3 className={`text-xs font-medium mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Profile</h3>
               <select 
                 value={currentProfile}
                 onChange={(e) => handleProfileSwitch(e.target.value as 'krishna' | 'tejuu')}
-                className="w-full px-3 py-2 rounded-md bg-gray-700 text-white text-sm border border-gray-600 hover:bg-gray-600 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 rounded-md text-sm border transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  isDarkMode 
+                    ? 'bg-gray-700 text-white border-gray-600 hover:bg-gray-600' 
+                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                }`}
               >
                 {profiles.map(profile => (
                   <option key={profile.id} value={profile.id}>
@@ -650,14 +681,16 @@ function App() {
 
             {/* Mode Selection */}
             <div className="px-4 pb-4">
-              <h3 className="text-xs text-gray-400 font-medium mb-2">Mode</h3>
+              <h3 className={`text-xs font-medium mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Mode</h3>
               <div className="grid grid-cols-2 gap-1">
                 {profileModes[currentProfile].map((mode) => (
                   <button
                     key={mode.id}
                     onClick={() => setCurrentMode(prev => ({ ...prev, [currentProfile]: mode.id }))}
-                    className={`text-left rounded-md px-2 py-1.5 text-xs hover:bg-gray-700 transition-colors ${
-                      currentMode[currentProfile] === mode.id ? 'bg-gray-700 text-white' : 'text-gray-400'
+                    className={`text-left rounded-md px-2 py-1.5 text-xs transition-colors ${
+                      currentMode[currentProfile] === mode.id 
+                        ? (isDarkMode ? 'bg-gray-700 text-white' : 'bg-blue-100 text-blue-700')
+                        : (isDarkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100')
                     }`}
                   >
                     <div className="font-medium">{mode.name}</div>
@@ -669,12 +702,16 @@ function App() {
             {/* Recent Conversations */}
             <div className="flex-1 overflow-y-auto">
               <div className="px-3 py-2">
-                <h3 className="text-xs text-gray-400 font-medium mb-2">Recent</h3>
+                <h3 className={`text-xs font-medium mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Recent</h3>
                 <div className="space-y-1">
                   {conversations.slice(0, 10).map((conv, idx) => (
                     <div
                       key={idx}
-                      className="w-full rounded-md px-3 py-2 text-sm hover:bg-gray-700 flex items-center justify-between group text-gray-300 transition-colors cursor-pointer"
+                      className={`w-full rounded-md px-3 py-2 text-sm flex items-center justify-between group transition-colors cursor-pointer ${
+                        isDarkMode 
+                          ? 'hover:bg-gray-700 text-gray-300' 
+                          : 'hover:bg-gray-100 text-gray-700'
+                      }`}
                       onClick={() => loadConversation(conv.title)}
                     >
                         <div className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-xs">
@@ -698,15 +735,19 @@ function App() {
             
 
             {/* User Profile Info */}
-            <div className="border-t border-gray-700 p-3">
-              <button className="w-full text-left rounded-md px-3 py-2 text-sm hover:bg-gray-700 flex items-center justify-between text-white transition-colors">
+            <div className={`border-t p-3 ${isDarkMode ? 'border-gray-700' : 'border-gray-300'}`}>
+              <button className={`w-full text-left rounded-md px-3 py-2 text-sm flex items-center justify-between transition-colors ${
+                isDarkMode 
+                  ? 'hover:bg-gray-700 text-white' 
+                  : 'hover:bg-gray-100 text-gray-700'
+              }`}>
                 <div className="flex items-center">
                   <div className={`h-7 w-7 rounded-full ${currentProfileData?.color} flex items-center justify-center mr-2`}>
                     <span className="text-xs font-medium">{currentProfileData?.initials}</span>
                   </div>
                   <span className="text-sm">{currentProfileData?.name}</span>
                 </div>
-                <MoreVertical className="h-4 w-4 text-gray-400" />
+                <MoreVertical className={`h-4 w-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} />
               </button>
             </div>
           </div>
@@ -716,14 +757,14 @@ function App() {
           {/* Main Chat Area */}
           <div className="flex-1 flex flex-col overflow-hidden relative">
         {/* Mobile Header - Compact Design */}
-        <div className="md:hidden bg-gray-800 border-b border-gray-700 relative">
+        <div className={`md:hidden relative border-b ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-100 border-gray-300'}`}>
           {/* Main Header Bar */}
           <div className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center space-x-3">
               {/* App Logo + Name */}
               <div className="flex items-center space-x-3">
-                <img src="/logo.png" alt="RAG AI CHAT BOT" className="h-6 w-6" />
-                <h1 className="text-sm font-bold text-white">RAG AI CHAT BOT</h1>
+                <img src={process.env.PUBLIC_URL + "/logo.png"} alt="RAG AI CHAT BOT" className="h-6 w-6" />
+                <h1 className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>RAG AI CHAT BOT</h1>
               </div>
             </div>
             
@@ -731,7 +772,11 @@ function App() {
               {/* Profile Dropdown Button */}
               <button 
                 onClick={toggleProfileDropdown}
-                className="px-3 py-2 rounded-lg bg-gray-700 text-white text-xs hover:bg-gray-600 transition-all duration-200 flex items-center space-x-2 shadow-sm"
+                className={`px-3 py-2 rounded-lg text-xs transition-all duration-200 flex items-center space-x-2 shadow-sm ${
+                  isDarkMode 
+                    ? 'bg-gray-700 text-white hover:bg-gray-600' 
+                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                }`}
               >
                 <span>👤</span>
                 <span>Profile</span>
@@ -741,16 +786,37 @@ function App() {
               {/* History Button */}
               <button 
                 onClick={toggleFullHistory}
-                className="px-3 py-2 rounded-lg bg-gray-700 text-white text-xs hover:bg-gray-600 transition-all duration-200 flex items-center space-x-2 shadow-sm"
+                className={`px-3 py-2 rounded-lg text-xs transition-all duration-200 flex items-center space-x-2 shadow-sm ${
+                  isDarkMode 
+                    ? 'bg-gray-700 text-white hover:bg-gray-600' 
+                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                }`}
               >
                 <span>📋</span>
                 <span>History</span>
               </button>
               
+              {/* Theme Toggle Button */}
+              <button 
+                onClick={toggleTheme}
+                className={`p-2 rounded-lg flex items-center justify-center transition-all duration-200 shadow-sm ${
+                  isDarkMode 
+                    ? 'bg-gray-700 hover:bg-gray-600 text-white' 
+                    : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300'
+                }`}
+                title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+              >
+                {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </button>
+
               {/* New Chat Button */}
               <button 
                 onClick={clearChat}
-                className="p-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200 shadow-sm"
+                className={`p-2 rounded-lg transition-all duration-200 shadow-sm ${
+                  isDarkMode 
+                    ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                    : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300'
+                }`}
                 title="New chat"
               >
                 <span className="text-sm font-bold">+</span>
@@ -759,7 +825,11 @@ function App() {
                   {/* Refresh Button */}
                   <button 
                     onClick={clearChat}
-                    className="p-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200 shadow-sm flex items-center justify-center"
+                    className={`p-2 rounded-lg transition-all duration-200 shadow-sm flex items-center justify-center ${
+                      isDarkMode 
+                        ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                        : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300'
+                    }`}
                     title="Clear chat"
                   >
                     <RotateCcw className="h-4 w-4" />
@@ -816,19 +886,40 @@ function App() {
             </div>
 
             {/* Desktop Chat Header - Minimal and Clean */}
-            <div className="hidden md:flex border-b border-gray-700 p-4 items-center justify-between bg-gray-800">
+            <div className={`hidden md:flex border-b p-4 items-center justify-between ${isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-300 bg-gray-100'}`}>
               <div className="flex items-center space-x-4">
-                <h2 className="text-lg font-semibold text-white">
+                <h2 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                   Chat with {currentProfileData?.name}
                 </h2>
-                <span className="px-3 py-1 rounded-md bg-gray-700 text-sm text-gray-300">
+                <span className={`px-3 py-1 rounded-md text-sm ${
+                  isDarkMode 
+                    ? 'bg-gray-700 text-gray-300' 
+                    : 'bg-gray-200 text-gray-700'
+                }`}>
                   {getModeSpecificTitle(currentProfile, currentMode[currentProfile])}
                 </span>
               </div>
               <div className="flex items-center space-x-2">
+                {/* Theme Toggle Button */}
+                <button 
+                  onClick={toggleTheme}
+                  className={`p-2 rounded-lg flex items-center justify-center transition-all duration-200 ${
+                    isDarkMode 
+                      ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' 
+                      : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300'
+                  }`}
+                  title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+                >
+                  {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                </button>
+                
                 <button 
                   onClick={clearChat}
-                  className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-300 transition-all duration-200"
+                  className={`p-2 rounded-lg transition-all duration-200 ${
+                    isDarkMode 
+                      ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' 
+                      : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300'
+                  }`}
                   title="Clear chat"
                 >
                   <RotateCcw className="h-5 w-5" />
@@ -837,7 +928,7 @@ function App() {
             </div>
             
             {/* Chat Messages */}
-            <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-4 md:space-y-6 bg-gray-900">
+            <div className={`flex-1 overflow-y-auto p-3 md:p-4 space-y-4 md:space-y-6 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
               {messages.map((message) => (
                 <div key={message.id} className="flex items-start animate-fade-in">
                   <div className={`h-8 w-8 md:h-8 md:w-8 rounded-full ${
@@ -849,15 +940,15 @@ function App() {
                       <Sparkles className="h-4 w-4 text-white" />
                     )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm text-gray-200">
-                      <p className="mb-2 font-semibold text-sm md:text-sm">{message.role === 'user' ? 'You' : 'Kish'}</p>
+                  <div className={`flex-1 min-w-0 rounded-lg p-3 md:p-4 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                    <div className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                      <p className={`mb-2 font-semibold text-sm md:text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{message.role === 'user' ? 'You' : 'Kish'}</p>
                       {message.role === 'assistant' ? (
-                        <div className="prose prose-sm prose-invert max-w-none">
-                          <ReactMarkdown rehypePlugins={[rehypeHighlight]}>
-                            {message.content}
-                          </ReactMarkdown>
-                        </div>
+                      <div className={`prose prose-sm max-w-none ${isDarkMode ? 'prose-invert' : 'prose-slate'}`}>
+                        <ReactMarkdown rehypePlugins={[rehypeHighlight]}>
+                          {message.content}
+                        </ReactMarkdown>
+                      </div>
                       ) : (
                         <p className="whitespace-pre-wrap break-words">{message.content}</p>
                       )}
@@ -888,15 +979,15 @@ function App() {
             </div>
             
             {/* Input Area */}
-            <div className="p-3 md:p-4 border-t border-gray-700 bg-gray-800">
-              <div className="relative rounded-lg border border-gray-600 bg-gray-700 shadow-sm">
+            <div className={`p-3 md:p-4 border-t ${isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-300 bg-gray-100'}`}>
+              <div className={`relative rounded-lg border shadow-sm ${isDarkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300 bg-white'}`}>
                 <textarea
                   ref={textareaRef}
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={handleKeyPress}
                   placeholder={`Message ${currentProfileData?.name}...`}
-                  className="w-full p-3 pr-24 text-sm md:text-sm bg-transparent focus:outline-none resize-none text-white placeholder-gray-400"
+                  className={`w-full p-3 pr-24 text-sm md:text-sm bg-transparent focus:outline-none resize-none ${isDarkMode ? 'text-white placeholder-gray-400' : 'text-gray-900 placeholder-gray-500'}`}
                   rows={1}
                   style={{ maxHeight: '120px' }}
                 />
@@ -947,13 +1038,17 @@ function App() {
       {/* Full Screen History Overlay */}
       {showFullHistory && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-gray-800 rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+          <div className={`rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
             {/* History Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-700">
-              <h2 className="text-xl font-bold text-white">Conversation History</h2>
+            <div className={`flex items-center justify-between p-6 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-300'}`}>
+              <h2 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Conversation History</h2>
               <button
                 onClick={toggleFullHistory}
-                className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-300 transition-colors"
+                className={`p-2 rounded-lg transition-colors ${
+                  isDarkMode 
+                    ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' 
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                }`}
               >
                 <span className="text-xl">×</span>
               </button>
@@ -966,7 +1061,11 @@ function App() {
                   {conversations.map((conv, idx) => (
                     <div
                       key={idx}
-                      className="bg-gray-700 rounded-lg p-4 hover:bg-gray-600 transition-colors cursor-pointer group"
+                      className={`rounded-lg p-4 transition-colors cursor-pointer group ${
+                        isDarkMode 
+                          ? 'bg-gray-700 hover:bg-gray-600' 
+                          : 'bg-gray-100 hover:bg-gray-200'
+                      }`}
                       onClick={() => {
                         loadConversation(conv.title);
                         setShowFullHistory(false);
@@ -974,10 +1073,10 @@ function App() {
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
-                          <div className="text-white font-medium text-sm mb-1">
+                          <div className={`font-medium text-sm mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                             Conversation {idx + 1}
                           </div>
-                          <div className="text-gray-300 text-xs">
+                          <div className={`text-xs ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                             {conv.title.length > 100 ? `${conv.title.substring(0, 100)}...` : conv.title}
                           </div>
                         </div>
@@ -999,17 +1098,21 @@ function App() {
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <div className="text-gray-400 text-lg mb-2">No conversations yet</div>
-                  <div className="text-gray-500 text-sm">Start a new conversation to see your history here</div>
+                  <div className={`text-lg mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>No conversations yet</div>
+                  <div className={`text-sm ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>Start a new conversation to see your history here</div>
                 </div>
               )}
             </div>
 
             {/* History Footer */}
-            <div className="p-6 border-t border-gray-700">
+            <div className={`p-6 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-300'}`}>
               <button
                 onClick={toggleFullHistory}
-                className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                className={`w-full py-3 px-4 rounded-lg transition-colors ${
+                  isDarkMode 
+                    ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                    : 'bg-blue-500 hover:bg-blue-600 text-white'
+                }`}
               >
                 Close History
               </button>
