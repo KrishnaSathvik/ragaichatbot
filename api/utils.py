@@ -72,7 +72,7 @@ def _shorten_sentences(text: str, max_len=20) -> str:
     return " ".join(fixed)
 
 def _enforce_lines(text: str, min_lines=8, max_lines=10) -> str:
-    """Ensure response fits within line count limits."""
+    """Ensure response has enough sentences to naturally fill 8-10 lines in UI."""
     # Split into sentences
     sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', text.strip()) if s.strip()]
     
@@ -80,6 +80,7 @@ def _enforce_lines(text: str, min_lines=8, max_lines=10) -> str:
     if len(sentences) > max_lines:
         sentences = sentences[:max_lines]
     
+    # Return as normal paragraph - UI will naturally wrap to 8-10 lines
     return " ".join(sentences)
 
 def humanize(text: str, qtype: str = "general") -> str:
@@ -102,11 +103,8 @@ def humanize(text: str, qtype: str = "general") -> str:
     # Fast vocabulary replacement (only most common buzzwords)
     text = _simplify_vocab(text)
     
-    # Quick line enforcement - allow more for intro questions
-    sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', text.strip()) if s.strip()]
-    max_sentences = 14 if qtype == "intro" else 10
-    if len(sentences) > max_sentences:
-        text = " ".join(sentences[:max_sentences])
+    # Enforce proper line breaks for visual formatting
+    text = _enforce_lines(text, min_lines=8 if qtype != "intro" else 10, max_lines=10 if qtype != "intro" else 14)
     
     # Remove markdown formatting
     text = text.replace("•", "").replace("*", "").replace("**", "")
@@ -148,18 +146,21 @@ PROMPTS = {
         ),
         "user_de": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Krishna (Data Engineer) using only the given context. Keep it concise — 8–10 lines. "
+            "Answer as Krishna (Data Engineer) using only the given context. Provide a detailed explanation in 8–10 lines. "
             "Skip repeating the question; start directly with your explanation. "
             "Include exact tools, data volumes, and measurable outcomes (e.g., 'processed 10TB/month', 'cut job runtime by 40%'). "
+            "Expand on your approach, challenges faced, and specific solutions implemented. "
             "Speak naturally, as if explaining to a teammate — clear, confident, and conversational. No bullets or formatting."
         ),
         "user_intro_de": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Krishna (Data Engineer) giving a personal introduction. "
-            "Keep it natural and flowing — around 10–14 sentences (90–120 seconds spoken). "
-            "Follow the C-P-A-T framework: Start with your CURRENT role at Walgreens (focus, responsibilities), then briefly cover PAST roles (CVS, McKesson, Inditek), "
-            "highlight key ACHIEVEMENTS with metrics (pipeline optimizations, data quality improvements), and close with what DRIVES your passion for data engineering. "
-            "Speak confidently and warmly, like in an interview introduction — not robotic or bullet-like. No formatting."
+            "Answer as Krishna (Data Engineer) giving a comprehensive personal introduction. "
+            "You MUST provide 10–14 sentences total (90–120 seconds spoken). "
+            "Follow the C-P-A-T framework in detail: Start with your CURRENT role at Walgreens (data pipelines, cloud integration, governance responsibilities), "
+            "then expand on PAST roles (CVS, McKesson, Inditek - describe your specific projects and technologies used), "
+            "highlight multiple ACHIEVEMENTS with specific metrics (pipeline optimizations, data quality improvements, cost savings, team impact), "
+            "and close with what drives your passion for data engineering, future goals, and how you want to make an impact. "
+            "Be detailed and expansive - this is your chance to tell your complete story. Speak confidently and warmly, like in an interview introduction. No formatting."
         ),
         "user_interview_de": (
             "Context: {context}\n\nQuestion: {question}\n\n"
@@ -208,20 +209,21 @@ PROMPTS = {
         ),
         "user_ai": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Krishna (AI/ML Engineer) using only the context above. Keep it 8–10 lines. "
+            "Answer as Krishna (AI/ML Engineer) using only the context above. Provide a comprehensive explanation in 8–10 lines. "
             "Skip restating the question — jump straight into the answer. "
             "Include specific tools, models, metrics, and what you actually did. "
+            "Expand on your technical approach, implementation details, and results achieved. "
             "Speak naturally, as if explaining to a peer during a technical discussion. No bullets or formatting."
         ),
         "user_intro_ai": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Krishna (AI/ML Engineer) giving a personal introduction. "
-            "Keep it natural and flowing — around 10–14 sentences (90–120 seconds spoken). "
-            "Follow the C-P-A-T framework: Start with your CURRENT role at Walgreens (GenAI, RAG systems, LangChain/LangGraph), "
-            "then briefly cover PAST roles (CVS Health, McKesson, Inditek focusing on MLOps and HIPAA compliance), "
-            "highlight key ACHIEVEMENTS with metrics (RAG accuracy improvements, latency reductions, production deployments), "
-            "and close with what drives your passion for AI/ML and building intelligent systems. "
-            "Speak confidently and naturally, like introducing yourself to a hiring manager. No formatting."
+            "Answer as Krishna (AI/ML Engineer) giving a comprehensive personal introduction. "
+            "You MUST provide 10–14 sentences total (90–120 seconds spoken). "
+            "Follow the C-P-A-T framework in detail: Start with your CURRENT role at Walgreens (GenAI, RAG systems, LangChain/LangGraph, specific projects), "
+            "then expand on PAST roles (CVS Health, McKesson, Inditek - describe your responsibilities and focus areas), "
+            "highlight multiple ACHIEVEMENTS with specific metrics (RAG accuracy improvements, latency reductions, production deployments, team impact), "
+            "and close with what drives your passion for AI/ML, future goals, and how you want to make an impact. "
+            "Be detailed and expansive - this is your chance to tell your complete story. Speak confidently and naturally, like introducing yourself to a hiring manager. No formatting."
         ),
         "user_interview_ai": (
             "Context: {context}\n\nQuestion: {question}\n\n"
@@ -844,6 +846,9 @@ def answer_question(question, mode="auto", profile="auto", **kwargs):
         # Get response from OpenAI (using faster model for better response time)
         print("Generating response with OpenAI...")
         client = _get_client()
+        # Use more tokens for intro questions to allow 10-14 sentences
+        max_tokens = 1000 if qtype == "intro" else 800
+        
         response = client.chat.completions.create(
             model="gpt-4o-mini",  # Faster and cheaper than gpt-4o
             messages=[
@@ -854,7 +859,7 @@ def answer_question(question, mode="auto", profile="auto", **kwargs):
             top_p=0.92,             # Slightly tighter sampling
             frequency_penalty=0.3,  # Reduces buzzword repetition
             presence_penalty=0.0,
-            max_tokens=650,         # Allows 8-10 lines (regular) and 10-14 sentences (intros)
+            max_tokens=max_tokens,  # 1000 for intros (10-14 sentences), 800 for regular (8-10 lines)
             timeout=15.0,           # Reduced from 30s to 15s for faster response
             stream=False
         )
