@@ -45,8 +45,8 @@ async def health_check():
 async def chat(request: dict):
     try:
         query = request.get('message', '').strip()
-        profile = request.get('profile', 'krishna')
-        mode = request.get('mode', 'de')
+        profile = request.get('profile', 'auto')  # Default to auto for profile detection
+        mode = request.get('mode', 'auto')  # Default to auto for mode detection
         conversation_history = request.get('conversation_history', [])
         
         if not query:
@@ -62,8 +62,12 @@ async def chat(request: dict):
         return {
             "answer": result['answer'],
             "sources": result.get('sources', []),
-            "mode_used": mode,
-            "profile_used": profile
+            "domain_used": result.get('domain_used', mode),
+            "qtype_used": result.get('qtype_used', 'general'),
+            "mode_used": result.get('domain_used', mode),  # For backward compatibility
+            "profile_used": result.get('profile_used', profile),
+            "profile_auto_detected": result.get('profile_auto_detected', False),
+            "auto_detected": result.get('auto_detected', False)
         }
         
     except Exception as e:

@@ -34,7 +34,7 @@ interface Message {
   ts: number;
 }
 
-type ProfileId = "krishna" | "tejuu";
+type ProfileId = "auto" | "krishna" | "tejuu";
 
 interface ProfileCfg {
   id: ProfileId;
@@ -45,11 +45,15 @@ interface ProfileCfg {
 }
 
 const PROFILES: ProfileCfg[] = [
+  { id: "auto", name: "Auto", title: "Auto-detect Profile", color: "bg-gradient-to-r from-blue-600 to-pink-600", initials: "AI" },
   { id: "krishna", name: "Krishna", title: "Data Engineer & ML", color: "bg-blue-600", initials: "KS" },
   { id: "tejuu", name: "Tejuu", title: "Business Analyst & BI", color: "bg-pink-600", initials: "TJ" },
 ];
 
 const PROFILE_MODES: Record<ProfileId, { id: string; name: string }[]> = {
+  auto: [
+    { id: "auto", name: "Auto-detect Mode" },
+  ],
   krishna: [
     { id: "de", name: "Data Engineering" },
     { id: "ai", name: "AI/ML/GenAI" },
@@ -63,12 +67,16 @@ const PROFILE_MODES: Record<ProfileId, { id: string; name: string }[]> = {
 // ---------- Helpers ----------
 const API_URL = (process.env.REACT_APP_API_URL || "http://localhost:8000").replace(/\/$/, "");
 const cls = (...xs: (string | false | undefined)[]) => xs.filter(Boolean).join(" ");
-const welcome = (p: ProfileId, mode: string) =>
-  `Hello ${PROFILES.find(x => x.id === p)?.name}! I'm Kish — your ${
+const welcome = (p: ProfileId, mode: string) => {
+  if (p === "auto") {
+    return `Hello! I'm Kish — your intelligent assistant. I'll automatically detect whether you need help with Data Engineering, AI/ML, Business Intelligence, or Analytics Engineering. How can I help today?`;
+  }
+  return `Hello ${PROFILES.find(x => x.id === p)?.name}! I'm Kish — your ${
     p === "krishna" 
       ? (mode === "ai" ? "AI/ML/GenAI" : "Data Engineer") 
       : (mode === "ae" ? "Analytics Engineer" : "Business Intelligence")
   } assistant. How can I help today?`;
+};
 
 export default function App() {
   // Theme & layout
@@ -78,11 +86,11 @@ export default function App() {
   // App state with localStorage persistence
   const [profile, setProfile] = useState<ProfileId>(() => {
     const saved = localStorage.getItem("ragProfile");
-    return (saved === "krishna" || saved === "tejuu") ? saved : "krishna";
+    return (saved === "auto" || saved === "krishna" || saved === "tejuu") ? saved : "auto";
   });
   const [modeByProfile, setModeByProfile] = useState<Record<ProfileId, string>>(() => {
     const saved = localStorage.getItem("ragModeByProfile");
-    return saved ? JSON.parse(saved) : { krishna: "de", tejuu: "ae" };
+    return saved ? JSON.parse(saved) : { auto: "auto", krishna: "de", tejuu: "ae" };
   });
   const [messagesByProfileMode, setMessagesByProfileMode] = useState<Record<string, Message[]>>(() => {
     const saved = localStorage.getItem("ragMessagesByProfileMode");
@@ -560,7 +568,7 @@ export default function App() {
               <div className={cls("flex items-center justify-between p-3 border-b", dark ? "border-gray-700" : "border-gray-200")}>                
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 flex items-center justify-center text-xl">🤖</div>
-                  <div className="font-semibold">Kish RagAIChatbot</div>
+                  <div className={cls("font-semibold", dark ? "text-white" : "text-gray-900")}>Kish RagAIChatbot</div>
                 </div>
                 <button onClick={() => setSidebarOpen(false)} className={cls("p-2 rounded-md min-w-[44px] min-h-[44px]", dark ? "bg-gray-600 text-white" : "bg-gray-100 text-gray-700")} aria-label="Close menu"><X className="w-5 h-5"/></button>
             </div>
@@ -568,7 +576,7 @@ export default function App() {
               <div className="p-3 space-y-3">
                 <div>
                   <div className={cls("text-xs mb-1", dark ? "text-gray-400" : "text-gray-600")}>Profile</div>
-                  <select value={profile} onChange={(e)=>setProfile(e.target.value as ProfileId)} className={cls("w-full rounded-md px-3 py-2 text-sm border", dark ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300") }>
+                  <select value={profile} onChange={(e)=>setProfile(e.target.value as ProfileId)} className={cls("w-full rounded-md px-3 py-2 text-sm border", dark ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300 text-gray-900") }>
                     {PROFILES.map(p => <option key={p.id} value={p.id}>{p.name} — {p.title}</option>)}
                   </select>
                           </div>

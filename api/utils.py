@@ -1,16 +1,113 @@
 import os, json
 import threading
+import re
 import numpy as np
 from dotenv import load_dotenv
 from openai import OpenAI
-from sklearn.metrics.pairwise import cosine_similarity
-
 load_dotenv()
 
 _client = None
 _embeddings = None
 _meta = None
 _lock = threading.Lock()
+
+# ---------- Humanization post-processor ----------
+SIMPLE_REPLACEMENTS = {
+    "utilize": "use",
+    "utilise": "use",
+    "leverage": "use",
+    "holistic": "end-to-end",
+    "robust": "solid",
+    "myriad": "many",
+    "plethora": "many",
+    "state-of-the-art": "modern",
+    "cutting-edge": "modern",
+    "paradigm": "approach",
+    "synergy": "fit",
+    "facilitate": "help",
+    "optimal": "best",
+    "enhance": "improve",
+    "comprehensive": "complete",
+    "integrated": "combined",
+    "streamlined": "simplified",
+    "employed": "used",
+    "pivotal": "key",
+    "seamless": "smooth",
+}
+
+def _simplify_vocab(text: str) -> str:
+    """Replace formal/buzzword vocabulary with natural language."""
+    out = text
+    for formal, simple in SIMPLE_REPLACEMENTS.items():
+        # Case-insensitive replacement
+        out = re.sub(r'\b' + formal + r'\b', simple, out, flags=re.IGNORECASE)
+        out = re.sub(r'\b' + formal.title() + r'\b', simple.title(), out)
+    return out
+
+def _shorten_sentences(text: str, max_len=20) -> str:
+    """Break long sentences into shorter, more natural ones."""
+    # Split by sentence boundaries - optimized regex
+    sentences = re.split(r'(?<=[.!?])\s+', text.strip())
+    fixed = []
+    
+    for sent in sentences:
+        words = sent.split()
+        word_count = len(words)
+        if word_count <= max_len:
+            fixed.append(sent)
+        else:
+            # Simplified: just split at max_len without complex logic
+            for i in range(0, word_count, max_len):
+                chunk = words[i:i+max_len]
+                if chunk:
+                    fixed.append(" ".join(chunk).rstrip(","))
+    
+    return " ".join(fixed)
+
+def _enforce_lines(text: str, min_lines=8, max_lines=10) -> str:
+    """Ensure response fits within line count limits."""
+    # Split into sentences
+    sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', text.strip()) if s.strip()]
+    
+    # Clamp to max lines
+    if len(sentences) > max_lines:
+        sentences = sentences[:max_lines]
+    
+    return " ".join(sentences)
+
+def humanize(text: str) -> str:
+    """
+    Transform AI response into natural, human-sounding interview answer.
+    Fast version with minimal overhead (~1-2ms).
+    """
+    # Quick check: if text has code blocks, preserve them
+    has_code = '```' in text or '`' in text
+    code_blocks = []
+    
+    if has_code:
+        def save_code(match):
+            code_blocks.append(match.group(0))
+            return f"__CODE_BLOCK_{len(code_blocks)-1}__"
+        text = re.sub(r'```[\s\S]*?```', save_code, text)
+        text = re.sub(r'`[^`\n]+`', save_code, text)
+    
+    # Fast vocabulary replacement (only most common buzzwords)
+    text = _simplify_vocab(text)
+    
+    # Quick line enforcement (skip sentence shortening for speed)
+    sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', text.strip()) if s.strip()]
+    if len(sentences) > 10:
+        text = " ".join(sentences[:10])
+    
+    # Remove markdown formatting
+    text = text.replace("•", "").replace("*", "").replace("**", "")
+    
+    # Restore code blocks if present
+    if has_code:
+        for i, block in enumerate(code_blocks):
+            text = text.replace(f"__CODE_BLOCK_{i}__", block)
+    
+    return text.strip()
 
 # ---------- Prompt templates ----------
 PROMPTS = {
@@ -25,41 +122,50 @@ PROMPTS = {
             "3. When asked general 'tell me about yourself': Give comprehensive overview mentioning current role at Walgreens + detailed past experience\n"
             "4. NEVER say 'real-world' or 'actual' - your experience IS real, don't state the obvious\n"
             "5. NEVER say 'I've tackled real-world problems' - just describe what you did naturally\n"
-            "6. Be specific about which company when telling stories - don't mix current and past in same story\n"
+            "6. Be specific about which company when telling stories - don't mix current and past in same story\n\n"
+            "STYLE RULES (CRITICAL):\n"
+            "• Sound human and conversational, not academic or corporate\n"
+            "• Use plain English; prefer shorter sentences (12-18 words)\n"
+            "• Use light contractions (I'm, we've, it's) where natural\n"
+            "• Be professional but not salesy; avoid buzzwords\n"
+            "• Include 1-2 concrete numbers (latency, %, $, volume) when relevant\n"
+            "• Use active verbs: built, cut, fixed, pushed (not: utilized, leveraged, enhanced)\n"
+            "• If you hit a challenge, mention it briefly: 'The tricky part was...'\n"
+            "• 8-10 lines, no bullets, no markdown, don't restate the question\n\n"
+            "BANNED PHRASES: 'in the realm of', 'leveraged synergies', 'holistic', 'myriad', 'plethora', "
+            "'pivotal', 'seamless', 'cutting-edge', 'state-of-the-art', 'robust solution', 'significantly', 'substantially'\n\n"
             "Your expertise: PySpark, Databricks, AWS, Azure, ETL/ELT pipelines, data warehousing, streaming data, data quality, HIPAA compliance. "
             "Answer ONLY based on provided context. If context lacks info, say you don't know. "
-            "Be conversational and natural - like talking to a colleague, not rehearsing a script."
+            "Be conversational and natural - like talking to a colleague in an interview, not reading from a script."
         ),
         "user_de": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Krishna (Data Engineer) based ONLY on context. Give comprehensive, detailed responses about data engineering: ETL/ELT pipelines, data warehousing, streaming data, data lakes, and infrastructure. "
-            "CRITICAL: Include specific quantifiable metrics such as: processing time reductions (e.g., '6 hours to 45 minutes'), performance improvements (e.g., '40% faster'), data volume handled (e.g., '10TB monthly'), cost savings (e.g., '$3K/month reduction'), latency improvements, throughput increases, or resource optimization percentages. "
-            "Provide thorough explanations with specific tools/technologies, implementation details, concrete metrics, and measurable business impact. NO bullet points or formatting. Keep it natural and conversational like in a professional interview."
+            "Answer as Krishna (Data Engineer) based ONLY on context. Keep your answer concise: 8-10 lines maximum. "
+            "CRITICAL: DO NOT repeat or rephrase the question. Dive straight into your answer. "
+            "Include specific quantifiable metrics (e.g., '6 hours to 45 minutes', '40% faster', '10TB monthly', '$3K/month reduction'). "
+            "Be clear, direct, and professional. Speak naturally like you're chatting with a colleague - avoid sounding rehearsed or robotic. NO bullet points or formatting."
         ),
         "user_intro_de": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Krishna (Data Engineer) giving a comprehensive personal introduction. "
-            "Provide a detailed intro covering: your role as a Data Engineer, key technologies you work with (PySpark, Databricks, AWS, Azure), your experience level, and what you're passionate about. "
-            "Include specific recent achievements, projects, and quantifiable results. "
-            "NO bullet points, headings, formatting, or code examples. Keep it conversational and genuine - like introducing yourself to a colleague."
+            "Answer as Krishna (Data Engineer) giving a brief personal introduction. Keep it to 8-10 lines maximum. "
+            "Mention your role, key technologies (PySpark, Databricks, AWS, Azure), and one or two recent achievements with metrics. "
+            "Speak naturally and professionally, like introducing yourself to a colleague. NO bullet points or formatting."
         ),
         "user_interview_de": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Krishna (Data Engineer) in an interview. Tell a real story from your data engineering experience using STAR pattern. "
-            "Include specific tools, technologies, metrics, and challenges you faced. "
-            "If the question is about teamwork, leadership, or collaboration, then mention those aspects. Otherwise, focus on the technical story. "
-            "Be honest about what went wrong and how you fixed it. NO bullet points or formatting. Keep it natural and conversational."
+            "Answer as Krishna (Data Engineer) in an interview. Keep it to 8-10 lines maximum. "
+            "Tell a focused story with the key situation, your action, and the result with metrics. "
+            "Include specific tools and real numbers. Speak naturally like you're in a conversation. NO bullet points or formatting."
         ),
         "user_sql_de": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Krishna (Data Engineer). Explain your approach naturally, show the SQL code, then explain what it does in simple terms. "
-            "Mention any gotchas or tips from your experience. NO bullet points or formatting. Keep it clear and natural."
+            "Answer as Krishna (Data Engineer). Keep it brief: 8-10 lines total including code. "
+            "Quick approach, show SQL code, explain what it does. Add one tip if relevant. NO bullet points. Keep it natural."
         ),
         "user_code_de": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Krishna (Data Engineer). The user is explicitly asking for code, so provide a practical code example. "
-            "Explain your approach naturally, show the code in a code block, then explain what it does clearly. "
-            "Mention any gotchas or tips from your experience. Keep it natural and conversational."
+            "Answer as Krishna (Data Engineer). Keep it brief: 8-10 lines total including code. "
+            "Quick approach, show code in a code block, explain what it does. Add one tip if useful. Speak naturally."
         ),
         
         # AI Mode System and Prompts
@@ -72,67 +178,67 @@ PROMPTS = {
             "3. When asked general 'tell me about yourself': Give comprehensive overview mentioning current role at Walgreens + detailed past experience\n"
             "4. NEVER say 'real-world' or 'actual' - your experience IS real, don't state the obvious\n"
             "5. NEVER say 'I've tackled real-world problems' - just describe what you did naturally\n"
-            "6. Be specific about which company when telling stories - don't mix current and past in same story\n"
+            "6. Be specific about which company when telling stories - don't mix current and past in same story\n\n"
+            "STYLE RULES (CRITICAL):\n"
+            "• Sound human and conversational, not academic or corporate\n"
+            "• Use plain English; prefer shorter sentences (12-18 words)\n"
+            "• Use light contractions (I'm, we've, it's) where natural\n"
+            "• Be professional but not salesy; avoid buzzwords\n"
+            "• Include 1-2 concrete numbers (accuracy, latency, cost, tokens) when relevant\n"
+            "• Use active verbs: built, trained, tuned, shipped (not: leveraged, implemented, enhanced)\n"
+            "• If you hit a challenge, mention it briefly: 'The tricky part was...'\n"
+            "• 8-10 lines, no bullets, no markdown, don't restate the question\n\n"
+            "BANNED PHRASES: 'in the realm of', 'leveraged', 'holistic', 'myriad', 'plethora', "
+            "'pivotal', 'seamless', 'cutting-edge', 'state-of-the-art', 'robust solution', 'significantly enhanced'\n\n"
             "Your expertise: TensorFlow, PyTorch, Hugging Face, OpenAI APIs, LLMs, NLP, computer vision, RAG systems, model deployment, MLOps, HIPAA compliance. "
             "Answer ONLY based on provided context. If context lacks info, say you don't know. "
-            "Be conversational and natural - like talking to a colleague, not rehearsing a script."
+            "Be conversational and natural - like talking to a colleague in an interview, not reading from a script."
         ),
         "user_ai": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Krishna (AI/ML/GenAI Engineer) based ONLY on context. Give comprehensive, detailed technical responses about AI/ML/GenAI projects, model development, LLMs, RAG systems, and AI system architecture. "
-            "CRITICAL: NO generic intros - dive STRAIGHT into answering the technical question with specific implementation details. "
-            "Include: exact technologies/frameworks used, specific implementation approaches, concrete metrics and results from Walgreens/CVS/McKesson projects, technical challenges and solutions, architecture decisions and trade-offs. "
-            "For RAG/LangChain questions: explain complete pipeline with all components, tools, and configurations. "
-            "For MLOps questions: explain deployment strategy, CI/CD setup, monitoring approach, versioning system. "
-            "For optimization questions: provide specific techniques used, before/after metrics, implementation details. "
-            "NO bullet points or formatting. Keep it natural and conversational like in a professional interview."
+            "Answer as Krishna (AI/ML/GenAI Engineer) based ONLY on context. Keep your answer to 8-10 lines maximum. "
+            "CRITICAL: DO NOT repeat or rephrase the question. Dive straight into the technical answer. "
+            "Include specific technologies, concrete metrics (e.g., '30% accuracy improvement', '2s latency'), and real implementation details. "
+            "Speak naturally like you're explaining to a colleague. NO bullet points or formatting."
         ),
         "user_intro_ai": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Krishna (AI/ML/GenAI Engineer) giving a comprehensive personal introduction. "
-            "Provide a detailed intro covering: your role as an AI/ML Engineer, key technologies you work with (TensorFlow, PyTorch, LLMs, cloud AI services), your experience level, and what you're passionate about. "
-            "Include specific recent achievements, projects, and quantifiable results. "
-            "NO bullet points, headings, formatting, or code examples. Keep it conversational and genuine - like introducing yourself to a colleague."
+            "Answer as Krishna (AI/ML/GenAI Engineer) giving a brief personal introduction. Keep it to 8-10 lines maximum. "
+            "Mention your role, key technologies (TensorFlow, PyTorch, LLMs, cloud AI), and one or two recent AI/ML achievements with metrics. "
+            "Speak naturally and professionally. NO bullet points or formatting."
         ),
         "user_interview_ai": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Krishna (AI/ML Engineer) in an interview. Tell a real story from your AI/ML experience using STAR pattern. "
-            "Include specific models, frameworks, metrics, and challenges you faced. "
-            "Focus on AI model development, deployment, performance optimization, or GenAI implementation. Mention collaboration with data scientists and product teams. "
-            "Be honest about what went wrong and how you fixed it. NO bullet points or formatting. Keep it natural and conversational."
+            "Answer as Krishna (AI/ML Engineer) in an interview. Keep it to 8-10 lines maximum. "
+            "Tell a focused story with the situation, your action, and results with metrics. "
+            "Include specific models/frameworks and real numbers. Speak naturally. NO bullet points or formatting."
         ),
         "user_ml_ai": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Krishna (ML Engineer) based ONLY on context. Give comprehensive, detailed technical responses about machine learning: model training, feature engineering, model selection, hyperparameter tuning, and ML pipelines. "
-            "CRITICAL: NO generic intros like 'I'm an ML Engineer with X years...' - dive STRAIGHT into answering the technical question. "
-            "Include: specific implementation details, concrete examples from Walgreens/CVS/McKesson projects, exact metrics and results, specific tools/frameworks used (TensorFlow, PyTorch, MLflow, etc.), technical challenges faced and how you solved them. "
-            "For MLflow questions: explain experiment tracking setup, model registry usage, versioning strategy, CI/CD integration with Azure DevOps/AKS. "
-            "For model questions: mention specific architectures, training approaches, validation strategies, deployment patterns. "
-            "NO bullet points, headings, or formatting. Keep it natural like explaining to a senior engineer in an interview."
+            "Answer as Krishna (ML Engineer) based ONLY on context. Keep your answer to 8-10 lines maximum. "
+            "CRITICAL: DO NOT repeat or rephrase the question. Dive straight into the technical answer. "
+            "Include specific tools (TensorFlow, PyTorch, MLflow), exact metrics, and implementation details. "
+            "Speak naturally like you're explaining to a senior engineer. NO bullet points or formatting."
         ),
         "user_deeplearning_ai": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Krishna (Deep Learning Engineer) based ONLY on context. Give comprehensive, detailed technical responses about deep learning: neural networks, CNNs, RNNs, Transformers, and advanced architectures. "
-            "CRITICAL: NO generic intros - dive STRAIGHT into answering the technical question. "
-            "Include: specific architectures used, layer configurations, training techniques (batch normalization, dropout, learning rate schedules), optimization strategies, performance metrics and improvements. "
-            "For implementation questions: explain the exact approach, frameworks used (TensorFlow/PyTorch), training infrastructure (GPUs/distributed training), and production deployment. "
-            "NO bullet points, headings, or formatting. Keep it natural like explaining to a senior engineer in an interview."
+            "Answer as Krishna (Deep Learning Engineer) based ONLY on context. Keep your answer to 8-10 lines maximum. "
+            "CRITICAL: DO NOT repeat or rephrase the question. Dive straight into the technical answer. "
+            "Include specific architectures, training techniques, and performance metrics. "
+            "Speak naturally. NO bullet points or formatting."
         ),
         "user_genai_ai": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Krishna (GenAI Engineer) based ONLY on context. Give comprehensive, detailed technical responses about generative AI: LLMs, RAG systems, LangChain, LangGraph, embeddings, vector databases, and prompt engineering. "
-            "CRITICAL: NO generic intros - dive STRAIGHT into answering the technical question. "
-            "Include: specific implementation details for RAG pipelines (chunking strategy with exact token sizes and overlap, embedding models used, vector DB configuration), LangChain/LangGraph components and workflow design, prompt templates and optimization techniques, retrieval strategies (top_k, similarity thresholds, hybrid search), generation parameters (temperature, max_tokens), specific metrics (accuracy improvements, latency reductions, hallucination rates). "
-            "For LangGraph questions: explain graph structure, node definitions, conditional routing logic, state management, error handling patterns. "
-            "For FastAPI questions: explain project structure (routers, services, models), async implementation, Pydantic validation, error handling patterns, Docker/K8s deployment. "
-            "For RAG pipeline questions: walk through complete flow from ingestion → chunking → embedding → storage → retrieval → generation, including all tools and technologies at each step. "
-            "NO bullet points, headings, or formatting. Keep it natural like explaining to a senior engineer in an interview."
+            "Answer as Krishna (GenAI Engineer) based ONLY on context. Keep your answer to 8-10 lines maximum. "
+            "CRITICAL: DO NOT repeat or rephrase the question. Dive straight into the technical answer. "
+            "Include specific tools (LangChain, embeddings, vector DBs), key implementation details, and concrete metrics. "
+            "For RAG questions: mention chunking, retrieval, and generation approach briefly with real numbers. "
+            "Speak naturally. NO bullet points or formatting."
         ),
         "user_code_ai": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Krishna (AI/ML Engineer). The user is explicitly asking for code, so provide a practical AI/ML code example. "
-            "Explain your approach naturally, show the code in a code block (Python, TensorFlow, PyTorch, etc.), then explain what it does clearly. "
-            "Mention any challenges or tips from your experience with model training, deployment, or optimization. Keep it natural and conversational."
+            "Answer as Krishna (AI/ML Engineer). Keep it brief: 8-10 lines total including code. "
+            "Quick approach, show code in a code block (Python, TensorFlow, PyTorch), explain what it does. Add one tip if useful. Speak naturally."
         )
     },
     "tejuu": {
@@ -154,35 +260,33 @@ PROMPTS = {
         ),
         "user_bi": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Tejuu (BI/BA professional) based ONLY on context. Give comprehensive, detailed responses about dashboards, reports, "
-            "Power BI, Tableau, data visualization, and stakeholder collaboration. "
-            "CRITICAL: Include specific quantifiable metrics such as: dashboard adoption rates (e.g., '85% user adoption'), performance improvements (e.g., 'load time reduced from 30s to 3s'), user engagement increases (e.g., '40% more daily active users'), time-to-insight reductions (e.g., 'from 2 days to 2 hours'), report usage statistics, stakeholder satisfaction scores, or decision-making speed improvements. "
-            "Provide thorough explanations with specific tools (Power BI, DAX, Tableau), implementation details, concrete metrics, and measurable business impact. NO bullet points or formatting. Keep it natural and conversational like in a professional interview."
+            "Answer as Tejuu (BI/BA professional) based ONLY on context. Keep your answer to 8-10 lines maximum. "
+            "CRITICAL: DO NOT repeat or rephrase the question. Dive straight into your answer. "
+            "Include specific metrics (e.g., '85% user adoption', 'load time reduced from 30s to 3s', '40% more daily active users'). "
+            "Mention specific tools (Power BI, DAX, Tableau) and business impact. Speak naturally. NO bullet points or formatting."
         ),
         "user_intro_bi": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Tejuu (BI/BA professional) giving a comprehensive personal introduction. "
-            "CRITICAL: Introduce yourself as a 'BI Developer and Business Analyst' at Central Bank of Missouri, NOT 'Analytics Engineer'. "
-            "Provide a detailed intro covering: your role as a BI Developer and Business Analyst, key technologies you work with (Power BI, Tableau, SQL), your experience level, and what you're passionate about. "
-            "Include specific recent achievements, projects, and quantifiable results. "
-            "NO bullet points, headings, formatting, or code examples. Keep it conversational and genuine - like introducing yourself to a colleague."
+            "Answer as Tejuu (BI/BA professional) giving a brief personal introduction. Keep it to 8-10 lines maximum. "
+            "CRITICAL: Introduce yourself as a 'BI Developer and Business Analyst' at Central Bank of Missouri. "
+            "Mention your role, key tools (Power BI, Tableau, SQL), and one or two recent achievements with metrics. "
+            "Speak naturally and professionally. NO bullet points or formatting."
         ),
         "user_interview_bi": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Tejuu (BI/BA) in interview using STAR pattern. Tell a real story emphasizing business impact, stakeholder "
-            "collaboration, dashboard adoption, and how your work drove decisions. Include challenges, what you learned, and results "
-            "with metrics. NO bullet points. Keep it genuine and conversational."
+            "Answer as Tejuu (BI/BA) in interview. Keep it to 8-10 lines maximum. "
+            "Tell a focused story with situation, action, and results with metrics. Emphasize business impact and stakeholder collaboration. "
+            "Speak naturally. NO bullet points or formatting."
         ),
         "user_sql_bi": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Tejuu (BI/BA). Explain your approach naturally, show the SQL code, then explain the business value and "
-            "how stakeholders use it in dashboards. Mention any tips from your experience. NO bullet points. Keep it clear."
+            "Answer as Tejuu (BI/BA). Keep it brief: 8-10 lines total including code. "
+            "Quick approach, show SQL code, explain business value. Add one tip if relevant. Speak naturally. NO bullet points."
         ),
         "user_code_bi": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Tejuu (BI Developer). The user is explicitly asking for code, so provide a practical BI/analytics code example. "
-            "Start with business context, show the code in a code block (DAX/Power BI/Tableau), explain business impact "
-            "and how it helps stakeholders. Mention any challenges or tips from your experience. Keep it natural and conversational."
+            "Answer as Tejuu (BI Developer). Keep it brief: 8-10 lines total including code. "
+            "Quick context, show code (DAX/Power BI/Tableau), explain business impact. Add one tip if useful. Speak naturally."
         ),
         
         # Analytics Engineer Mode System and Prompts
@@ -203,108 +307,100 @@ PROMPTS = {
         ),
         "user_ae": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Tejuu (Analytics Engineer) based ONLY on context. Give comprehensive, detailed responses about analytics engineering, "
-            "data modeling, dbt, transformations, data quality, and building reliable data products. "
-            "CRITICAL: Include specific quantifiable metrics such as: model build time improvements (e.g., 'dbt run time reduced from 45 min to 8 min'), data quality test coverage (e.g., '95% test coverage'), data freshness improvements (e.g., 'from daily to hourly updates'), transformation performance gains (e.g., '60% faster queries'), lineage coverage percentages, data accuracy improvements, pipeline reliability metrics (e.g., '99.5% uptime'), or downstream analytics adoption rates. "
-            "Provide thorough explanations with specific tools (dbt, SQL, Python, Azure/AWS), implementation details, concrete metrics, and measurable business impact. NO bullet points or formatting. Keep it natural and conversational like in a professional interview."
+            "Answer as Tejuu (Analytics Engineer) based ONLY on context. Keep your answer to 8-10 lines maximum. "
+            "CRITICAL: DO NOT repeat or rephrase the question. Dive straight into your answer. "
+            "Include specific metrics (e.g., 'dbt run time reduced from 45 min to 8 min', '95% test coverage', '60% faster queries'). "
+            "Mention specific tools (dbt, SQL, Python) and business impact. Speak naturally. NO bullet points or formatting."
         ),
         "user_intro_ae": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Tejuu (Analytics Engineer) giving a comprehensive personal introduction. "
+            "Answer as Tejuu (Analytics Engineer) giving a brief personal introduction. Keep it to 8-10 lines maximum. "
             "CRITICAL: Introduce yourself as an 'Analytics Engineer' at Central Bank of Missouri. "
-            "Provide a detailed intro covering: your role as an Analytics Engineer, key technologies you work with (dbt, SQL, Python, cloud platforms), your experience level, and what you're passionate about. "
-            "Include specific recent achievements, projects, and quantifiable results. "
-            "NO bullet points, headings, formatting, or code examples. Keep it conversational and genuine - like introducing yourself to a colleague."
+            "Mention your role, key tools (dbt, SQL, Python, cloud platforms), and one or two recent achievements with metrics. "
+            "Speak naturally and professionally. NO bullet points or formatting."
         ),
         "user_interview_ae": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Tejuu (Analytics Engineer) in interview using STAR pattern. Tell a real story about building data models, "
-            "dbt transformations, or improving data quality. Include technical details (tools, approaches), collaboration with data "
-            "engineers and analysts, challenges faced, and business impact. NO bullet points. Keep it genuine."
+            "Answer as Tejuu (Analytics Engineer) in interview. Keep it to 8-10 lines maximum. "
+            "Tell a focused story with situation, action, and results with metrics. Include specific tools and challenges. "
+            "Speak naturally. NO bullet points or formatting."
         ),
         "user_datamodeling_ae": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Tejuu (Analytics Engineer). Explain data modeling approach naturally - dimensional modeling, star schemas, "
-            "fact/dimension tables, SCD handling. "
-            "CRITICAL: Include specific quantifiable metrics such as: query performance improvements (e.g., '60% faster queries'), model complexity reductions, data accuracy improvements, storage optimization percentages, or downstream report performance gains. "
-            "Show examples from your experience with concrete metrics, explain measurable business benefits. "
-            "NO bullet points. Keep it practical."
+            "Answer as Tejuu (Analytics Engineer). Keep it to 8-10 lines maximum. "
+            "Explain your data modeling approach with specific examples and metrics (e.g., '60% faster queries'). "
+            "Speak naturally. NO bullet points or formatting."
         ),
         "user_dbt_ae": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Tejuu (Analytics Engineer). Explain dbt approach naturally - models, tests, macros, incremental processing. "
-            "CRITICAL: Include specific metrics like: build time improvements, test coverage percentages, data freshness gains, transformation performance. "
-            "Show code examples, explain your workflow with concrete metrics, mention tips from experience. NO bullet points. Keep it practical."
+            "Answer as Tejuu (Analytics Engineer). Keep it to 8-10 lines maximum including code. "
+            "Explain dbt approach with specific metrics (e.g., 'build time reduced 45 min to 8 min', '95% test coverage'). "
+            "Show brief code if relevant. Speak naturally. NO bullet points."
         ),
         "user_azure_ae": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Tejuu (Analytics Engineer). Explain Azure experience naturally - Synapse, ADF, Databricks, ADLS. "
-            "CRITICAL: Include specific metrics like: pipeline performance improvements, cost optimizations, processing time reductions, reliability percentages. "
-            "Focus on analytics workloads, orchestration, and building reliable pipelines. Show examples with concrete metrics, explain measurable business value. "
-            "NO bullet points. Keep it practical."
+            "Answer as Tejuu (Analytics Engineer). Keep it to 8-10 lines maximum. "
+            "Explain Azure experience (Synapse, ADF, Databricks) with specific metrics and examples. "
+            "Speak naturally. NO bullet points or formatting."
         ),
         "user_aws_ae": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Tejuu (Analytics Engineer). Explain AWS experience naturally - Redshift, Glue, S3, Athena. "
-            "CRITICAL: Include specific metrics like: query performance gains, cost savings, data processing improvements, transformation efficiency. "
-            "Focus on analytics workloads, data warehousing, and transformations. Show examples with concrete metrics, explain measurable business value. "
-            "NO bullet points. Keep it practical."
+            "Answer as Tejuu (Analytics Engineer). Keep it to 8-10 lines maximum. "
+            "Explain AWS experience (Redshift, Glue, S3, Athena) with specific metrics and examples. "
+            "Speak naturally. NO bullet points or formatting."
         ),
         "user_python_ae": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Tejuu (Analytics Engineer). Explain Python usage naturally - pandas for data transformation, PySpark for "
-            "large-scale processing, automation scripts. "
-            "CRITICAL: Include specific metrics like: processing time improvements, automation efficiency gains, performance optimizations. "
-            "Show code examples with concrete metrics, explain when you use each tool. "
-            "NO bullet points. Keep it practical."
+            "Answer as Tejuu (Analytics Engineer). Keep it to 8-10 lines maximum including code. "
+            "Explain Python usage (pandas, PySpark) with specific metrics and examples. Show brief code if relevant. "
+            "Speak naturally. NO bullet points."
         ),
         "user_databricks_ae": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Tejuu (Analytics Engineer). Explain Databricks experience naturally - running dbt, PySpark transformations, "
-            "Delta Lake, orchestration. "
-            "CRITICAL: Include specific metrics like: runtime improvements, cluster optimization results, transformation performance gains. "
-            "Focus on analytics use cases. Show examples with concrete metrics, explain workflow. NO bullet points."
+            "Answer as Tejuu (Analytics Engineer). Keep it to 8-10 lines maximum. "
+            "Explain Databricks experience (dbt, PySpark, Delta Lake) with specific metrics and workflow details. "
+            "Speak naturally. NO bullet points or formatting."
         ),
         "user_code_ae": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Tejuu (Analytics Engineer). The user is explicitly asking for code, so provide a practical analytics engineering code example. "
-            "Explain your thinking naturally, show the code in a code block (SQL/dbt/Python), explain what it does "
-            "and why it's designed that way. Mention data quality, testing, or tips from your experience. Keep it natural and conversational."
+            "Answer as Tejuu (Analytics Engineer). Keep it brief: 8-10 lines total including code. "
+            "Quick approach, show code (SQL/dbt/Python), explain what it does. Add one tip if useful. Speak naturally."
         )
     }
 }
 
 def _get_client():
     global _client
-    if _client is None:
+    if _client is not None:
+        return _client
+    
+    with _lock:
+        # Double-check after acquiring lock
+        if _client is not None:
+            return _client
+
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
             raise ValueError("OPENAI_API_KEY environment variable is required")
-        
-        # Temporarily unset proxy environment variables that might interfere
-        old_http_proxy = os.environ.pop('HTTP_PROXY', None)
-        old_https_proxy = os.environ.pop('HTTPS_PROXY', None)
-        old_http_proxy_lower = os.environ.pop('http_proxy', None)
-        old_https_proxy_lower = os.environ.pop('https_proxy', None)
-        
+
+        # Optional proxy bypass (opt-in via env flag)
+        bypass_proxy = os.getenv("BYPASS_HTTP_PROXY_FOR_OPENAI", "0") == "1"
+        old_env = {}
+        if bypass_proxy:
+            for k in ("HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy"):
+                if k in os.environ:
+                    old_env[k] = os.environ.pop(k)
+
         try:
-            # Initialize with minimal parameters and default timeout
             _client = OpenAI(api_key=api_key, timeout=30.0, max_retries=2)
             print("OpenAI client initialized successfully")
         except Exception as e:
-            print(f"Error initializing OpenAI client: {e}")
             raise ValueError(f"Failed to initialize OpenAI client: {e}")
         finally:
-            # Restore proxy environment variables if they were set
-            if old_http_proxy:
-                os.environ['HTTP_PROXY'] = old_http_proxy
-            if old_https_proxy:
-                os.environ['HTTPS_PROXY'] = old_https_proxy
-            if old_http_proxy_lower:
-                os.environ['http_proxy'] = old_http_proxy_lower
-            if old_https_proxy_lower:
-                os.environ['https_proxy'] = old_https_proxy_lower
-    return _client
+            # Restore proxies
+            os.environ.update(old_env)
+
+        return _client
 
 def _load_data():
     """
@@ -392,10 +488,13 @@ def _load_data():
 
 def _get_embedding(text):
     client = _get_client()
+    # Truncate text to avoid long embedding times (max ~8000 tokens)
+    if len(text) > 32000:  # ~8000 tokens * 4 chars/token
+        text = text[:32000]
     response = client.embeddings.create(
         model="text-embedding-3-small",
         input=text,
-        timeout=5.0  # Reduced to 5 seconds for faster embedding generation
+        timeout=3.0  # Reduced to 3 seconds for faster embedding generation
     )
     return np.array(response.data[0].embedding, dtype=np.float32)
 
@@ -413,16 +512,15 @@ def _search_similar(query_embedding, top_k=5, profile="krishna"):
     # Fast cosine since both are normalized
     sims = _embeddings @ q  # shape: (num_docs,)
 
-    # Personas present in your KB: "ai", "de"
+    # Allow None persona; broaden coverage for actual KB content
     profile_persona_map = {
-        "krishna": {"ai", "de"},
-        # Keep these for future BI/AE content; will fall back if none present
-        "tejuu": {"ae", "tejuu"},
+        "krishna": {"ai", "de", None},
+        "tejuu": {"bi", "ae", None},  # Fixed: include "bi" for BI content
     }
 
     indices = list(range(len(_meta)))
     if profile:
-        wanted = profile_persona_map.get(profile, {profile})
+        wanted = profile_persona_map.get(profile, {None})
         filtered = [i for i in indices if _meta[i].get("metadata", {}).get("persona") in wanted]
         if filtered:
             indices = filtered
@@ -440,12 +538,12 @@ def _search_similar(query_embedding, top_k=5, profile="krishna"):
     results = []
     for idx in top_indices:
         doc = _meta[idx]
-        meta = doc.get("metadata", {})
+        meta = doc.get("metadata", {}) or {}
         results.append({
             "index": int(idx),
             "score": float(sims[idx]),
             "content": doc.get("text", ""),
-            "source": meta.get("file_name") or meta.get("file_path", "unknown"),
+            "source": meta.get("file_name") or meta.get("file_path") or "unknown",
             "metadata": meta
         })
     return results
@@ -495,34 +593,117 @@ def detect_question_type(question):
     # Default to general discussion
     return 'general'
 
-def answer_question(question, mode="auto", profile="krishna", **kwargs):
+def detect_domain(question, profile):
+    """Detect the domain (de/ai/bi/ae) based on question content and profile."""
+    q = question.lower()
+    
+    # Domain-specific signals
+    ai_signals = ["llm", "langchain", "langgraph", "rag", "embedding", "prompt", "openai", "gpt",
+                  "pytorch", "tensorflow", "mlflow", "fine-tune", "transformer", "agent",
+                  "vector database", "pinecone", "weaviate", "hugging face", "model training"]
+    de_signals = ["spark", "pyspark", "databricks", "etl", "elt", "delta lake", "kafka", "adf", 
+                  "glue", "airflow", "data pipeline", "data lake", "streaming", "event hub"]
+    ae_signals = ["dbt", "data modeling", "star schema", "fact table", "dimension table", "scd",
+                  "slowly changing dimension", "dimensional model", "analytics engineer"]
+    bi_signals = ["power bi", "tableau", "dax", "dashboard", "visualization", "stakeholder",
+                  "report", "kpi", "business intelligence", "looker", "qlik"]
+    
+    def any_in(words):
+        return any(w in q for w in words)
+    
+    if profile == "krishna":
+        if any_in(ai_signals):
+            return "ai"
+        if any_in(de_signals):
+            return "de"
+        # Default bias for Krishna is AI/ML
+        return "ai"
+    else:  # tejuu
+        if any_in(ae_signals):
+            return "ae"
+        if any_in(bi_signals):
+            return "bi"
+        # Default bias for Tejuu is BI
+        return "bi"
+
+def detect_profile(question):
+    """Auto-detect which profile (krishna or tejuu) is most relevant for the question."""
+    question_lower = question.lower()
+    
+    # Tejuu-specific keywords (BI/BA/Analytics Engineering)
+    tejuu_keywords = [
+        'power bi', 'tableau', 'dax', 'dashboard', 'visualization', 'report', 'bi developer',
+        'business analyst', 'stakeholder', 'kpi', 'analytics engineer', 'dbt',
+        'data modeling', 'dimensional model', 'star schema', 'snowflake schema',
+        'fact table', 'dimension table', 'slowly changing dimension', 'scd',
+        'looker', 'qlik', 'sisense', 'metabase', 'superset',
+        'business intelligence', 'self-service analytics', 'data visualization'
+    ]
+    
+    # Krishna-specific keywords (DE/AI/ML/GenAI)
+    krishna_keywords = [
+        'pyspark', 'databricks', 'spark', 'etl', 'elt', 'data pipeline', 'data lake',
+        'delta lake', 'azure data factory', 'adf', 'aws glue', 'airflow',
+        'machine learning', 'deep learning', 'neural network', 'model training',
+        'mlflow', 'llm', 'large language model', 'rag', 'langchain', 'langgraph',
+        'transformer', 'fine-tune', 'embedding', 'vector database', 'pinecone',
+        'tensorflow', 'pytorch', 'hugging face', 'openai', 'gpt',
+        'data engineering', 'streaming', 'kafka', 'real-time data'
+    ]
+    
+    # Count keyword matches
+    tejuu_score = sum(1 for keyword in tejuu_keywords if keyword in question_lower)
+    krishna_score = sum(1 for keyword in krishna_keywords if keyword in question_lower)
+    
+    # Return profile based on keyword matches
+    if tejuu_score > krishna_score:
+        return "tejuu"
+    elif krishna_score > tejuu_score:
+        return "krishna"
+    else:
+        # Default to Krishna for ambiguous questions
+        return "krishna"
+
+def answer_question(question, mode="auto", profile="auto", **kwargs):
     try:
+        # Auto-detect profile if not specified
+        profile_auto_detected = False
+        if profile == "auto":
+            profile = detect_profile(question)
+            profile_auto_detected = True
+            print(f"Auto-detected profile: {profile}")
+        
         print(f"Processing question for profile '{profile}': {question[:50]}...")
         
-        # Auto-detect mode if not specified
-        auto_detected = False
-        if mode == "auto":
-            mode = detect_question_type(question)
+        # Separate domain detection from question type
+        qtype = detect_question_type(question)  # intro, code, sql, interview, genai, ml, etc.
+        
+        if mode in ("de", "ai", "bi", "ae"):
+            # Explicit mode provided
+            domain = mode
+            auto_detected = False
+        else:
+            # Auto-detect domain
+            domain = detect_domain(question, profile)
             auto_detected = True
         
-        # Detect question type for sub-mode selection
-        detected_type = detect_question_type(question)
+        print(f"Routing → domain={domain}, qtype={qtype}")
         
         # Get query embedding
         print("Generating query embedding...")
         query_embedding = _get_embedding(question)
         print("Query embedding generated successfully")
         
-        # Search for similar content (reduced top_k for faster processing)
+        # Search for similar content (optimized for speed)
         print(f"Searching for similar content for profile '{profile}'...")
-        results = _search_similar(query_embedding, top_k=3, profile=profile)  # Reduced from 5 to 3
+        results = _search_similar(query_embedding, top_k=2, profile=profile)  # Reduced to 2 for speed
         print(f"Found {len(results)} relevant chunks for profile '{profile}'")
         
         # Debug: Print the sources of the results
         for i, result in enumerate(results):
             print(f"Result {i+1}: Source={result.get('source', 'Unknown')}, Persona={result.get('metadata', {}).get('persona', 'Unknown')}")
         
-        # Build context safely with length limits
+        # Build context safely with tighter length limits for speed
         if not results:
             context = ""
         else:
@@ -530,11 +711,12 @@ def answer_question(question, mode="auto", profile="krishna", **kwargs):
             total = 0
             for r in results:
                 chunk = r["content"]
-                if len(chunk) > 800: 
-                    chunk = chunk[:800] + "..."
+                # Reduced chunk size for faster processing
+                if len(chunk) > 600: 
+                    chunk = chunk[:600] + "..."
                 frag = f"[{r['source']}] {chunk}"
-                # Cap total context ~2400 chars
-                if total + len(frag) > 2400: 
+                # Reduced total context to 1800 chars (was 2400)
+                if total + len(frag) > 1800: 
                     break
                 parts.append(frag)
                 total += len(frag)
@@ -545,102 +727,81 @@ def answer_question(question, mode="auto", profile="krishna", **kwargs):
         
         # Get prompts for the selected profile
         profile_prompts = PROMPTS.get(profile, PROMPTS["krishna"])
-        print(f"Debug: Profile='{profile}', Mode='{mode}', Detected type='{detected_type}'")
-        print(f"Debug: Available profiles in PROMPTS: {list(PROMPTS.keys())}")
+        print(f"Debug: Profile='{profile}', Domain='{domain}', QType='{qtype}'")
         
-        # Select prompt based on main mode and detected question type
+        # Select system and user prompt based on domain and question type
         if profile == "krishna":
-            if mode == "de":
-                # DE Mode - check detected type for sub-mode
-                if detected_type == "intro":
-                    user_prompt = profile_prompts["user_intro_de"].format(context=context, question=question)
-                    system_prompt = profile_prompts["system_de"]
-                elif detected_type == "interview":
-                    user_prompt = profile_prompts["user_interview_de"].format(context=context, question=question)
-                    system_prompt = profile_prompts["system_de"]
-                elif detected_type == "sql":
-                    user_prompt = profile_prompts["user_sql_de"].format(context=context, question=question)
-                    system_prompt = profile_prompts["system_de"]
-                elif detected_type == "code":
-                    user_prompt = profile_prompts["user_code_de"].format(context=context, question=question)
-                    system_prompt = profile_prompts["system_de"]
-                else:  # default DE
-                    user_prompt = profile_prompts["user_de"].format(context=context, question=question)
-                    system_prompt = profile_prompts["system_de"]
-            elif mode == "ai":
-                # AI/ML/GenAI Mode - check detected type for sub-mode
-                if detected_type == "intro":
-                    user_prompt = profile_prompts["user_intro_ai"].format(context=context, question=question)
-                    system_prompt = profile_prompts["system_ai"]
-                elif detected_type == "interview":
-                    user_prompt = profile_prompts["user_interview_ai"].format(context=context, question=question)
-                    system_prompt = profile_prompts["system_ai"]
-                elif detected_type == "ml":
-                    user_prompt = profile_prompts["user_ml_ai"].format(context=context, question=question)
-                    system_prompt = profile_prompts["system_ai"]
-                elif detected_type == "deeplearning":
-                    user_prompt = profile_prompts["user_deeplearning_ai"].format(context=context, question=question)
-                    system_prompt = profile_prompts["system_ai"]
-                elif detected_type == "genai":
-                    user_prompt = profile_prompts["user_genai_ai"].format(context=context, question=question)
-                    system_prompt = profile_prompts["system_ai"]
-                elif detected_type == "code":
-                    user_prompt = profile_prompts["user_code_ai"].format(context=context, question=question)
-                    system_prompt = profile_prompts["system_ai"]
-                else:  # default AI
-                    user_prompt = profile_prompts["user_ai"].format(context=context, question=question)
-                    system_prompt = profile_prompts["system_ai"]
-            else:  # fallback to DE mode
-                user_prompt = profile_prompts["user_de"].format(context=context, question=question)
-                system_prompt = profile_prompts["system_de"]
-        else:  # Tejuu profile - handle BI/BA and Analytics Engineer modes
-            question_lower = question.lower()
+            system_prompt = profile_prompts["system_ai"] if domain == "ai" else profile_prompts["system_de"]
             
-            # Detect if question is about Analytics Engineering topics
-            ae_keywords = ['dbt', 'data modeling', 'dimensional model', 'star schema', 'fact table', 'dimension table',
-                          'analytics engineer', 'data transformation', 'incremental model', 'slowly changing dimension',
-                          'scd', 'data quality', 'databricks', 'synapse', 'redshift', 'glue', 's3', 'pyspark', 'delta lake']
-            is_ae_question = any(keyword in question_lower for keyword in ae_keywords)
-            
-            # Check if mode is explicitly set to ae, or auto-detect
-            if mode == "ae" or is_ae_question:
+            if domain == "ai":
+                # AI/ML/GenAI Mode
+                if qtype == "intro":
+                    user_prompt = profile_prompts["user_intro_ai"]
+                elif qtype == "interview":
+                    user_prompt = profile_prompts["user_interview_ai"]
+                elif qtype == "ml":
+                    user_prompt = profile_prompts["user_ml_ai"]
+                elif qtype == "deeplearning":
+                    user_prompt = profile_prompts["user_deeplearning_ai"]
+                elif qtype == "genai":
+                    user_prompt = profile_prompts["user_genai_ai"]
+                elif qtype == "code":
+                    user_prompt = profile_prompts["user_code_ai"]
+                else:
+                    user_prompt = profile_prompts["user_ai"]
+            else:  # de
+                # Data Engineering Mode
+                if qtype == "intro":
+                    user_prompt = profile_prompts["user_intro_de"]
+                elif qtype == "interview":
+                    user_prompt = profile_prompts["user_interview_de"]
+                elif qtype == "sql":
+                    user_prompt = profile_prompts["user_sql_de"]
+                elif qtype == "code":
+                    user_prompt = profile_prompts["user_code_de"]
+                else:
+                    user_prompt = profile_prompts["user_de"]
+        else:  # tejuu
+            if domain == "ae":
                 # Analytics Engineer Mode
                 system_prompt = profile_prompts["system_ae"]
                 
-                if detected_type == "intro":
-                    user_prompt = profile_prompts["user_intro_ae"].format(context=context, question=question)
-                elif detected_type == "interview":
-                    user_prompt = profile_prompts["user_interview_ae"].format(context=context, question=question)
-                elif 'dbt' in question_lower:
-                    user_prompt = profile_prompts["user_dbt_ae"].format(context=context, question=question)
-                elif any(x in question_lower for x in ['data model', 'dimensional', 'star schema', 'fact', 'dimension']):
-                    user_prompt = profile_prompts["user_datamodeling_ae"].format(context=context, question=question)
-                elif any(x in question_lower for x in ['azure', 'synapse', 'adf', 'data factory']):
-                    user_prompt = profile_prompts["user_azure_ae"].format(context=context, question=question)
-                elif any(x in question_lower for x in ['aws', 'redshift', 'glue', 'athena']):
-                    user_prompt = profile_prompts["user_aws_ae"].format(context=context, question=question)
-                elif any(x in question_lower for x in ['python', 'pandas', 'pyspark']):
-                    user_prompt = profile_prompts["user_python_ae"].format(context=context, question=question)
-                elif 'databricks' in question_lower:
-                    user_prompt = profile_prompts["user_databricks_ae"].format(context=context, question=question)
-                elif detected_type == "code":
-                    user_prompt = profile_prompts["user_code_ae"].format(context=context, question=question)
-                else:  # default AE
-                    user_prompt = profile_prompts["user_ae"].format(context=context, question=question)
-            else:
-                # BI/BA Mode (default for Tejuu)
+                if qtype == "intro":
+                    user_prompt = profile_prompts["user_intro_ae"]
+                elif qtype == "interview":
+                    user_prompt = profile_prompts["user_interview_ae"]
+                elif 'dbt' in question.lower():
+                    user_prompt = profile_prompts["user_dbt_ae"]
+                elif any(x in question.lower() for x in ['data model', 'dimensional', 'star schema', 'fact', 'dimension']):
+                    user_prompt = profile_prompts["user_datamodeling_ae"]
+                elif any(x in question.lower() for x in ['azure', 'synapse', 'adf', 'data factory']):
+                    user_prompt = profile_prompts["user_azure_ae"]
+                elif any(x in question.lower() for x in ['aws', 'redshift', 'glue', 'athena']):
+                    user_prompt = profile_prompts["user_aws_ae"]
+                elif any(x in question.lower() for x in ['python', 'pandas', 'pyspark']):
+                    user_prompt = profile_prompts["user_python_ae"]
+                elif 'databricks' in question.lower():
+                    user_prompt = profile_prompts["user_databricks_ae"]
+                elif qtype == "code":
+                    user_prompt = profile_prompts["user_code_ae"]
+                else:
+                    user_prompt = profile_prompts["user_ae"]
+            else:  # bi
+                # BI/BA Mode
                 system_prompt = profile_prompts["system_bi"]
                 
-                if detected_type == "intro":
-                    user_prompt = profile_prompts["user_intro_bi"].format(context=context, question=question)
-                elif detected_type == "interview":
-                    user_prompt = profile_prompts["user_interview_bi"].format(context=context, question=question)
-                elif detected_type == "sql":
-                    user_prompt = profile_prompts["user_sql_bi"].format(context=context, question=question)
-                elif detected_type == "code":
-                    user_prompt = profile_prompts["user_code_bi"].format(context=context, question=question)
-                else:  # default BI
-                    user_prompt = profile_prompts["user_bi"].format(context=context, question=question)
+                if qtype == "intro":
+                    user_prompt = profile_prompts["user_intro_bi"]
+                elif qtype == "interview":
+                    user_prompt = profile_prompts["user_interview_bi"]
+                elif qtype == "sql":
+                    user_prompt = profile_prompts["user_sql_bi"]
+                elif qtype == "code":
+                    user_prompt = profile_prompts["user_code_bi"]
+                else:
+                    user_prompt = profile_prompts["user_bi"]
+        
+        user_prompt = user_prompt.format(context=context, question=question)
         
         # Get response from OpenAI (using faster model for better response time)
         print("Generating response with OpenAI...")
@@ -651,18 +812,35 @@ def answer_question(question, mode="auto", profile="krishna", **kwargs):
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            temperature=0.1,
-            max_tokens=2000,  # Increased significantly for comprehensive STAR-method style answers
-            timeout=30.0,  # Increased timeout for complete responses
-            stream=False  # Disable streaming for faster single response
+            temperature=0.3,        # Sweet spot for natural but focused
+            top_p=0.92,             # Slightly tighter sampling
+            frequency_penalty=0.3,  # Reduces buzzword repetition
+            presence_penalty=0.0,
+            max_tokens=500,         # Reduced for faster generation (8-10 lines)
+            timeout=15.0,           # Reduced from 30s to 15s for faster response
+            stream=False
         )
         print("Response generated successfully")
         
+        # Apply humanization post-processor
+        raw_answer = response.choices[0].message.content
+        final_answer = humanize(raw_answer)
+        print(f"Answer humanized: {len(raw_answer)} -> {len(final_answer)} chars")
+        
         return {
-            "answer": response.choices[0].message.content,
-            "mode_used": detected_type,
+            "answer": final_answer,
+            "domain_used": domain,
+            "qtype_used": qtype,
             "auto_detected": auto_detected,
-            "sources": [{"title": r["source"], "path": r["source"]} for r in results]
+            "profile_used": profile,
+            "profile_auto_detected": profile_auto_detected,
+            "sources": [
+                {
+                    "title": r["source"],
+                    "path": r.get("metadata", {}).get("file_path") or r["source"],
+                    "score": round(r["score"], 4)
+                } for r in results
+            ]
         }
         
     except Exception as e:

@@ -18,7 +18,7 @@ module.exports = {
           borderDark: '#374151',
         },
       },
-      fontFamily: { sans: ['Inter','system-ui','sans-serif'] },
+      fontFamily: { sans: ['DM Sans','system-ui','sans-serif'] },
       boxShadow: {
         'glass': '0 1px 2px 0 rgba(0,0,0,.06), 0 6px 20px rgba(0,0,0,.08)'
       },
