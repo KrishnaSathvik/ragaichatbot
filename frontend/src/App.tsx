@@ -347,13 +347,13 @@ export default function App() {
             
           {/* Profile selector */}
           <div className="p-4 space-y-2">
-            <label className={cls("text-xs", dark ? "text-gray-400" : "text-gray-600")}>Profile</label>
+            <label className={cls("text-sm font-semibold block mb-1", dark ? "text-white" : "text-gray-900")}>Profile</label>
               <select 
               value={profile}
               onChange={(e) => setProfile(e.target.value as ProfileId)}
               className={cls(
                 "w-full rounded-md px-3 py-2 text-sm border",
-                dark ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"
+                dark ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300 text-gray-900"
               )}
             >
               {PROFILES.map(p => (
@@ -361,7 +361,7 @@ export default function App() {
                 ))}
               </select>
 
-            <label className={cls("text-xs", dark ? "text-gray-400" : "text-gray-600")}>Mode</label>
+            <label className={cls("text-sm font-semibold block mb-1", dark ? "text-white" : "text-gray-900")}>Mode</label>
             <div className="grid grid-cols-2 gap-2">
               {PROFILE_MODES[profile].map(m => (
                   <button
