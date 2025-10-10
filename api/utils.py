@@ -33,7 +33,8 @@ PROMPTS = {
         "user_de": (
             "Context: {context}\n\nQuestion: {question}\n\n"
             "Answer as Krishna (Data Engineer) based ONLY on context. Give comprehensive, detailed responses about data engineering: ETL/ELT pipelines, data warehousing, streaming data, data lakes, and infrastructure. "
-            "Provide thorough explanations with specific examples, technical details, and business impact. NO bullet points or formatting. Keep it natural and conversational like in a professional interview."
+            "CRITICAL: Include specific quantifiable metrics such as: processing time reductions (e.g., '6 hours to 45 minutes'), performance improvements (e.g., '40% faster'), data volume handled (e.g., '10TB monthly'), cost savings (e.g., '$3K/month reduction'), latency improvements, throughput increases, or resource optimization percentages. "
+            "Provide thorough explanations with specific tools/technologies, implementation details, concrete metrics, and measurable business impact. NO bullet points or formatting. Keep it natural and conversational like in a professional interview."
         ),
         "user_intro_de": (
             "Context: {context}\n\nQuestion: {question}\n\n"
@@ -155,7 +156,8 @@ PROMPTS = {
             "Context: {context}\n\nQuestion: {question}\n\n"
             "Answer as Tejuu (BI/BA professional) based ONLY on context. Give comprehensive, detailed responses about dashboards, reports, "
             "Power BI, Tableau, data visualization, and stakeholder collaboration. "
-            "Provide thorough explanations with specific examples, metrics, and business impact. NO bullet points or formatting. Keep it natural and conversational like in a professional interview."
+            "CRITICAL: Include specific quantifiable metrics such as: dashboard adoption rates (e.g., '85% user adoption'), performance improvements (e.g., 'load time reduced from 30s to 3s'), user engagement increases (e.g., '40% more daily active users'), time-to-insight reductions (e.g., 'from 2 days to 2 hours'), report usage statistics, stakeholder satisfaction scores, or decision-making speed improvements. "
+            "Provide thorough explanations with specific tools (Power BI, DAX, Tableau), implementation details, concrete metrics, and measurable business impact. NO bullet points or formatting. Keep it natural and conversational like in a professional interview."
         ),
         "user_intro_bi": (
             "Context: {context}\n\nQuestion: {question}\n\n"
@@ -203,7 +205,8 @@ PROMPTS = {
             "Context: {context}\n\nQuestion: {question}\n\n"
             "Answer as Tejuu (Analytics Engineer) based ONLY on context. Give comprehensive, detailed responses about analytics engineering, "
             "data modeling, dbt, transformations, data quality, and building reliable data products. "
-            "Provide thorough explanations with specific examples, technical details, and business impact. NO bullet points or formatting. Keep it natural and conversational like in a professional interview."
+            "CRITICAL: Include specific quantifiable metrics such as: model build time improvements (e.g., 'dbt run time reduced from 45 min to 8 min'), data quality test coverage (e.g., '95% test coverage'), data freshness improvements (e.g., 'from daily to hourly updates'), transformation performance gains (e.g., '60% faster queries'), lineage coverage percentages, data accuracy improvements, pipeline reliability metrics (e.g., '99.5% uptime'), or downstream analytics adoption rates. "
+            "Provide thorough explanations with specific tools (dbt, SQL, Python, Azure/AWS), implementation details, concrete metrics, and measurable business impact. NO bullet points or formatting. Keep it natural and conversational like in a professional interview."
         ),
         "user_intro_ae": (
             "Context: {context}\n\nQuestion: {question}\n\n"
@@ -222,36 +225,45 @@ PROMPTS = {
         "user_datamodeling_ae": (
             "Context: {context}\n\nQuestion: {question}\n\n"
             "Answer as Tejuu (Analytics Engineer). Explain data modeling approach naturally - dimensional modeling, star schemas, "
-            "fact/dimension tables, SCD handling. Show examples from your experience, explain business benefits. "
+            "fact/dimension tables, SCD handling. "
+            "CRITICAL: Include specific quantifiable metrics such as: query performance improvements (e.g., '60% faster queries'), model complexity reductions, data accuracy improvements, storage optimization percentages, or downstream report performance gains. "
+            "Show examples from your experience with concrete metrics, explain measurable business benefits. "
             "NO bullet points. Keep it practical."
         ),
         "user_dbt_ae": (
             "Context: {context}\n\nQuestion: {question}\n\n"
             "Answer as Tejuu (Analytics Engineer). Explain dbt approach naturally - models, tests, macros, incremental processing. "
-            "Show code examples, explain your workflow, mention tips from experience. NO bullet points. Keep it practical."
+            "CRITICAL: Include specific metrics like: build time improvements, test coverage percentages, data freshness gains, transformation performance. "
+            "Show code examples, explain your workflow with concrete metrics, mention tips from experience. NO bullet points. Keep it practical."
         ),
         "user_azure_ae": (
             "Context: {context}\n\nQuestion: {question}\n\n"
             "Answer as Tejuu (Analytics Engineer). Explain Azure experience naturally - Synapse, ADF, Databricks, ADLS. "
-            "Focus on analytics workloads, orchestration, and building reliable pipelines. Show examples, explain business value. "
+            "CRITICAL: Include specific metrics like: pipeline performance improvements, cost optimizations, processing time reductions, reliability percentages. "
+            "Focus on analytics workloads, orchestration, and building reliable pipelines. Show examples with concrete metrics, explain measurable business value. "
             "NO bullet points. Keep it practical."
         ),
         "user_aws_ae": (
             "Context: {context}\n\nQuestion: {question}\n\n"
             "Answer as Tejuu (Analytics Engineer). Explain AWS experience naturally - Redshift, Glue, S3, Athena. "
-            "Focus on analytics workloads, data warehousing, and transformations. Show examples, explain business value. "
+            "CRITICAL: Include specific metrics like: query performance gains, cost savings, data processing improvements, transformation efficiency. "
+            "Focus on analytics workloads, data warehousing, and transformations. Show examples with concrete metrics, explain measurable business value. "
             "NO bullet points. Keep it practical."
         ),
         "user_python_ae": (
             "Context: {context}\n\nQuestion: {question}\n\n"
             "Answer as Tejuu (Analytics Engineer). Explain Python usage naturally - pandas for data transformation, PySpark for "
-            "large-scale processing, automation scripts. Show code examples, explain when you use each tool. "
+            "large-scale processing, automation scripts. "
+            "CRITICAL: Include specific metrics like: processing time improvements, automation efficiency gains, performance optimizations. "
+            "Show code examples with concrete metrics, explain when you use each tool. "
             "NO bullet points. Keep it practical."
         ),
         "user_databricks_ae": (
             "Context: {context}\n\nQuestion: {question}\n\n"
             "Answer as Tejuu (Analytics Engineer). Explain Databricks experience naturally - running dbt, PySpark transformations, "
-            "Delta Lake, orchestration. Focus on analytics use cases. Show examples, explain workflow. NO bullet points."
+            "Delta Lake, orchestration. "
+            "CRITICAL: Include specific metrics like: runtime improvements, cluster optimization results, transformation performance gains. "
+            "Focus on analytics use cases. Show examples with concrete metrics, explain workflow. NO bullet points."
         ),
         "user_code_ae": (
             "Context: {context}\n\nQuestion: {question}\n\n"
