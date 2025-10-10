@@ -56,7 +56,7 @@ def handle_health(event, context):
     })
 
 def handle_chat(event, context):
-    """Handle chat requests."""
+    """Handle chat requests - uses api/utils.py for all logic."""
     try:
         # Handle CORS preflight
         if event.get('httpMethod') == 'OPTIONS':
@@ -69,55 +69,40 @@ def handle_chat(event, context):
         body = json.loads(event.get('body', '{}'))
         query = body.get('message', '').strip()
         mode = body.get('mode', 'auto')
-        conversation_history = body.get('conversation_history', [])
+        profile = body.get('profile', 'auto')  # Support auto profile detection
         
         if not query:
             return handler_response({'error': 'Message is required'}, 400)
         
-        # Determine persona based on mode
-        persona = mode if mode in ['ai', 'de'] else 'de'  # Default to DE for auto
+        # Import and use the improved answer_question function
+        from utils import answer_question
         
-        # Build a simple prompt without knowledge base for now
-        system_prompt = """You are Krishna, a senior Data Engineer with extensive experience in:
-- Azure Data Factory, Databricks, PySpark, Delta Lake
-- Data pipelines, MLOps, and data warehousing
-- Previous roles at Walgreens, CVS Health, McKesson, Inditek
-- Strong Python, Java, Scala skills
-
-Answer questions as if you're speaking from personal experience. Be specific about implementations, challenges, and solutions you've worked on. Keep responses concise but detailed (6-8 sentences)."""
-        
-        # Build conversation context
-        context = ""
-        if conversation_history:
-            context = "\n\nPrevious conversation:\n"
-            for msg in conversation_history[-3:]:  # Last 3 exchanges
-                context += f"User: {msg.get('user', '')}\nAssistant: {msg.get('assistant', '')}\n"
-        
-        prompt = f"{system_prompt}\n\n{context}\n\nCurrent question: {query}\n\nAnswer as Krishna based on your experience:"
-        
-        # Generate response
-        response = openai_client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"{context}\n\nCurrent question: {query}"}
-            ],
-            temperature=0.1,
-            max_tokens=600,
-            timeout=10
+        result = answer_question(
+            question=query,
+            mode=mode,
+            profile=profile
         )
         
-        answer = response.choices[0].message.content.strip()
+        if 'error' in result:
+            return handler_response({'error': result['error']}, 400)
         
-        # Return clean answer
+        # Return response with new format
         return handler_response({
-            'answer': answer,
-            'sources': [],
-            'mode_used': persona
+            'answer': result.get('answer', 'No response generated'),
+            'sources': result.get('sources', []),
+            'domain_used': result.get('domain_used', mode),
+            'qtype_used': result.get('qtype_used', 'general'),
+            'profile_used': result.get('profile_used', profile),
+            'profile_auto_detected': result.get('profile_auto_detected', False),
+            'auto_detected': result.get('auto_detected', False),
+            # Backward compatibility
+            'mode_used': result.get('domain_used', mode)
         })
         
     except Exception as e:
         print(f"Error in chat handler: {e}")
+        import traceback
+        traceback.print_exc()
         return handler_response({'error': f'Error generating response: {str(e)}'}, 500)
 
 def handle_transcribe(event, context):
