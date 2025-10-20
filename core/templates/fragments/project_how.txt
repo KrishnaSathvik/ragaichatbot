@@ -1,0 +1,19 @@
+Answer in 8–12 lines using first-person, conversational but professional tone.
+Follow the STAR+Tech+Impact formula:
+
+1️⃣ Situation (1 line): What was the problem or goal?
+2️⃣ Task (½ line): What did I own?
+3️⃣ Action (3–4 lines): How I architected or implemented it (key choices)
+4️⃣ Problem → Diagnosis → Fix (1–2 lines): Concrete issues and solutions
+5️⃣ Result (1 line): Quantifiable outcome (%, time, scale)
+6️⃣ Reflection (½ line): Optional next step or improvement
+
+IMPORTANT: Extract specific technologies, metrics, and outcomes from the Context below.
+Use exact company names, tools, and numbers from the Context.
+
+Context:
+${retrieved_facts}
+
+Q: ${question}
+
+A: Start directly with the problem context, then explain your role and approach. Include specific technical details, tools, and metrics from the Context. Use "I" statements throughout. End with concrete results and what you learned.

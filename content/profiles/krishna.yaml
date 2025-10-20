@@ -1,0 +1,42 @@
+name: Krishna Sathvik Mantripragada
+profile_id: krishna
+primary_domains: ["GenAI", "RAG", "Healthcare", "Pharma QA"]
+summary: >
+  Senior Data Engineer focusing on GenAI/RAG systems in healthcare: LangChain/LangGraph,
+  FastAPI microservices, Azure ML, MLflow, Unity Catalog; strong on metrics and compliance.
+
+stack:
+  core: ["LangChain","LangGraph","FastAPI","Azure ML","MLflow","Databricks","Unity Catalog","Azure DevOps"]
+  retrieval: ["BM25","Vector Search","Hybrid","Cross-encoder Rerank"]
+  languages: ["Python","SQL"]
+voice_tweaks:
+  verb_bias: ["designed","implemented","orchestrated","fine-tuned","optimized"]
+  closers: ["which improved analyst throughput and response times.","which made compliance audits simpler."]
+projects:
+  walgreens_rag:
+    title: "Pharmacy Support RAG"
+    domain_terms: ["adverse event","drug synonyms","complaints","HIPAA","triage"]
+  walgreens_de:
+    title: "Enterprise Data Lake Migration (Walgreens)"
+    domain_terms: ["10TB+","35% cost reduction","8 hours","45 minutes","500+ users","medallion","bronze silver gold","Delta Lake","PySpark","200+ workflows","Informatica","20 hours to 6 hours","self-service analytics"]
+  mckesson_etl:
+    title: "Supply Forecasting ETL/ML"
+    domain_terms: ["ingestion latency","stockouts","regression","time series"]
+guardrails:
+  compliance: ["Avoid PHI/PII; emphasize HIPAA-safe processing", "Prefer verified metrics"]
+defaults:
+  top_k: 6
+  chunk_chars: 2500
+  overlap_chars: 300
+
+modes:
+  ai:
+    domain: "AI/ML Engineering (RAG)"
+    tools: ["LangChain","LangGraph","FastAPI","Azure ML","MLflow","Databricks"]
+    retrieval_boost: ["chunk overlap","top_k","reranker","HIPAA","triage"]
+    default_projects: ["walgreens_rag"]
+  de:
+    domain: "Data Engineering"
+    tools: ["Databricks","ADF","Unity Catalog","PySpark","Azure DevOps"]
+    retrieval_boost: ["partitioning","bronze silver gold","delta","orchestration"]
+    default_projects: ["walgreens_de", "mckesson_etl"]

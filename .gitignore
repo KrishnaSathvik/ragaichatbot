@@ -35,3 +35,12 @@ ENV/
 
 # Documentation files
 *.docx
+
+# Large data files (should be generated, not committed)
+api/embeddings.npy
+api/faiss.index
+api/meta.json
+
+# Cache files
+__pycache__/
+*.pyc

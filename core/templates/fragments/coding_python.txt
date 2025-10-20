@@ -1,0 +1,8 @@
+If constraints missing, ask one line then answer. Code first, then 2–3 bullets (complexity/tests/edge cases).
+
+Context:
+${retrieved_facts}
+
+Q: ${question}
+
+A:

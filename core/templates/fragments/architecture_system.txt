@@ -1,0 +1,17 @@
+Lay out components & dataflow like a diagram in text. 8–10 lines.
+
+IMPORTANT: Use the specific details from the Context below. Include company names, specific metrics, technologies, and architecture details mentioned in the Context.
+
+- Main components - mention specific technologies (${tools}) from Context
+- Data flow (ingest → process → store → serve) - include company context and specific tools from Context
+- Reliability (idempotency, retries, DLQs) - be specific about tools and metrics from Context
+- Scaling (partitioning, compaction, caching) - mention specific metrics and numbers from Context
+- Security & governance - include compliance details and specific technologies from Context
+- Observability (logs/metrics/traces) - mention specific tools and metrics from Context
+
+Context:
+${retrieved_facts}
+
+Q: ${question}
+
+A:

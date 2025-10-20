@@ -1,0 +1,17 @@
+Answer in 6–8 lines, first person, direct and specific.
+Focus on the specific monitoring tools I used and how I used them.
+
+1️⃣ List the specific monitoring tools I used (2-3 tools)
+2️⃣ Explain how each tool was used for monitoring
+3️⃣ Mention any dashboards, alerts, or metrics I set up
+4️⃣ Include specific examples of what I monitored
+5️⃣ Mention any custom monitoring solutions I built
+
+Tone: Direct and specific. Focus on tools and implementation, not problem-solving.
+
+Context:
+${retrieved_facts}
+
+Q: ${question}
+
+A: List the specific monitoring tools I used and explain how I used them for monitoring pipeline performance. Include specific examples of what I monitored and any custom solutions I built.

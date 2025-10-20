@@ -4,12 +4,23 @@ import re
 import numpy as np
 from dotenv import load_dotenv
 from openai import OpenAI
+from functools import lru_cache
+from pathlib import Path
 load_dotenv()
+
+# Import enhanced answer system
+try:
+    from core.enhanced_answer import answer_question_enhanced
+    ENHANCED_AVAILABLE = True
+except ImportError:
+    ENHANCED_AVAILABLE = False
+    print("Enhanced answer system not available, using legacy system")
 
 _client = None
 _embeddings = None
 _meta = None
 _lock = threading.Lock()
+_project_root = Path(__file__).resolve().parents[1]  # rag-chatbot/
 
 # ---------- Humanization post-processor ----------
 SIMPLE_REPLACEMENTS = {
@@ -83,6 +94,10 @@ def _enforce_lines(text: str, min_lines=8, max_lines=10) -> str:
     # Return as normal paragraph - UI will naturally wrap to 8-10 lines
     return " ".join(sentences)
 
+def _project_rel(*parts: str) -> str:
+    """Build absolute path from project root."""
+    return str(_project_root.joinpath(*parts))
+
 def humanize(text: str, qtype: str = "general") -> str:
     """
     Transform AI response into natural, human-sounding interview answer.
@@ -114,7 +129,8 @@ def humanize(text: str, qtype: str = "general") -> str:
         for i, block in enumerate(code_blocks):
             text = text.replace(f"__CODE_BLOCK_{i}__", block)
     
-    return text.strip()
+    # collapse stray double spaces
+    return re.sub(r"\s{2,}", " ", text).strip()
 
 # ---------- Prompt templates ----------
 PROMPTS = {
@@ -432,7 +448,8 @@ def _get_client():
                     old_env[k] = os.environ.pop(k)
 
         try:
-            _client = OpenAI(api_key=api_key, timeout=30.0, max_retries=2)
+            # Keep constructor minimal; use per-request options for timeout/retries
+            _client = OpenAI(api_key=api_key)
             print("OpenAI client initialized successfully")
         except Exception as e:
             raise ValueError(f"Failed to initialize OpenAI client: {e}")
@@ -461,12 +478,18 @@ def _load_data():
 
         print("Loading embeddings and metadata...")
 
-        metadata_paths = [
-            "meta.json", "api/meta.json", "store/meta.json", "kb_metadata.json"
-        ]
-        embeddings_paths = [
-            "embeddings.npy", "api/embeddings.npy", "store/embeddings.npy", "kb_embeddings.npy"
-        ]
+        metadata_paths = list(filter(None, [
+            _project_rel("api/meta.json"),
+            _project_rel("store/meta.json"),
+            _project_rel("meta.json"),
+            _project_rel("kb_metadata.json"),
+        ]))
+        embeddings_paths = list(filter(None, [
+            _project_rel("api/embeddings.npy"),
+            _project_rel("store/embeddings.npy"),
+            _project_rel("embeddings.npy"),
+            _project_rel("kb_embeddings.npy"),
+        ]))
 
         meta_path = next((p for p in metadata_paths if os.path.exists(p)), None)
         emb_path = next((p for p in embeddings_paths if os.path.exists(p)), None)
@@ -497,17 +520,20 @@ def _load_data():
                     "meta.json must be a list of items with keys: text, metadata.{file_name,file_path,persona}"
                 )
 
-            # Normalize each item to ensure consistent structure
+            # Normalize each item to ensure consistent structure (and avoid KeyError)
             norm = []
             for d in raw:
                 md = d.get("metadata") or {}
+                persona = md.get("persona")
+                if persona is not None:
+                    persona = str(persona).lower().strip() or None
                 norm.append({
                     "id": d.get("id"),
                     "text": d.get("text") or d.get("content") or "",
                     "metadata": {
                         "file_name": md.get("file_name") or md.get("filename") or "unknown",
                         "file_path": md.get("file_path") or md.get("path") or "unknown",
-                        "persona": md.get("persona"),
+                        "persona": persona,
                     },
                 })
             _meta = norm
@@ -526,52 +552,129 @@ def _load_data():
         denom = np.linalg.norm(_embeddings, axis=1, keepdims=True) + 1e-12
         _embeddings = _embeddings / denom
 
-def _get_embedding(text):
+def _normalize_for_cache(s: str) -> str:
+    """Whitespace and case normalization to increase cache hits for embeddings."""
+    return re.sub(r"\s+", " ", s.strip()).lower()
+
+@lru_cache(maxsize=512)  # Increased cache size
+def _cached_embedding(norm_text: str) -> tuple:
+    """LRU-cached embedding. Returns tuple (hashable)."""
     client = _get_client()
-    # Truncate text to avoid long embedding times (max ~8000 tokens)
-    if len(text) > 32000:  # ~8000 tokens * 4 chars/token
-        text = text[:32000]
     response = client.embeddings.create(
         model="text-embedding-3-small",
-        input=text,
-        timeout=3.0  # Reduced to 3 seconds for faster embedding generation
+        input=norm_text,
+        timeout=5.0,  # Add timeout for faster failure
+        # if your SDK doesn't support timeout here, call: client.with_options(timeout=3.0).embeddings.create(...)
     )
-    return np.array(response.data[0].embedding, dtype=np.float32)
+    # tuple for cache-ability
+    return tuple(response.data[0].embedding)
 
-def _search_similar(query_embedding, top_k=5, profile="krishna"):
+def _get_embedding(text: str):
+    # Truncate text to avoid long embedding times (max ~8000 tokens ≈ 32k chars)
+    if len(text) > 32000:
+        text = text[:32000]
+    norm = _normalize_for_cache(text)
+    return np.array(_cached_embedding(norm), dtype=np.float32)
+
+def _search_similar(query_embedding, top_k=5, profile="krishna", mode="auto", query_text=""):
     """
     Returns top-k KB chunks for the given query embedding,
-    filtered by persona (if available), ranked by cosine similarity (dot product).
+    filtered by profile+mode with quality-based reranking.
     """
     _load_data()
 
-    # Ensure query is unit length (cosine)
+    # Ensure query is unit length (cosine) - optimized
     q = query_embedding.astype(np.float32)
-    q = q / (np.linalg.norm(q) + 1e-12)
+    q_norm = np.linalg.norm(q)
+    if q_norm > 1e-12:
+        q = q / q_norm
+    else:
+        q = q  # Avoid division by zero
 
-    # Fast cosine since both are normalized
+    # Fast cosine since both are normalized - vectorized operation
     sims = _embeddings @ q  # shape: (num_docs,)
 
-    # Allow None persona; broaden coverage for actual KB content
-    profile_persona_map = {
-        "krishna": {"ai", "de", None},
-        "tejuu": {"bi", "ae", None},  # Fixed: include "bi" for BI content
+    # Mode-aware filtering with strict profile+mode matching
+    wanted_profile_modes = {
+        "krishna": {"ai", "de"},
+        "tejuu": {"analytics", "business"},  # Tejuu analytics mode includes both analytics_engineer and data_engineering
     }
-
+    
+    # Mode mapping for API compatibility
+    mode_mapping = {
+        "ae": "analytics",  # Analytics Engineer
+        "bi": "business",   # Business Intelligence
+    }
+    
+    # Map mode if needed
+    if mode in mode_mapping:
+        mode = mode_mapping[mode]
+    
     indices = list(range(len(_meta)))
-    if profile:
-        wanted = profile_persona_map.get(profile, {None})
-        filtered = [i for i in indices if _meta[i].get("metadata", {}).get("persona") in wanted]
+    if profile and profile in wanted_profile_modes:
+        wanted_modes = wanted_profile_modes[profile]
+        if mode != "auto" and mode in wanted_modes:
+            # Strict mode filtering
+            wanted_modes = {mode}
+        
+        def get_mode(i):
+            meta = (_meta[i].get("metadata", {}) or {})
+            return meta.get("persona") or meta.get("mode")
+        
+        def matches_profile(i):
+            meta = (_meta[i].get("metadata", {}) or {})
+            file_path = meta.get("file_path", "").lower()
+            return profile.lower() in file_path
+        
+        # Filter by both persona/mode AND profile name in file path
+        filtered = [i for i in indices if get_mode(i) in wanted_modes and matches_profile(i)]
         if filtered:
             indices = filtered
         else:
-            print(f"Warning: No content for profile '{profile}' with personas {wanted}; using all content")
+            print(f"Warning: No content for profile '{profile}' with modes {wanted_modes}; using all content")
 
     # Rank within selected indices
     if not indices:
         return []
 
-    local_scores = sims[indices]
+    # Quality-based reranking with improved project file prioritization
+    def boost_score(i):
+        meta = (_meta[i].get("metadata", {}) or {})
+        boost = 0.0
+        # Quality boost (0.15 max)
+        quality = float(meta.get("quality", 0.7))
+        boost += 0.15 * quality
+        
+        file_path = meta.get("file_path", "").lower()
+        
+        # Detect if this is a project-specific query
+        is_project_query = any(company in query_text.lower() for company in ["central bank", "cbank", "stryker", "walgreens", "cvs", "mckesson"])
+        
+        # Project-specific boosts (higher priority when query mentions specific companies/projects)
+        if is_project_query:
+            # Boost project files when query is about specific projects
+            if any(project in file_path for project in ["cbank_", "stryker_", "walgreens_", "cvs_", "mckesson_"]):
+                boost += 0.25  # Higher boost for project files
+            # Reduced boost for experience files when query is project-specific
+            elif "experience" in file_path:
+                boost += 0.05  # Much lower boost for experience files
+        else:
+            # General queries - balanced approach
+            if "experience" in file_path:
+                boost += 0.1  # Reduced from 0.2 to 0.1
+            # Small boost for project files in general queries
+            elif any(project in file_path for project in ["cbank_", "stryker_", "walgreens_", "cvs_", "mckesson_"]):
+                boost += 0.05
+        
+        # Section relevance boost (if question contains section keywords)
+        section = meta.get("section", "").lower()
+        if section and any(word in section for word in query_text.split()):
+            boost += 0.1
+        
+        return boost
+
+    # Apply boosts to similarity scores
+    local_scores = sims[indices] + np.array([boost_score(i) for i in indices], dtype=np.float32)
     top_local = np.argsort(local_scores)[::-1][:top_k]
     top_indices = [indices[i] for i in top_local]
 
@@ -579,11 +682,24 @@ def _search_similar(query_embedding, top_k=5, profile="krishna"):
     for idx in top_indices:
         doc = _meta[idx]
         meta = doc.get("metadata", {}) or {}
+        # Extract a better title from the source file
+        source_file = meta.get("source_file") or meta.get("file_name") or meta.get("file_path") or f"source_{idx}"
+        
+        # Create a human-readable title from the filename
+        if source_file and source_file != f"source_{idx}":
+            # Remove path and extension, convert underscores to spaces, title case
+            title = source_file.split('/')[-1]  # Get filename only
+            title = title.replace('.md', '').replace('_', ' ').replace('-', ' ')
+            title = ' '.join(word.capitalize() for word in title.split())
+        else:
+            title = f"Source {idx + 1}"
+        
         results.append({
             "index": int(idx),
             "score": float(sims[idx]),
             "content": doc.get("text", ""),
-            "source": meta.get("file_name") or meta.get("file_path") or "unknown",
+            "source": title,
+            "source_file": source_file,
             "metadata": meta
         })
     return results
@@ -634,7 +750,7 @@ def detect_question_type(question):
     return 'general'
 
 def detect_domain(question, profile):
-    """Detect the domain (de/ai/bi/ae) based on question content and profile."""
+    """Detect the domain (de/ai/analytics/business) based on question content and profile."""
     q = question.lower()
     
     # Domain-specific signals
@@ -643,10 +759,10 @@ def detect_domain(question, profile):
                   "vector database", "pinecone", "weaviate", "hugging face", "model training"]
     de_signals = ["spark", "pyspark", "databricks", "etl", "elt", "delta lake", "kafka", "adf", 
                   "glue", "airflow", "data pipeline", "data lake", "streaming", "event hub"]
-    ae_signals = ["dbt", "data modeling", "star schema", "fact table", "dimension table", "scd",
-                  "slowly changing dimension", "dimensional model", "analytics engineer"]
-    bi_signals = ["power bi", "tableau", "dax", "dashboard", "visualization", "stakeholder",
-                  "report", "kpi", "business intelligence", "looker", "qlik"]
+    analytics_signals = ["dbt", "data modeling", "star schema", "fact table", "dimension table", "scd",
+                         "slowly changing dimension", "dimensional model", "analytics engineer", "pyspark", "databricks"]
+    business_signals = ["power bi", "tableau", "dax", "dashboard", "visualization", "stakeholder",
+                        "report", "kpi", "business intelligence", "looker", "qlik", "business analyst"]
     
     def any_in(words):
         return any(w in q for w in words)
@@ -659,12 +775,12 @@ def detect_domain(question, profile):
         # Default bias for Krishna is AI/ML
         return "ai"
     else:  # tejuu
-        if any_in(ae_signals):
-            return "ae"
-        if any_in(bi_signals):
-            return "bi"
-        # Default bias for Tejuu is BI
-        return "bi"
+        if any_in(analytics_signals):
+            return "analytics"
+        if any_in(business_signals):
+            return "business"
+        # Default bias for Tejuu is business
+        return "business"
 
 def detect_profile(question):
     """Auto-detect which profile (krishna or tejuu) is most relevant for the question."""
@@ -704,7 +820,14 @@ def detect_profile(question):
         # Default to Krishna for ambiguous questions
         return "krishna"
 
-def answer_question(question, mode="auto", profile="auto", **kwargs):
+def answer_question(question, mode="auto", profile="auto", session_id="default", **kwargs):
+    """Main answer_question function with enhanced template system integration."""
+    
+    # Use enhanced system if available
+    if ENHANCED_AVAILABLE:
+        return answer_question_enhanced(question, mode, profile, session_id, **kwargs)
+    
+    # Fallback to legacy system
     try:
         # Auto-detect profile if not specified
         profile_auto_detected = False
@@ -718,7 +841,7 @@ def answer_question(question, mode="auto", profile="auto", **kwargs):
         # Separate domain detection from question type
         qtype = detect_question_type(question)  # intro, code, sql, interview, genai, ml, etc.
         
-        if mode in ("de", "ai", "bi", "ae"):
+        if mode in ("de", "ai", "analytics", "business"):
             # Explicit mode provided
             domain = mode
             auto_detected = False
@@ -735,39 +858,47 @@ def answer_question(question, mode="auto", profile="auto", **kwargs):
         print("Query embedding generated successfully")
         
         # Search for similar content (optimized for speed)
-        print(f"Searching for similar content for profile '{profile}'...")
-        results = _search_similar(query_embedding, top_k=2, profile=profile)  # Reduced to 2 for speed
-        print(f"Found {len(results)} relevant chunks for profile '{profile}'")
+        print(f"Searching for similar content for profile '{profile}' mode '{domain}'...")
+        results = _search_similar(query_embedding, top_k=6, profile=profile, mode=domain, query_text=question)  # Increased to 6 for better retrieval
+        print(f"Found {len(results)} relevant chunks for profile '{profile}' mode '{domain}'")
         
-        # Debug: Print the sources of the results
-        for i, result in enumerate(results):
-            print(f"Result {i+1}: Source={result.get('source', 'Unknown')}, Persona={result.get('metadata', {}).get('persona', 'Unknown')}")
+        # Debug: Print the sources of the results (reduced for performance)
+        if len(results) > 0:
+            print(f"Found {len(results)} results, top source: {results[0].get('source', 'Unknown')}")
         
-        # Build context safely with tighter length limits for speed
+        # Build context efficiently with optimized length limits
         if not results:
             context = ""
         else:
             parts = []
             total = 0
+            max_context = 1500  # Reduced for faster processing
+            max_chunk = 500     # Reduced chunk size
+            
             for r in results:
                 chunk = r["content"]
-                # Reduced chunk size for faster processing
-                if len(chunk) > 600: 
-                    chunk = chunk[:600] + "..."
+                # Truncate chunk more aggressively
+                if len(chunk) > max_chunk: 
+                    chunk = chunk[:max_chunk] + "..."
+                
+                # Create fragment more efficiently
                 frag = f"[{r['source']}] {chunk}"
-                # Reduced total context to 1800 chars (was 2400)
-                if total + len(frag) > 1800: 
+                
+                # Check if adding this fragment would exceed limit
+                if total + len(frag) > max_context: 
                     break
+                    
                 parts.append(frag)
                 total += len(frag)
+            
             context = "\n\n".join(parts)
         
-        # Debug: Print context preview
-        print(f"Context preview (first 500 chars): {context[:500]}...")
+        # Debug: Print context preview (reduced for performance)
+        print(f"Context length: {len(context)} chars")
         
         # Get prompts for the selected profile
         profile_prompts = PROMPTS.get(profile, PROMPTS["krishna"])
-        print(f"Debug: Profile='{profile}', Domain='{domain}', QType='{qtype}'")
+        print(f"Using: Profile='{profile}', Domain='{domain}', QType='{qtype}'")
         
         # Select system and user prompt based on domain and question type
         if profile == "krishna":
@@ -802,7 +933,7 @@ def answer_question(question, mode="auto", profile="auto", **kwargs):
                 else:
                     user_prompt = profile_prompts["user_de"]
         else:  # tejuu
-            if domain == "ae":
+            if domain == "analytics":
                 # Analytics Engineer Mode
                 system_prompt = profile_prompts["system_ae"]
                 
@@ -826,7 +957,7 @@ def answer_question(question, mode="auto", profile="auto", **kwargs):
                     user_prompt = profile_prompts["user_code_ae"]
                 else:
                     user_prompt = profile_prompts["user_ae"]
-            else:  # bi
+            else:  # business
                 # BI/BA Mode
                 system_prompt = profile_prompts["system_bi"]
                 
@@ -843,26 +974,28 @@ def answer_question(question, mode="auto", profile="auto", **kwargs):
         
         user_prompt = user_prompt.format(context=context, question=question)
         
-        # Get response from OpenAI (using faster model for better response time)
+        # Get response from OpenAI (optimized for speed)
         print("Generating response with OpenAI...")
         client = _get_client()
-        # Use more tokens for intro questions to allow 10-14 sentences
-        max_tokens = 1000 if qtype == "intro" else 800
+        # Optimized token limits for faster responses
+        max_tokens = 600 if qtype == "intro" else 500  # Reduced for speed
         
         response = client.chat.completions.create(
-            model="gpt-4o-mini",  # Faster and cheaper than gpt-4o
+            model="gpt-4o-mini",  # Fastest model
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            temperature=0.3,        # Sweet spot for natural but focused
-            top_p=0.92,             # Slightly tighter sampling
-            frequency_penalty=0.3,  # Reduces buzzword repetition
+            temperature=0.2,        # Lower for more focused responses
+            top_p=0.9,              # Tighter sampling for consistency
+            frequency_penalty=0.2,  # Reduced for faster generation
             presence_penalty=0.0,
-            max_tokens=max_tokens,  # 1000 for intros (10-14 sentences), 800 for regular (8-10 lines)
-            timeout=15.0,           # Reduced from 30s to 15s for faster response
-            stream=False
+            max_tokens=max_tokens,  # Optimized for speed
+            stream=False,
+            timeout=10.0  # Add timeout for faster failure
         )
+        # If your SDK version needs timeouts per-request:
+        # response = client.with_options(timeout=15.0).chat.completions.create(...)
         print("Response generated successfully")
         
         # Apply humanization post-processor
@@ -895,6 +1028,8 @@ def answer_question(question, mode="auto", profile="auto", **kwargs):
 def health_check():
     try:
         _load_data()
-        return {"ok": True, "embeddings": True, "error": None}
+        # also verify client init & key
+        _ = _get_client()
+        return {"ok": True, "embeddings": True, "openai": True, "error": None}
     except Exception as e:
-        return {"ok": False, "embeddings": False, "error": str(e)}
+        return {"ok": False, "embeddings": False, "openai": False, "error": str(e)}

@@ -1,232 +1,201 @@
-# RAG Chatbot - AI/ML & Data Engineering Assistant
+# RAG Chatbot - Interview Preparation Assistant
 
-A sophisticated Retrieval-Augmented Generation (RAG) chatbot with dual persona support for AI/ML and Data Engineering domains. Features text chat and audio-to-text transcription with intelligent query classification and context-aware responses.
+A dual-persona RAG (Retrieval-Augmented Generation) chatbot designed for interview preparation, supporting both AI/ML/Data Engineering (Krishna) and Business Intelligence/Analytics Engineering (Tejuu) profiles.
 
-## 🚀 Features
-
-- **Dual Persona Support**: Automatically classifies queries as AI/ML or Data Engineering focused
-- **Audio Input**: Record audio questions that get transcribed using OpenAI Whisper
-- **RAG Architecture**: Retrieves relevant context from knowledge base before generating responses
-- **FAISS Vector Search**: Fast similarity search using Facebook's FAISS library
-- **Modern UI**: Clean, responsive web interface with real-time chat
-- **Source Attribution**: Shows which knowledge base files influenced each response
-
-## 📁 Project Structure
+## 🏗️ Project Structure
 
 ```
 rag-chatbot/
-├── kb/                    # Knowledge base files
-│   ├── ai_ml/            # AI/ML related documents
-│   └── data_eng/         # Data Engineering documents
-├── store/                # Generated vector index and metadata
-├── frontend/             # Web UI
-│   └── index.html       # Chat interface
-├── ingest.py            # Knowledge ingestion script
-├── server.py            # FastAPI server
-├── requirements.txt     # Python dependencies
-└── .env.example        # Environment variables template
+├── api/                          # Backend API modules
+│   ├── chat.py                   # Chat endpoint handlers
+│   ├── health.py                 # Health check endpoints
+│   ├── transcribe.py             # Audio transcription
+│   ├── utils.py                  # Core RAG logic and utilities
+│   ├── embeddings.npy            # Vector embeddings
+│   ├── faiss.index              # FAISS vector index
+│   └── meta.json                # Metadata for embeddings
+├── core/                         # Core application logic
+│   ├── answer_v2.py             # Enhanced answer generation
+│   ├── enhanced_answer.py       # Template-based answering
+│   ├── memory.py                # Conversation memory
+│   ├── profile_ctx.py           # Profile context management
+│   ├── router.py                # Intent routing
+│   └── templates/               # Template system
+│       ├── fragments/           # Template fragments
+│       ├── loader.py            # Template loader
+│       ├── prompter.py          # Template processor
+│       └── registry.py          # Template registry
+├── frontend/                     # React frontend
+│   ├── src/                     # Source code
+│   ├── public/                  # Static assets
+│   ├── build/                   # Production build
+│   └── package.json             # Frontend dependencies
+├── kb_krishna/                  # Krishna's knowledge base
+│   ├── ai_ml/                   # AI/ML content
+│   └── data_engineering/        # Data Engineering content
+├── kb_tejuu/                    # Tejuu's knowledge base
+│   ├── analytics_mode/          # Analytics Engineering content
+│   └── business_mode/           # Business Intelligence content
+├── content/                     # Profile configurations
+│   ├── metrics/                 # Performance metrics
+│   └── profiles/                # Profile definitions
+├── config/                      # Deployment configurations
+│   ├── vercel.json             # Vercel deployment config
+│   ├── render.yaml             # Render deployment config
+│   ├── Procfile                # Heroku deployment config
+│   └── runtime.txt             # Python runtime version
+├── scripts/                     # Utility scripts
+│   ├── generate_embeddings.py   # Generate embeddings
+│   ├── generate_multi_profile_embeddings.py
+│   └── ingest.py               # Knowledge base ingestion
+├── tests/                       # Test files
+│   └── phase2_runner.py        # Phase 2 test runner
+├── docs/                        # Documentation
+│   └── *.md                    # All documentation files
+├── store/                       # Data storage
+│   ├── embeddings.npy          # Vector embeddings
+│   ├── faiss.index             # FAISS vector index
+│   └── meta.json               # Metadata
+├── server.py                    # Main FastAPI server (local dev)
+├── render_app.py               # Render deployment server
+├── requirements.txt            # Python dependencies
+└── build.sh                    # Build script
 ```
 
-## 🛠️ Setup Instructions
+## 🚀 Quick Start
 
-**Requires Python 3.9 or higher**
+### Local Development
 
-### 1. Install Dependencies
+1. **Install Dependencies**
+   ```bash
+   # Backend
+   pip install -r requirements.txt
+   
+   # Frontend
+   cd frontend
+   npm install
+   ```
 
+2. **Set Environment Variables**
+   ```bash
+   export OPENAI_API_KEY="your-openai-api-key"
+   ```
+
+3. **Start the Application**
+   ```bash
+   # Start backend server
+   python server.py
+   
+   # In another terminal, start frontend
+   cd frontend
+   npm start
+   ```
+
+4. **Access the Application**
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:8000
+
+### Production Deployment
+
+#### Render Deployment
 ```bash
-pip install -r requirements.txt
+# Uses render_app.py and config/render.yaml
+# Automatically builds frontend and serves both
 ```
 
-### 2. Configure Environment
-
+#### Vercel Deployment
 ```bash
-cp .env.example .env
-# Edit .env and add your OpenAI API key
+# Frontend only - uses config/vercel.json
+# Backend should be deployed separately
 ```
 
-Example `.env` file:
-```bash
-OPENAI_API_KEY=your_openai_api_key_here
-EMBEDDING_MODEL=text-embedding-3-small
-CHAT_MODEL=gpt-4o
-```
+## 🎯 Features
 
-### 3. Add Knowledge Base Files
+### Dual Persona Support
+- **Krishna**: AI/ML Engineer & Data Engineer
+- **Tejuu**: Business Intelligence Developer & Analytics Engineer
 
-Place your `.md` or `.txt` files in the appropriate directories:
-- `kb/ai_ml/` - AI/ML related documents
-- `kb/data_eng/` - Data Engineering documents
+### Intelligent Routing
+- Auto-detects question type and domain
+- Routes to appropriate persona and mode
+- Supports manual profile/mode selection
 
-Files can include YAML frontmatter for tags:
-```markdown
----
-tags: [rag, embeddings, vector-db]
----
+### Advanced RAG
+- Vector similarity search with FAISS
+- Context-aware retrieval
+- Citation support with source tracking
 
-Your content here...
-```
+### Template System
+- Structured response generation
+- Follow-up question detection
+- Humanized conversation flow
 
-### 4. Ingest Knowledge Base
+### Audio Support
+- Voice input via OpenAI Whisper
+- Real-time transcription
 
-```bash
-python ingest.py
-```
-
-This will:
-- Read all files from `kb/ai_ml/` and `kb/data_eng/`
-- Chunk the text with overlapping windows
-- Generate embeddings using OpenAI
-- Build a FAISS vector index
-- Save index and metadata to `store/`
-
-### 5. Start the Server
-
-```bash
-uvicorn server:app --reload --port 8000
-```
-
-### 6. Open the Frontend
-
-Open `frontend/index.html` in your browser or serve it with a simple HTTP server:
-
-```bash
-cd frontend
-python -m http.server 3000
-```
-
-Then visit `http://localhost:3000`
-
-## 🎯 Usage
-
-### Text Chat
-1. Type your question in the input field
-2. Select mode: Auto, AI/ML Focus, or Data Engineering Focus
-3. Click Send or press Enter
-
-### Audio Input
-1. Click the Record button
-2. Speak your question
-3. Click Stop to transcribe
-4. Review the transcript and click "Use This" or let it auto-send
-
-### Mode Selection
-- **Auto**: Server automatically classifies your query as AI/ML or Data Engineering
-- **AI/ML Focus**: Forces responses to use AI/ML persona and knowledge
-- **Data Engineering Focus**: Forces responses to use Data Engineering persona and knowledge
-
-## 🔧 API Endpoints
-
-### POST /chat
-Main chat endpoint with RAG functionality.
-
-**Request:**
-```json
-{
-  "message": "How do I optimize a PySpark DataFrame?",
-  "mode": "auto",
-  "conversation_history": []
-}
-```
-
-**Response:**
-```json
-{
-  "answer": "To optimize a PySpark DataFrame...",
-  "sources": [
-    {
-      "file": "databricks_pyspark.md",
-      "preview": "PySpark performance optimization strategies..."
-    }
-  ],
-  "mode_used": "de"
-}
-```
-
-### POST /transcribe
-Transcribe audio using OpenAI Whisper.
-
-**Request:** Multipart form with audio file
-
-**Response:**
-```json
-{
-  "transcript": "How do I set up a data pipeline?"
-}
-```
-
-## 🧠 How It Works
-
-1. **Knowledge Ingestion**: Documents are chunked and embedded using OpenAI's embedding model
-2. **Query Classification**: Incoming queries are classified as AI/ML or Data Engineering focused
-3. **Retrieval**: FAISS searches for relevant chunks based on semantic similarity
-4. **Context Building**: Retrieved chunks are combined with persona-specific prompts
-5. **Generation**: GPT-4 generates responses grounded in the retrieved context
-6. **Response**: Returns answer, sources, and mode used
-
-## 🔄 Updating Knowledge
-
-1. Add or edit files in `kb/ai_ml/` or `kb/data_eng/`
-2. Re-run `python ingest.py` to rebuild the index
-3. Restart the server: `uvicorn server:app --reload --port 8000`
-
-**Quick update command:**
-```bash
-python ingest.py && uvicorn server:app --reload --port 8000
-```
-
-## 🛡️ Security Considerations
-
-- Set up proper CORS origins in production
-- Add authentication tokens for API endpoints
-- Validate and sanitize all user inputs
-- Implement rate limiting for API calls
-- Use environment variables for sensitive configuration
-
-## 🚀 Production Deployment
-
-### Docker Deployment
-```dockerfile
-FROM python:3.9-slim
-
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-
-COPY . .
-EXPOSE 8000
-
-CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8000"]
-```
+## 🔧 Configuration
 
 ### Environment Variables
+- `OPENAI_API_KEY`: Required for OpenAI API access
+- `RETRIEVAL_TOPK`: Number of top results to retrieve (default: 6)
+- `USE_LLM`: Enable/disable LLM generation (default: false)
+
+### Profile Configuration
+- Profiles defined in `content/profiles/`
+- Metrics tracked in `content/metrics/`
+
+## 📚 Knowledge Base
+
+### Krishna's Knowledge Base (`kb_krishna/`)
+- AI/ML topics: RAG systems, LangChain, ML pipelines
+- Data Engineering: PySpark, Databricks, ETL/ELT patterns
+
+### Tejuu's Knowledge Base (`kb_tejuu/`)
+- Analytics Engineering: dbt, data modeling, cloud platforms
+- Business Intelligence: Power BI, Tableau, stakeholder management
+
+## 🧪 Testing
+
+Run the Phase 2 test suite:
 ```bash
-OPENAI_API_KEY=your_api_key
-EMBEDDING_MODEL=text-embedding-3-small
-CHAT_MODEL=gpt-4o
+export API_URL="http://localhost:8000"
+python tests/phase2_runner.py
 ```
 
-## 📊 Performance Optimization
+## 📖 Documentation
 
-- **Chunking**: Optimize chunk size (default: 1000 tokens) and overlap (default: 200 tokens)
-- **Embeddings**: Use appropriate embedding model for your domain
-- **Caching**: Cache frequently accessed embeddings and responses
-- **Indexing**: Regularly optimize FAISS index for better performance
+All documentation is organized in the `docs/` folder:
+- Deployment guides
+- Feature documentation
+- Quality reports
+- Interview preparation guides
 
-## 🤝 Contributing
+## 🔄 Development Workflow
 
-1. Fork the repository
-2. Create a feature branch
-3. Add your knowledge base files or improvements
-4. Test your changes
-5. Submit a pull request
+1. **Add Knowledge Base Content**
+   - Add markdown files to appropriate `kb_*/` directory
+   - Run `python scripts/generate_embeddings.py` to update embeddings
+
+2. **Update Templates**
+   - Modify templates in `core/templates/fragments/`
+   - Update template registry as needed
+
+3. **Test Changes**
+   - Use `tests/phase2_runner.py` for comprehensive testing
+   - Test both local and production deployments
+
+## 🚀 Deployment
+
+### Local Development
+- Use `server.py` for full-stack development
+- Frontend runs on port 3000, backend on port 8000
+
+### Production
+- **Render**: Uses `render_app.py` with `config/render.yaml`
+- **Vercel**: Frontend-only with `config/vercel.json`
+- **Heroku**: Uses `config/Procfile`
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🙏 Acknowledgments
-
-- OpenAI for GPT and Whisper APIs
-- Facebook AI Research for FAISS
-- FastAPI for the web framework
-- The open-source community for various libraries
+MIT License - see LICENSE file for details

@@ -1,0 +1,23 @@
+Answer in 6–8 lines using first person, warm but professional tone.
+Follow this framework:
+
+1) Who I am (title + domain + years)
+2) Core skill area (stack / focus)
+3) 1–2 key projects (what problem, what you built, quick result)
+4) Breadth (cross-functional, mentoring, business impact)
+5) Current focus + what excites me next
+
+REQUIREMENTS:
+- Use exact company names from Context (Walgreens, Central Bank, Stryker, etc.)
+- Include specific technologies and tools from Context
+- Mention 1-2 concrete projects with brief outcomes
+- Speak like you work there, not like you're describing it to outsiders
+- Use "I" statements throughout
+- Keep it conversational and confident
+
+Context:
+${retrieved_facts}
+
+Q: ${question}
+
+A: Start directly with your introduction. Do NOT repeat the question. Use the exact company name and speak as if you work there.

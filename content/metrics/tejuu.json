@@ -1,0 +1,19 @@
+{
+  "profile_id": "tejuu",
+  "projects": {
+    "stryker_finreg": {
+      "modes": ["ae"],
+      "runtime_reduction_pct": 45,
+      "cost_reduction_pct": 22,
+      "dq_defects_reduction_pct": 25,
+      "standardization_benefit": "Bronze/Silver/Gold enabled self-service access",
+      "notes": "Partition tuning, caching, Delta; dbt tests for DQ"
+    },
+    "cbank_reporting": {
+      "modes": ["bi"],
+      "dashboard_latency_reduction_pct": 35,
+      "onboarding_time_reduction_pct": 30,
+      "notes": "Power BI semantic models; Synapse views; governed access"
+    }
+  }
+}

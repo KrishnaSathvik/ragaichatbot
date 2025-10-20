@@ -1,0 +1,326 @@
+version: 1
+
+defaults:
+  # Used when an intent isn't found
+  fallback_intent: general
+  base_dir: core/templates/fragments
+  target_words_low: 110
+  target_words_high: 180
+
+templates:
+  - id: technical_architecture
+    file: technical_architecture.txt
+    target_words_low: 110
+    target_words_high: 180
+    variables: [profile_name, domain, tools, retrieved_facts, question, project_name, metrics]
+    requires: [retrieved_facts]
+    aliases:
+      - arch
+      - system_design
+      - rag_architecture
+      - pipeline_design
+      - request_path
+      - architecture
+
+  - id: metrics_performance
+    file: metrics_performance.txt
+    target_words_low: 110
+    target_words_high: 170
+    variables: [profile_name, domain, tools, retrieved_facts, question, metrics]
+    requires: [retrieved_facts]
+    aliases:
+      - metrics
+      - performance
+      - results
+      - kpis
+      - latency
+      - accuracy
+
+  - id: followup_drilldown
+    file: followup_drilldown.txt
+    target_words_low: 90
+    target_words_high: 150
+    variables: [profile_name, domain, tools, retrieved_facts, question, prior_point]
+    requires: [retrieved_facts]
+    aliases:
+      - followup
+      - follow_up
+      - drilldown
+      - elaborate
+      - more_detail
+      - building_on
+
+  - id: documentation_process
+    file: documentation_process.txt
+    target_words_low: 110
+    target_words_high: 170
+    variables: [profile_name, domain, tools, retrieved_facts, question, project_name]
+    requires: [retrieved_facts]
+    aliases:
+      - docs
+      - documentation
+      - process
+      - runbook
+      - design_doc
+      - ci_cd
+      - governance
+
+  - id: collaboration_leadership
+    file: collaboration_leadership.txt
+    target_words_low: 110
+    target_words_high: 180
+    variables: [profile_name, domain, tools, retrieved_facts, question]
+    requires: []
+    aliases:
+      - collaboration
+      - leadership
+      - teamwork
+      - stakeholder_management
+      - communication
+      - handoff
+
+  - id: domain_understanding
+    file: domain_understanding.txt
+    target_words_low: 110
+    target_words_high: 180
+    variables: [profile_name, domain, tools, retrieved_facts, question, project_name]
+    requires: [retrieved_facts]
+    aliases:
+      - domain
+      - conceptual
+      - understanding
+      - rationale
+      - principles
+
+  - id: tool_adaptation
+    file: tool_adaptation.txt
+    target_words_low: 110
+    target_words_high: 170
+    variables: [profile_name, domain, tools, retrieved_facts, question]
+    requires: []
+    aliases:
+      - tooling
+      - framework_choice
+      - migration
+      - adaptation
+      - platform_switch
+
+  - id: project_storytelling
+    file: project_storytelling.txt
+    target_words_low: 120
+    target_words_high: 190
+    variables: [profile_name, domain, tools, retrieved_facts, question, project_name, metrics]
+    requires: [retrieved_facts]
+    aliases:
+      - star
+      - story
+      - project_story
+      - behavioral
+
+  - id: learning_reflection
+    file: learning_reflection.txt
+    target_words_low: 110
+    target_words_high: 170
+    variables: [profile_name, domain, tools, retrieved_facts, question]
+    requires: []
+    aliases:
+      - reflection
+      - lesson
+      - mistake
+      - growth
+
+  # Special intro template for comprehensive introductions
+  - id: intro
+    file: general.txt
+    target_words_low: 160
+    target_words_high: 230
+    variables: [profile_name, domain, tools, retrieved_facts, question, project_name, metrics]
+    requires: []
+    aliases:
+      - introduction
+      - tell_me_about_yourself
+      - background
+      - personal_intro
+
+  # General conversational template (simple questions)
+  - id: general
+    file: general.txt
+    target_words_low: 100
+    target_words_high: 150
+    variables: [profile_name, domain, tools, retrieved_facts, question, project_name, metrics]
+    requires: []
+    aliases:
+      - default
+      - misc
+      - other
+      - role
+
+  # NEW: Specific question type templates
+  - id: intro_role
+    file: intro_role.txt
+    target_words_low: 80
+    target_words_high: 120
+    variables: [profile_name, domain, tools, retrieved_facts, question]
+    requires: []
+    aliases:
+      - introduction
+      - tell_me_about_yourself
+      - background
+      - current_role
+
+  - id: project_overview
+    file: project_overview.txt
+    target_words_low: 100
+    target_words_high: 140
+    variables: [profile_name, domain, tools, retrieved_facts, question, project_name]
+    requires: [retrieved_facts]
+    aliases:
+      - project_explanation
+      - what_did_you_build
+      - project_description
+
+  - id: project_how
+    file: project_how.txt
+    target_words_low: 120
+    target_words_high: 180
+    variables: [profile_name, domain, tools, retrieved_facts, question, project_name]
+    requires: [retrieved_facts]
+    aliases:
+      - implementation
+      - how_did_you
+      - technical_steps
+      - build_process
+
+  - id: project_why_tradeoffs
+    file: project_why_tradeoffs.txt
+    target_words_low: 100
+    target_words_high: 160
+    variables: [profile_name, domain, tools, retrieved_facts, question]
+    requires: [retrieved_facts]
+    aliases:
+      - decision_making
+      - trade_offs
+      - why_choices
+      - alternatives
+
+  - id: architecture_system
+    file: architecture_system.txt
+    target_words_low: 110
+    target_words_high: 180
+    variables: [profile_name, domain, tools, retrieved_facts, question, project_name]
+    requires: [retrieved_facts]
+    aliases:
+      - system_design
+      - architecture_overview
+      - components
+      - high_level_design
+
+  - id: monitoring_tools
+    file: monitoring_tools.txt
+    target_words_low: 80
+    target_words_high: 120
+    variables: [profile_name, domain, tools, retrieved_facts, question]
+    requires: [retrieved_facts]
+    aliases:
+      - monitoring
+      - tools_monitoring
+      - monitoring_system
+      - performance_monitoring
+
+  - id: debug_perf
+    file: debug_perf.txt
+    target_words_low: 100
+    target_words_high: 160
+    variables: [profile_name, domain, tools, retrieved_facts, question]
+    requires: [retrieved_facts]
+    aliases:
+      - debugging
+      - troubleshooting
+      - performance_issue
+      - incident_response
+
+  - id: tool_migration
+    file: tool_migration.txt
+    target_words_low: 100
+    target_words_high: 160
+    variables: [profile_name, domain, tools, retrieved_facts, question]
+    requires: [retrieved_facts]
+    aliases:
+      - migration
+      - tool_switch
+      - platform_change
+      - replatforming
+
+  - id: coding_sql
+    file: coding_sql.txt
+    target_words_low: 60
+    target_words_high: 120
+    variables: [profile_name, domain, tools, retrieved_facts, question]
+    requires: [retrieved_facts]
+    aliases:
+      - code_example
+      - sql_query
+      - programming
+      - code_snippet
+
+  - id: governance_lineage
+    file: governance_lineage.txt
+    target_words_low: 100
+    target_words_high: 160
+    variables: [profile_name, domain, tools, retrieved_facts, question, project_name]
+    requires: [retrieved_facts]
+    aliases:
+      - data_governance
+      - lineage
+      - compliance
+      - rls
+      - certified_datasets
+
+  - id: scenario_runbook
+    file: scenario_runbook.txt
+    target_words_low: 120
+    target_words_high: 200
+    variables: [profile_name, domain, tools, retrieved_facts, question, project_name]
+    requires: [retrieved_facts]
+    aliases:
+      - runbook
+      - incident_response
+      - scenario
+      - on_call
+      - emergency
+
+  - id: coding_python
+    file: coding_python.txt
+    target_words_low: 60
+    target_words_high: 120
+    variables: [profile_name, domain, tools, retrieved_facts, question]
+    requires: [retrieved_facts]
+    aliases:
+      - python_code
+      - pandas
+      - pyspark
+      - spark_code
+
+  - id: coding_dax
+    file: coding_dax.txt
+    target_words_low: 60
+    target_words_high: 120
+    variables: [profile_name, domain, tools, retrieved_facts, question]
+    requires: [retrieved_facts]
+    aliases:
+      - dax_measure
+      - power_bi
+      - measure
+      - dax_code
+
+  - id: behavioral_star
+    file: behavioral_star.txt
+    target_words_low: 80
+    target_words_high: 140
+    variables: [profile_name, domain, tools, retrieved_facts, question]
+    requires: [retrieved_facts]
+    aliases:
+      - star_method
+      - behavioral
+      - situation_task_action_result
+      - conflict_resolution

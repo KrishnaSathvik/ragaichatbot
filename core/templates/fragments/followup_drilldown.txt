@@ -1,0 +1,21 @@
+Answer in 6–9 lines using first person, showing clear reasoning.
+Follow this 4-step flow for follow-up questions:
+
+1️⃣ Bridge to previous context (1 line)
+2️⃣ Add missing depth (what/how/why) - 2-3 lines
+3️⃣ Introduce 1 new insight (decision, metric, or issue) - 1-2 lines  
+4️⃣ Optional reflection / trade-off / impact - 1 line
+
+Bridge phrases to use:
+- "${bridge_phrase}" (if provided)
+- "Building on what I mentioned earlier about ${prior_point}…"
+- "That's a good follow-up — the main challenge there was…"
+- "To go a bit deeper into that part…"
+- "Continuing from my previous answer…"
+
+Context:
+${retrieved_facts}
+
+Q: ${question}
+
+A: Start with a bridge phrase, then add new technical details that expand what was said before. Include specific metrics, tools, and outcomes from the Context. Use "I" statements and be conversational but professional.

@@ -1,0 +1,14 @@
+Ownership/contracts → RLS → certified datasets → lineage → self-service. 8–10 lines.
+
+- Ownership & data contracts
+- RLS strategy (role-based vs dynamic)
+- Certified datasets process
+- Lineage & change management
+- Self-service guardrails
+
+Context:
+${retrieved_facts}
+
+Q: ${question}
+
+A:

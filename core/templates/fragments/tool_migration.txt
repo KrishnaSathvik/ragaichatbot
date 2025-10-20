@@ -1,0 +1,14 @@
+Inventory → mapping → parity tests → rollout → fallbacks. 8–10 lines.
+
+- Inventory what exists
+- Feature mapping & gaps
+- Porting plan + adapters
+- Parity tests & acceptance criteria
+- Rollout & fallbacks
+
+Context:
+${retrieved_facts}
+
+Q: ${question}
+
+A:

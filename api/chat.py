@@ -29,12 +29,13 @@ def handler(event, context):
         query = body.get('message', '').strip()
         mode = body.get('mode', 'auto')
         profile = body.get('profile', 'krishna')  # Get profile parameter
+        session_id = body.get('session_id', 'default')  # Get session_id for conversation memory
         
         if not query:
             return handler_response({'error': 'Message is required'}, 400)
         
-        # Use the answer_question function with profile and mode
-        result = answer_question(query, mode=mode, profile=profile)
+        # Use the answer_question function with profile, mode, and session_id
+        result = answer_question(query, mode=mode, profile=profile, session_id=session_id)
         
         if 'error' in result:
             return handler_response({'error': result['error']}, 400)

@@ -12,5 +12,8 @@ npm install
 npm run build
 cd ..
 
+echo "==> Generating embeddings..."
+python3 scripts/setup_embeddings.py
+
 echo "==> Build completed successfully!"
 

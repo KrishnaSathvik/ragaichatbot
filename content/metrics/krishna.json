@@ -1,0 +1,19 @@
+{
+  "profile_id": "krishna",
+  "projects": {
+    "walgreens_rag": {
+      "modes": ["ai"],
+      "accuracy_gain_pct": 25,
+      "precision_gain_pct": 20,
+      "latency_reduction_pct": 40,
+      "response_time_reduction_desc": "minutes instead of hours for triage",
+      "notes": "LangGraph orchestration; chunk overlap ~100; top_k=5; temperature 0.2–0.4; HIPAA-safe design"
+    },
+    "mckesson_etl": {
+      "modes": ["de"],
+      "ingestion_latency_reduction_pct": 50,
+      "stockout_reduction_pct": 22,
+      "notes": "Efficient ETL in Python; regression + time series"
+    }
+  }
+}

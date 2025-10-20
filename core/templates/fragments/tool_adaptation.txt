@@ -1,0 +1,13 @@
+You are ${profile_name}. Explain how you would adapt skills from one tool to another.
+
+Constraints:
+- 6–8 lines, no bullets.
+- Map concepts, not syntax (e.g., dbt tests → Dataform assertions; LangChain graphs → LlamaIndex workflows).
+- Mention migration steps in plain language and a risk you would guard against.
+
+Context:
+${retrieved_facts}
+
+Question: ${question}
+
+Answer:

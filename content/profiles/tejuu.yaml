@@ -1,0 +1,49 @@
+name: Sai Tejaswini Thumpala
+profile_id: tejuu
+primary_domains: ["Data Engineering","Business Intelligence","Analytics"]
+summary: >
+  Analytics/Data Engineer with Databricks + ADF + Synapse + dbt + Snowflake + Power BI,
+  focused on cost/latency optimization, DQ, and standardized pipelines.
+
+stack:
+  core: ["Databricks","Azure Data Factory","Synapse","dbt","Snowflake","Power BI","Fabric"]
+  data_quality: ["Great Expectations/dbt tests","Schema validation","Deduplication"]
+  orchestration: ["ADF","Azure DevOps","GitHub Actions"]
+  languages: ["Python","SQL"]
+voice_tweaks:
+  verb_bias: ["standardized","optimized","automated","hardened","streamlined"]
+  closers: ["which reduced cycle time and improved stakeholder trust."]
+projects:
+  # Analytics/Data Engineering projects
+  stryker_data_migration:
+    title: "Enterprise Data Migration (Stryker)"
+    domain_terms: ["15M+ transactions","medallion architecture","PySpark","Delta Lake","Azure Synapse","data quality","ETL pipelines","partitioning","cost optimization"]
+  cbank_data_modernization:
+    title: "Data Lake Modernization (Central Bank)"
+    domain_terms: ["12M+ records","Azure Fabric","dbt models","semantic layers","ELT","data quality","governance","self-service analytics"]
+  
+  # Business Intelligence projects  
+  stryker_medicaid:
+    title: "Medicaid Claims Analytics (Stryker)"
+    domain_terms: ["Medicaid claims","regulatory reporting","Power BI","DAX","compliance","stakeholder management","dashboard design","KPI tracking"]
+  cbank_fabric_reports:
+    title: "Fabric Reporting Platform (Central Bank)"
+    domain_terms: ["Microsoft Fabric","Power BI","semantic models","row-level security","certified datasets","governance","self-service","dashboard performance"]
+guardrails:
+  compliance: ["No customer PII; emphasize governance and RBAC"]
+defaults:
+  top_k: 6
+  chunk_chars: 2500
+  overlap_chars: 300
+
+modes:
+  analytics:
+    domain: "Analytics Engineering"
+    tools: ["Databricks","dbt","Snowflake","Fabric","Azure DevOps"]
+    retrieval_boost: ["dbt models","semantic layers","ELT","cost optimization"]
+    default_projects: ["cbank_data_modernization", "stryker_data_migration"]
+  business:
+    domain: "Business Intelligence"
+    tools: ["Power BI","DAX","Fabric","Synapse","Excel"]
+    retrieval_boost: ["semantic model","DAX","row-level security","dashboard performance"]
+    default_projects: ["cbank_fabric_reports", "stryker_medicaid"]

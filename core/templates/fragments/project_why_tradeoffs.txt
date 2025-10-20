@@ -1,0 +1,14 @@
+Compare options, criteria, decision, and "when I'd switch." 6–8 lines.
+
+- Options compared (X vs Y)
+- Criteria (cost/latency/ops/security/governance)
+- Decision & why for this context
+- Trade-offs accepted
+- When I'd pick the alternative
+
+Context:
+${retrieved_facts}
+
+Q: ${question}
+
+A:
