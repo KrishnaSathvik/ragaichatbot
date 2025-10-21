@@ -11,6 +11,20 @@ FOLLOWUP_HINT_KEYWORDS = {"chunk overlap","chunk-overlap","hybrid retrieval","se
 
 # Stronger intent routing - ordered by specificity (first match wins)
 INTENT_RULES = [
+    # --- emergency & operational scenarios (highest priority) ---
+    ("emergency_scenarios", re.compile(r"\b(critical.*failed.*am|pipeline.*failed.*am|failed.*at.*am|2\s*am|3\s*am|4\s*am|5\s*am|midnight|late night|after hours|off hours|weekend|holiday|emergency|urgent|immediate|asap|right now|immediately)\b", re.I)),
+    ("operational_issues", re.compile(r"\b(business.*complaining|stakeholder.*upset|customer.*impact|revenue.*impact|production.*down|system.*down|service.*outage|data.*breach|security.*incident|compliance.*issue|reduce.*costs|infrastructure.*costs|regulation.*requires)\b", re.I)),
+    
+    # --- case study & design questions (high priority) ---
+    ("case_study_design", re.compile(r"\b(how would you design|design.*architecture|create.*system|build.*solution|architect.*solution|design.*pipeline|design.*data.*platform|design.*analytics.*system|design.*data.*architecture|design.*for.*company|design.*for.*retail|design.*for.*healthcare)\b", re.I)),
+    ("case_study_optimization", re.compile(r"\b(our.*is slow|optimize.*system|improve.*performance|fix.*issue|our.*data.*warehouse.*slow|our.*pipeline.*slow|our.*system.*slow|performance.*problem|bottleneck.*issue)\b", re.I)),
+    ("case_study_migration", re.compile(r"\b(migrate.*from|migration.*from|move.*from.*to|transition.*from|upgrade.*from|modernize.*from|cloud.*migration|data.*migration|system.*migration)\b", re.I)),
+    
+    # --- follow-up & clarification questions (high priority) ---
+    ("followup_clarification", re.compile(r"\b(can you elaborate|more details|what happened next|explain further|tell me more|go deeper|expand on|clarify|elaborate|drill down|dive deeper)\b", re.I)),
+    ("followup_measurement", re.compile(r"\b(how did you measure|measure.*success|success.*metrics|kpi|roi|business.*impact|results.*achieved|outcome.*measured|quantify.*results|measure.*outcome|measure.*results|success.*measurement)\b", re.I)),
+    ("followup_alternatives", re.compile(r"\b(what would you do differently|do differently|alternative.*approach|other.*options|different.*way|better.*approach|improve.*next.*time|would.*do.*differently|alternative.*way|different.*approach)\b", re.I)),
+    
     # --- coding first (ask-first category) ---
     ("coding_dax", re.compile(r"\b(dax|measure\s|power\s+bi\s+measure|rolling.*dax|dax\s+measure)\b", re.I)),
     ("coding_python", re.compile(r"\b(python\s+code|write\s+python|show\s+python|pandas\s+code|numpy\s+code|dataframe\s+code)\b", re.I)),
@@ -21,14 +35,23 @@ INTENT_RULES = [
     ("behavioral_star", re.compile(r"\b(tell\s+me\s+about\s+a\s+time|star|situation\s+task\s+action\s+result|conflict|stakeholder|challenge|difficult|deadline)\b", re.I)),
     
     # --- project & architecture ---
-    ("project_how", re.compile(r"\b(walk\s+me\s+through|how\s+did\s+you\s+build|how\s+did\s+you\s+design|how\s+did\s+you\s+implement|steps\s+you\s+took|cut.*runtime|walk\s+the\s+steps|how\s+did\s+you\s+optimize|how\s+did\s+you\s+improve)\b", re.I)),
-    ("project_overview", re.compile(r"\b(explain\s+your\s+project|what\s+did\s+you\s+build|project\s+you\s+shipped|who\s+used\s+it|what\s+problem\s+did\s+it\s+solve|overview|high[-\s]?level|business\s+problem|problem\s+and\s+outcome|outcome\s+in\s+your|what\s+project|project\s+did\s+you|project\s+are\s+you|project\s+you\s+work|project\s+you\s+worked)\b", re.I)),
-    ("project_why_tradeoffs", re.compile(r"\b(why\s+.*\s+over\s+.*|trade[-\s]?off|tradeoffs|compare|versus|pros\s+and\s+cons|why\s+.*\s+instead\s+of|alternatives)\b", re.I)),
-    ("architecture_system", re.compile(r"\b(end[-\s]?to[-\s]?end|system\s+architecture|components|ingestion[→>]|retriever[→>]|bronze/silver/gold|architecture|overall\s+design)\b", re.I)),
+    ("architecture_system", re.compile(r"\b(end[-\s]?to[-\s]?end|system\s+architecture|components\s+overview|components\s+of\s+the\s+system|ingestion[→>]|retriever[→>]|bronze/silver/gold|architecture|overall\s+design|why\s+.*\s+architecture|implement.*architecture)\b", re.I)),
+    ("project_how", re.compile(r"\b(walk\s+me\s+through|how\s+did\s+you\s+build|how\s+did\s+you\s+design|how\s+did\s+you\s+implement|steps\s+you\s+took|cut.*runtime|walk\s+the\s+steps|how\s+did\s+you\s+optimize|how\s+did\s+you\s+improve|explain\s+how\s+you\s+built|how\s+you\s+built)\b", re.I)),
+    ("project_overview", re.compile(r"\b(explain\s+your\s+project|what\s+did\s+you\s+build|project\s+you\s+shipped|who\s+used\s+it|what\s+problem\s+did\s+it\s+solve|overview|high[-\s]?level|business\s+problem|problem\s+and\s+outcome|outcome\s+in\s+your|what\s+project|project\s+did\s+you|project\s+are\s+you|project\s+you\s+work|project\s+you\s+worked|explain.*project|your\s+project)\b", re.I)),
+    ("project_why_tradeoffs", re.compile(r"\b(why\s+.*\s+over\s+.*|trade[-\s]?off|tradeoffs|trade[-\s]?offs\s+in\s+your\s+approach|compare|versus|pros\s+and\s+cons|why\s+.*\s+instead\s+of|alternatives|why\s+did\s+you\s+choose|why\s+is.*better|why\s+.*\s+over)\b", re.I)),
+    
+    # --- tech stack & experience ---
+    ("tech_stack_experience", re.compile(r"\b(what\s+is\s+your\s+tech\s+stack|tech\s+stack\s+experience|what\s+tools\s+do\s+you\s+use\s+for\s+(data\s+processing|development|analytics)|tools\s+you\s+use\s+for\s+(data\s+processing|development|analytics)|your\s+tech\s+stack|explain\s+your\s+experience|your\s+experience\s+with|experience\s+with)\b", re.I)),
+    ("approach_methodology", re.compile(r"\b(what\s+is\s+your\s+approach|your\s+approach|explain\s+your\s+approach|methodology|how\s+do\s+you\s+approach|your\s+methodology)\b", re.I)),
+    ("challenges_learnings", re.compile(r"\b(what\s+challenges|challenges\s+did\s+you\s+face|challenges\s+you\s+face|what\s+problems|problems\s+you\s+face|difficulties|obstacles|lessons\s+learned|what\s+did\s+you\s+learn)\b", re.I)),
     
     # --- scenarios & debugging ---
-    ("scenario_runbook", re.compile(r"\b(on[-\s]?call|runbook|incident|scenario|outage|plan\s+of\s+attack|what\s+would\s+you\s+do)\b", re.I)),
-    ("monitoring_tools", re.compile(r"\b(what\s+tools.*monitor|monitoring\s+tools|tools\s+for\s+monitoring|monitor.*performance|monitoring.*pipeline|monitoring.*system)\b", re.I)),
+    ("scenario_runbook", re.compile(r"\b(on[-\s]?call|runbook|incident|scenario|outage|plan\s+of\s+attack|what\s+would\s+you\s+do|what\s+should\s+I\s+do|how\s+do\s+I\s+fix|troubleshoot|handle\s+this\s+issue|what\s+steps\s+would\s+you\s+take|my\s+.*\s+is\s+(slow|failing|down|broken)|fix\s+.*\s+issue|resolve\s+.*\s+problem|solve\s+.*\s+issue|.*\s+is\s+taking\s+too\s+long.*impacting.*business|.*\s+is\s+impacting.*business.*operations|.*\s+is\s+causing.*delays.*in.*reporting)\b", re.I)),
+    ("scenario_troubleshooting", re.compile(r"\b(troubleshoot|debug|fix|resolve|handle|solve)\b.*\b(issue|problem|error|failure|slow|down|broken|not\s+working)\b", re.I)),
+    ("scenario_optimization", re.compile(r"\b(optimize|improve|speed\s+up|make\s+faster|reduce\s+time|performance\s+issue|slow\s+.*\s+job|bottleneck)\b", re.I)),
+    ("scenario_data_quality", re.compile(r"\b(data\s+quality.*error|quality.*error|data\s+quality.*issue|quality.*issue|data\s+quality.*problem|quality.*problem|failing.*with.*data\s+quality|data\s+quality.*failing|poor.*data\s+quality|data\s+quality.*poor)\b", re.I)),
+    
+    ("monitoring_tools", re.compile(r"\b(what\s+tools.*monitor|monitoring\s+tools|tools\s+for\s+monitoring|monitor.*performance|monitoring.*pipeline|monitoring.*system|what\s+tools\s+do\s+you\s+use\s+for\s+monitoring)\b", re.I)),
     ("debug_perf", re.compile(r"\b(p95|latency\s+spike|skew|shuffle|slow\s+model|slow\s+job|optimize|debug|bottleneck|performance|troubleshoot)\b", re.I)),
     
     # --- governance / lineage (BI/AE) ---

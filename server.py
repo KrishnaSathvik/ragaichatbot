@@ -53,7 +53,7 @@ class ChatResponse(BaseModel):
     answer: str
     intent: Optional[str] = None
     confidence: Optional[float] = None
-    template_used: Optional[bool] = None
+    template_used: Optional[str] = None
     latency_ms: Optional[int] = None
     sources: Optional[List[Dict[str, Any]]] = None
     citations: Optional[List[int]] = None

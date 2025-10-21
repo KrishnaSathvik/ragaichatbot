@@ -289,6 +289,182 @@ templates:
       - on_call
       - emergency
 
+  - id: scenario_troubleshooting
+    file: scenario_runbook.txt
+    target_words_low: 120
+    target_words_high: 200
+    variables: [profile_name, domain, tools, retrieved_facts, question, project_name]
+    requires: [retrieved_facts]
+    aliases:
+      - troubleshooting
+      - debugging
+      - fixing_issues
+      - problem_solving
+
+  - id: scenario_optimization
+    file: scenario_runbook.txt
+    target_words_low: 120
+    target_words_high: 200
+    variables: [profile_name, domain, tools, retrieved_facts, question, project_name]
+    requires: [retrieved_facts]
+    aliases:
+      - optimization
+      - performance_improvement
+      - speed_up
+      - efficiency
+
+  - id: scenario_data_quality
+    file: scenario_runbook.txt
+    target_words_low: 120
+    target_words_high: 200
+    variables: [profile_name, domain, tools, retrieved_facts, question, project_name]
+    requires: [retrieved_facts]
+    aliases:
+      - data_quality_issues
+      - quality_errors
+      - data_quality_problems
+      - quality_troubleshooting
+
+  - id: tech_stack_experience
+    file: project_overview.txt
+    target_words_low: 120
+    target_words_high: 180
+    variables: [profile_name, domain, tools, retrieved_facts, question, project_name, metrics]
+    requires: [retrieved_facts]
+    aliases:
+      - tech_stack
+      - tools_experience
+      - technology_experience
+      - skills_experience
+
+  - id: approach_methodology
+    file: project_how.txt
+    target_words_low: 120
+    target_words_high: 180
+    variables: [profile_name, domain, tools, retrieved_facts, question, project_name]
+    requires: [retrieved_facts]
+    aliases:
+      - methodology
+      - approach
+      - process
+      - method
+
+  - id: challenges_learnings
+    file: behavioral_star.txt
+    target_words_low: 100
+    target_words_high: 160
+    variables: [profile_name, domain, tools, retrieved_facts, question]
+    requires: [retrieved_facts]
+    aliases:
+      - challenges
+      - problems
+      - difficulties
+      - learnings
+      - obstacles
+
+  - id: emergency_scenarios
+    file: scenario_runbook.txt
+    target_words_low: 120
+    target_words_high: 200
+    variables: [profile_name, domain, tools, retrieved_facts, question, project_name]
+    requires: [retrieved_facts]
+    aliases:
+      - emergency
+      - urgent
+      - critical_failure
+      - after_hours
+      - on_call
+
+  - id: operational_issues
+    file: scenario_runbook.txt
+    target_words_low: 120
+    target_words_high: 200
+    variables: [profile_name, domain, tools, retrieved_facts, question, project_name]
+    requires: [retrieved_facts]
+    aliases:
+      - business_impact
+      - stakeholder_issues
+      - customer_impact
+      - production_issues
+      - service_outage
+
+  - id: case_study_design
+    file: architecture_system.txt
+    target_words_low: 150
+    target_words_high: 250
+    variables: [profile_name, domain, tools, retrieved_facts, question, project_name]
+    requires: [retrieved_facts]
+    aliases:
+      - design_architecture
+      - create_system
+      - build_solution
+      - architect_solution
+      - design_pipeline
+
+  - id: case_study_optimization
+    file: scenario_optimization.txt
+    target_words_low: 120
+    target_words_high: 200
+    variables: [profile_name, domain, tools, retrieved_facts, question, project_name]
+    requires: [retrieved_facts]
+    aliases:
+      - system_optimization
+      - performance_improvement
+      - bottleneck_resolution
+      - slow_system_fix
+
+  - id: case_study_migration
+    file: project_how.txt
+    target_words_low: 120
+    target_words_high: 200
+    variables: [profile_name, domain, tools, retrieved_facts, question, project_name]
+    requires: [retrieved_facts]
+    aliases:
+      - migration_planning
+      - system_migration
+      - cloud_migration
+      - data_migration
+      - technology_transition
+
+  - id: followup_clarification
+    file: project_how.txt
+    target_words_low: 80
+    target_words_high: 140
+    variables: [profile_name, domain, tools, retrieved_facts, question]
+    requires: [retrieved_facts]
+    aliases:
+      - clarification
+      - elaboration
+      - more_details
+      - drill_down
+      - expand
+
+  - id: followup_measurement
+    file: project_overview.txt
+    target_words_low: 80
+    target_words_high: 140
+    variables: [profile_name, domain, tools, retrieved_facts, question, metrics]
+    requires: [retrieved_facts]
+    aliases:
+      - measurement
+      - success_metrics
+      - kpi_questions
+      - roi_questions
+      - business_impact
+
+  - id: followup_alternatives
+    file: project_why_tradeoffs.txt
+    target_words_low: 80
+    target_words_high: 140
+    variables: [profile_name, domain, tools, retrieved_facts, question]
+    requires: [retrieved_facts]
+    aliases:
+      - alternatives
+      - different_approach
+      - improvements
+      - better_way
+      - next_time
+
   - id: coding_python
     file: coding_python.txt
     target_words_low: 60

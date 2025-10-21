@@ -108,7 +108,7 @@ def answer_question_enhanced(question, mode="auto", profile="auto", session_id="
                         "auto_detected": False,
                         "profile_used": profile,
                         "profile_auto_detected": profile_auto_detected,
-                        "template_used": True
+                        "template_used": result.get("template", "template_v2")
                     })
                     
                     return result
@@ -140,7 +140,7 @@ def answer_question_enhanced(question, mode="auto", profile="auto", session_id="
                         "auto_detected": False,
                         "profile_used": profile,
                         "profile_auto_detected": profile_auto_detected,
-                        "template_used": True,
+                        "template_used": intent,
                         "intent": intent,
                         "confidence": confidence,
                         "template": intent,  # template used
@@ -323,7 +323,7 @@ def answer_question_enhanced(question, mode="auto", profile="auto", session_id="
             "auto_detected": auto_detected,
             "profile_used": profile,
             "profile_auto_detected": profile_auto_detected,
-            "template_used": False,
+            "template_used": "legacy",
             "intent": "legacy",
             "confidence": 1.0,
             "template": "legacy",
