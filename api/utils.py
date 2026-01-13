@@ -1029,7 +1029,9 @@ def detect_question_type(question):
     question_lower = question.lower().strip()
     
     # Intro/Self-introduction indicators (highest priority - be very specific)
-    intro_phrases = ['tell me about yourself', 'about yourself', 'introduce yourself', 'who are you', 'what do you do', 'your background', 'your skills']
+    intro_phrases = ['tell me about yourself', 'about yourself', 'introduce yourself', 'who are you', 
+                     'what do you do', 'your background', 'your skills', 'give me intro', 'give intro',
+                     'your intro', 'introduction', 'walk me through your', 'brief intro', 'quick intro']
     if any(phrase in question_lower for phrase in intro_phrases):
         return 'intro'
     

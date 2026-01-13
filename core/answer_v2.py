@@ -776,7 +776,13 @@ def do_retrieval(q: str, profile_id: str, mode: str, intent_id: str = None) -> D
     qe = _get_embedding(search_query)
 
     # 2) Vector search (filters personas by profile internally)
-    hits = _search_similar(qe, top_k=top_k, profile=profile_id, mode=mode, query_text=q) or []
+    # Map intent_id to qtype for PL/SQL code filtering
+    qtype = "technical"  # default
+    if intent_id in ("coding_sql", "code"):
+        qtype = "code"
+    elif "write" in q.lower() or "show" in q.lower() or "example" in q.lower() or "snippet" in q.lower():
+        qtype = "code"
+    hits = _search_similar(qe, top_k=top_k, profile=profile_id, mode=mode, query_text=q, qtype=qtype) or []
 
     # 3) Normalize to a stable structure for downstream
     sources = []
@@ -858,10 +864,10 @@ def do_generation(template_text: str, vars_: Dict, intent_id: str) -> str:
     return text
 
 @timed
-def do_rewrite(text: str, target_hi: int = 150) -> str:
+def do_rewrite(text: str, target_hi: int = 150, domain: str = "general", question: str = "") -> str:
     """Apply humanizer to improve conversation flow."""
     from api.utils import humanize
-    return humanize(text)
+    return humanize(text, domain=domain, question=question)
 
 def compose_with_template_v2(intent_id: str, q: str, session_id: str, profile_id: str, mode: str, depth: str = None) -> Dict[str, Any]:
     """Enhanced template composition with Phase 2 features."""
@@ -975,8 +981,8 @@ def compose_with_template_v2(intent_id: str, q: str, session_id: str, profile_id
             
             # Bridge phrase is handled by the template for followup_drilldown
             
-            # Humanize
-            rewrite_result = do_rewrite(draft, target_len(intent_id)[1])
+            # Humanize (pass mode for domain-aware post-processing)
+            rewrite_result = do_rewrite(draft, target_len(intent_id)[1], domain=mode, question=q)
             if isinstance(rewrite_result, tuple):
                 final, rt_rw = rewrite_result
             else:

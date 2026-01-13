@@ -153,6 +153,12 @@ When you change a table or package spec, dependent objects (procedures, views, t
 
 ---
 
+## PL/SQL Developer Introduction
+
+I'm an Oracle PL/SQL Developer with solid experience writing stored procedures, functions, packages, and triggers. My day-to-day involves bulk data processing using BULK COLLECT and FORALL, building exception handling frameworks with autonomous logging, and performance tuning using DBMS_XPLAN and execution plan analysis. I'm comfortable with cursors (implicit, explicit, REF CURSOR), dynamic SQL with bind variables, and compound triggers for complex business rules. On the SQL side, I work with window functions, partitioning strategies, and MERGE statements for upserts. I follow production patterns — always log then re-raise exceptions, use LIMIT for memory management, commit per batch not per row. My approach is to write clean, maintainable PL/SQL that handles edge cases gracefully.
+
+---
+
 ## My Background (Honest Framing)
 
 My recent work has been data engineering heavy — building large-scale ETL pipelines, data transformations, and analytics. I have strong SQL experience across multiple database platforms. For Oracle PL/SQL, I'm comfortable with stored procedures, functions, packages, bulk processing with BULK COLLECT and FORALL, exception handling frameworks, and performance tuning using explain plans. In Oracle PL/SQL environments, I follow standard patterns for bulk operations, exception handling, and performance optimization.
