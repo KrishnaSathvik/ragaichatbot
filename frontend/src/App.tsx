@@ -27,7 +27,7 @@ const PROFILES: ProfileCfg[] = [
 
 const PROFILE_MODES: Record<ProfileId, { id: string; name: string }[]> = {
   auto:   [{ id: "auto", name: "Auto-detect Mode" }],
-  krishna:[{ id: "de", name: "Data Engineering" }, { id: "ai", name: "AI/ML/GenAI" }],
+  krishna:[{ id: "de", name: "Data Engineering" }, { id: "ai", name: "AI/ML/GenAI" }, { id: "plsql", name: "Oracle PL/SQL" }],
   tejuu:  [{ id: "bi", name: "Business Intelligence" }, { id: "ae", name: "Analytics Engineer" }],
 };
 
@@ -37,7 +37,7 @@ const cls = (...xs: (string | false | undefined)[]) => xs.filter(Boolean).join("
 const welcome = (p: ProfileId, mode: string) =>
   p === "auto"
     ? `Hey, I’m Kish. Ask me anything—I'll auto-detect if you need DE, AI/ML, BI, or AE help.`
-    : `Hey! I’m Kish—your ${p === "krishna" ? (mode === "ai" ? "AI/ML" : "Data Engineering") : (mode === "ae" ? "Analytics Engineering" : "BI")} assistant. How can I help today?`;
+    : `Hey! I’m Kish—your ${p === "krishna" ? (mode === "ai" ? "AI/ML" : mode === "plsql" ? "Oracle PL/SQL" : "Data Engineering") : (mode === "ae" ? "Analytics Engineering" : "BI")} assistant. How can I help today?`;
 
 function useLocalStorage<T>(key: string, init: T) {
   const [v, setV] = useState<T>(() => {
