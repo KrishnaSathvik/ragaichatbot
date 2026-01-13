@@ -953,6 +953,12 @@ def _search_similar(query_embedding, top_k=5, profile="krishna", mode="auto", qu
         file_path = meta.get("file_path", "").lower()
         chunk_text = _meta[i].get("text", "").lower().replace("_", " ").replace("-", " ")
         
+        # Intro boost: prioritize chunks with intro/background content for intro questions
+        if qtype == "intro":
+            intro_keywords = ["introduction", "background", "experience", "comfortable with", "my day-to-day", "solid experience"]
+            if any(kw in chunk_text for kw in intro_keywords):
+                boost += 0.5  # Strong boost for intro content
+        
         # Oracle keyword boost (hybrid retrieval) - tiered boost for keyword matches
         if mode == "plsql":
             oracle_matches = sum(1 for kw in query_keywords if kw in chunk_text)
