@@ -28,6 +28,7 @@ MODE_ALIASES = {
     # krishna
     "ai": "ai",
     "de": "de",
+    "plsql": "plsql",
     # tejuu
     "ae": "ae",
     "bi": "bi",
@@ -84,7 +85,8 @@ def answer_question_enhanced(question, mode="auto", profile="auto", session_id="
         print(f"Using mode: {mode}")
         
         # Check if we should use template system
-        if TEMPLATES_V2:
+        # Skip template system for PL/SQL mode - use legacy system with custom prompts
+        if TEMPLATES_V2 and mode != "plsql":
             print("Using Phase 2 template system (TEMPLATES_V2 enabled)")
             
             # Route intent for template system
@@ -120,7 +122,8 @@ def answer_question_enhanced(question, mode="auto", profile="auto", session_id="
                 print(f"Low confidence ({confidence:.2f}), trying Phase 1")
         
         # Check if we should use Phase 1 template system
-        if TEMPLATES_V1:
+        # Skip template system for PL/SQL mode - use legacy system with custom prompts
+        if TEMPLATES_V1 and mode != "plsql":
             print("Using Phase 1 template system (TEMPLATES_V1 enabled)")
             
             # Route intent for template system
@@ -166,7 +169,7 @@ def answer_question_enhanced(question, mode="auto", profile="auto", session_id="
         # Separate domain detection from question type
         qtype = detect_question_type(question)
         
-        if mode in ("de", "ai", "bi", "ae"):
+        if mode in ("de", "ai", "bi", "ae", "plsql"):
             # Explicit mode provided
             domain = mode
             auto_detected = False
@@ -182,10 +185,10 @@ def answer_question_enhanced(question, mode="auto", profile="auto", session_id="
         query_embedding = _get_embedding(question)
         print("Query embedding generated successfully")
         
-        # Search for similar content
-        print(f"Searching for similar content for profile '{profile}'...")
-        results = _search_similar(query_embedding, top_k=2, profile=profile, query_text=question)
-        print(f"Found {len(results)} relevant chunks for profile '{profile}'")
+        # Search for similar content (pass mode and qtype for PL/SQL code filtering)
+        print(f"Searching for similar content for profile '{profile}' mode '{domain}' qtype '{qtype}'...")
+        results = _search_similar(query_embedding, top_k=6, profile=profile, mode=domain, query_text=question, qtype=qtype)
+        print(f"Found {len(results)} relevant chunks for profile '{profile}' mode '{domain}'")
         
         # Debug: Print the sources of the results
         for i, result in enumerate(results):
@@ -220,7 +223,13 @@ def answer_question_enhanced(question, mode="auto", profile="auto", session_id="
         
         # Select system and user prompt based on domain and question type
         if profile == "krishna":
-            system_prompt = profile_prompts["system_ai"] if domain == "ai" else profile_prompts["system_de"]
+            # Select system prompt based on domain
+            if domain == "ai":
+                system_prompt = profile_prompts["system_ai"]
+            elif domain == "plsql":
+                system_prompt = profile_prompts["system_plsql"]
+            else:
+                system_prompt = profile_prompts["system_de"]
             
             if domain == "ai":
                 # AI/ML/GenAI Mode
@@ -238,6 +247,14 @@ def answer_question_enhanced(question, mode="auto", profile="auto", session_id="
                     user_prompt = profile_prompts["user_code_ai"]
                 else:
                     user_prompt = profile_prompts["user_ai"]
+            elif domain == "plsql":
+                # PL/SQL Mode
+                if qtype == "intro":
+                    user_prompt = profile_prompts["user_intro_plsql"]
+                elif qtype == "code" or qtype == "sql":
+                    user_prompt = profile_prompts["user_code_plsql"]
+                else:
+                    user_prompt = profile_prompts["user_plsql"]
             else:  # de
                 # Data Engineering Mode
                 if qtype == "intro":
@@ -311,9 +328,9 @@ def answer_question_enhanced(question, mode="auto", profile="auto", session_id="
         )
         print("Response generated successfully")
         
-        # Apply humanization post-processor
+        # Apply humanization post-processor (pass domain for PL/SQL-specific stripping)
         raw_answer = response.choices[0].message.content
-        final_answer = humanize(raw_answer, qtype=qtype)
+        final_answer = humanize(raw_answer, qtype=qtype, domain=domain, question=question)
         print(f"Answer humanized: {len(raw_answer)} -> {len(final_answer)} chars")
         
         return {

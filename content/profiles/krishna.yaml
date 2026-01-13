@@ -40,3 +40,8 @@ modes:
     tools: ["Databricks","ADF","Unity Catalog","PySpark","Azure DevOps"]
     retrieval_boost: ["partitioning","bronze silver gold","delta","orchestration"]
     default_projects: ["walgreens_de", "mckesson_etl"]
+  plsql:
+    domain: "Oracle PL/SQL Development"
+    tools: ["Oracle 12c/19c","PL/SQL","SQL*Plus","DBMS_XPLAN","Packages","Triggers"]
+    retrieval_boost: ["bulk collect","forall","cursor","exception","package","procedure","function","trigger","oracle"]
+    default_projects: []

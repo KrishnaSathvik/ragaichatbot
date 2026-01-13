@@ -29,7 +29,18 @@ def get_embedding_cached(text: str) -> tuple:
     )
     return tuple(response.data[0].embedding)
 
-def read_markdown_files(directory: str, persona: str) -> list:
+def parse_frontmatter_persona(content: str) -> str:
+    """Extract persona from YAML frontmatter if present."""
+    if content.startswith('---'):
+        end_idx = content.find('---', 3)
+        if end_idx > 0:
+            frontmatter = content[3:end_idx]
+            for line in frontmatter.split('\n'):
+                if line.strip().startswith('persona:'):
+                    return line.split(':')[1].strip()
+    return None
+
+def read_markdown_files(directory: str, persona: str, file_filter: str = None) -> list:
     """Read markdown files and create chunks."""
     chunks = []
     directory_path = Path(directory)
@@ -39,26 +50,55 @@ def read_markdown_files(directory: str, persona: str) -> list:
         return chunks
     
     for file_path in directory_path.rglob("*.md"):
+        # Apply file filter if specified
+        if file_filter:
+            if file_filter == "plsql" and "plsql" not in file_path.name.lower():
+                continue
+            elif file_filter == "no_plsql" and "plsql" in file_path.name.lower():
+                continue
+        
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
             
-            # Simple chunking - split by headers
-            sections = content.split('\n# ')
-            for i, section in enumerate(sections):
-                if i > 0:
-                    section = '# ' + section
-                
-                if len(section.strip()) > 50:  # Only process substantial sections
-                    chunks.append({
-                        "text": section.strip(),
-                        "metadata": {
-                            "file_name": file_path.name,
-                            "file_path": str(file_path),
-                            "persona": persona,
-                            "section": i
-                        }
-                    })
+            # Try to get persona from frontmatter, fallback to parameter
+            file_persona = parse_frontmatter_persona(content) or persona
+            
+            # Enhanced chunking - split by H2 headers for interview answer files
+            if 'interview_answers' in file_path.name or 'plsql' in file_path.name.lower():
+                # Split by H2 headers for finer granularity
+                sections = content.split('\n## ')
+                for i, section in enumerate(sections):
+                    if i > 0:
+                        section = '## ' + section
+                    
+                    if len(section.strip()) > 50:
+                        chunks.append({
+                            "text": section.strip(),
+                            "metadata": {
+                                "file_name": file_path.name,
+                                "file_path": str(file_path),
+                                "persona": file_persona,
+                                "section": i
+                            }
+                        })
+            else:
+                # Default: split by H1 headers
+                sections = content.split('\n# ')
+                for i, section in enumerate(sections):
+                    if i > 0:
+                        section = '# ' + section
+                    
+                    if len(section.strip()) > 50:
+                        chunks.append({
+                            "text": section.strip(),
+                            "metadata": {
+                                "file_name": file_path.name,
+                                "file_path": str(file_path),
+                                "persona": file_persona,
+                                "section": i
+                            }
+                        })
         except Exception as e:
             print(f"Error reading {file_path}: {e}")
     

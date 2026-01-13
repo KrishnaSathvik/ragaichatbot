@@ -23,6 +23,8 @@ _lock = threading.Lock()
 _project_root = Path(__file__).resolve().parents[1]  # rag-chatbot/
 
 # ---------- Humanization post-processor ----------
+import random
+
 SIMPLE_REPLACEMENTS = {
     "utilize": "use",
     "utilized": "used",
@@ -52,6 +54,163 @@ SIMPLE_REPLACEMENTS = {
     "pivotal": "key",
     "seamless": "smooth",
 }
+
+# Calm senior openers (short, natural, not AI-ish)
+CALM_OPENERS = {
+    "plsql": [
+        "Alright—give me a second.",
+        "Okay, one moment.",
+        "Yeah—let me think for a sec.",
+        "Alright, so here's how I'd approach it.",
+        "Okay—here's the clean way to do it.",
+        "Yeah—this is a common pattern.",
+    ],
+    "de": ["Yeah—so…", "Okay—let me think.", "Alright, one sec."],
+    "ai": ["Yeah—give me a second.", "Okay—so here's the approach.", "Alright, let's break it down."],
+    "general": ["Yeah—give me a second.", "Okay—so…", "Alright, one sec."],
+}
+
+AI_PHRASES_TO_REMOVE = [
+    r"\b(as an ai|i am an ai|as a language model)\b",
+    r"\b(in conclusion|to summarize|overall)\b",
+    r"\bsignificantly\b",
+    r"\bsubstantial(ly)?\b",
+    r"\brobust\b",
+]
+
+# Patterns for AI-ish endings to strip (full sentences)
+AI_ENDINGS_TO_STRIP = [
+    r"moving forward[^.]*\.",
+    r"next steps[^.]*\.",
+    r"next,? i plan[^.]*\.",
+    r"i plan to[^.]*\.",
+    r"the next step[^.]*\.",
+    r"in my recent work[^.]*\.",
+    r"for a client[^.]*\.",
+    r"this approach improves[^.]*\.",
+    r"the outcome of this[^.]*\.",
+    r"the impact of this[^.]*\.",
+    r"a recent example[^.]*\.",
+    r"this approach not only[^.]*\.",
+    r"this will ensure[^.]*\.",
+    r"contributes to operational[^.]*\.",
+    r"we can expect a[^.]*impact[^.]*\.",
+    r"by implementing this[^.]*\.",
+]
+
+def _remove_ai_phrases(text: str) -> str:
+    out = text
+    for pat in AI_PHRASES_TO_REMOVE:
+        out = re.sub(pat, "", out, flags=re.IGNORECASE)
+    return re.sub(r"\s{2,}", " ", out).strip()
+
+def _strip_ai_endings(text: str) -> str:
+    """Remove AI-ish ending sentences like 'Moving forward...' or 'Next steps...'"""
+    out = text
+    for pat in AI_ENDINGS_TO_STRIP:
+        out = re.sub(pat, "", out, flags=re.IGNORECASE)
+    return re.sub(r"\s{2,}", " ", out).strip()
+
+# Patterns for fake experience / war stories to strip
+FAKE_EXPERIENCE_PATTERNS = [
+    r"i once[^.]*\.",
+    r"i often found[^.]*\.",
+    r"i managed to[^.]*\.",
+    r"i've seen this[^.]*\.",
+    r"we improved[^.]*\.",
+    r"we reduced[^.]*\.",
+    r"for instance,? i[^.]*\.",
+    r"in my experience[^.]*\.",
+    r"in previous projects[^.]*\.",
+    r"in a recent[^.]*\.",
+    r"while working[^.]*\.",
+    r"at walgreens[^.]*\.",
+    r"at pfizer[^.]*\.",
+    r"at central bank[^.]*\.",
+    r"for a client[^.]*\.",
+]
+
+# Clauses containing fake metrics - split by semicolons and commas too
+FAKE_METRICS_KEYWORDS = [
+    r'\d+\s*TB',
+    r'\d+\s*GB', 
+    r'\d+\s*%',
+    r'\d+\s*million',
+    r'\d+\s*billion',
+    r'millions of rows',
+    r'billions of rows',
+]
+
+def _strip_fake_experience(text: str, qtype: str = None) -> str:
+    """Remove sentences/clauses with fabricated experience claims and fake metrics."""
+    # Split into sentences
+    sentences = re.split(r'(?<=[.!?])\s+', text)
+    clean_sentences = []
+    
+    # Extra keywords to strip for specific qtypes
+    exception_only_strip = [r'BULK COLLECT', r'FORALL', r'bulk processing']
+    
+    for sent in sentences:
+        # Check if sentence has fake experience pattern
+        has_fake = False
+        for pat in FAKE_EXPERIENCE_PATTERNS:
+            if re.search(pat, sent, re.IGNORECASE):
+                has_fake = True
+                break
+        
+        # Check if sentence has fake metrics
+        if not has_fake:
+            for kw in FAKE_METRICS_KEYWORDS:
+                if re.search(kw, sent, re.IGNORECASE):
+                    has_fake = True
+                    break
+        
+        # For exceptions qtype, also strip BULK COLLECT/FORALL mentions
+        if not has_fake and qtype == "exceptions":
+            for kw in exception_only_strip:
+                if re.search(kw, sent, re.IGNORECASE):
+                    has_fake = True
+                    break
+        
+        if not has_fake:
+            clean_sentences.append(sent)
+    
+    out = " ".join(clean_sentences)
+    # Clean up leftover fragments
+    out = re.sub(r"\bfor instance,?\s*", "", out, flags=re.IGNORECASE)
+    out = re.sub(r"\bInstead,\s*", "", out, flags=re.IGNORECASE)  # Clean orphaned "Instead,"
+    out = re.sub(r"—\s*—", "—", out)
+    return re.sub(r"\s{2,}", " ", out).strip()
+
+def _strip_question_echo(answer: str, question: str) -> str:
+    """Remove first sentence if it restates the question."""
+    if not question or not answer:
+        return answer.strip()
+    sentences = re.split(r'(?<=[.!?])\s+', answer.strip())
+    if len(sentences) <= 1:
+        return answer.strip()
+    first = sentences[0].lower()
+    q = question.strip().lower()[:40]
+    looks_like_echo = (
+        q in first or
+        "you asked" in first or
+        "the question" in first or
+        "asked about" in first
+    )
+    return " ".join(sentences[1:]).strip() if looks_like_echo else answer.strip()
+
+def _add_calm_opener(answer: str, domain: str) -> str:
+    """Add a short human opener if answer doesn't already start with one."""
+    a = answer.strip()
+    if not a:
+        return a
+    # Skip if already starts with opener or code
+    if re.match(r"^(alright|okay|yeah|hmm|one sec|give me)\b", a.lower()):
+        return a
+    if a.lstrip().startswith("```"):
+        return a
+    openers = CALM_OPENERS.get(domain, CALM_OPENERS["general"])
+    return f"{random.choice(openers)} {a}"
 
 def _simplify_vocab(text: str) -> str:
     """Replace formal/buzzword vocabulary with natural language."""
@@ -98,12 +257,15 @@ def _project_rel(*parts: str) -> str:
     """Build absolute path from project root."""
     return str(_project_root.joinpath(*parts))
 
-def humanize(text: str, qtype: str = "general") -> str:
+def humanize(text: str, qtype: str = "general", domain: str = "general", question: str = "") -> str:
     """
     Transform AI response into natural, human-sounding interview answer.
-    Fast version with minimal overhead (~1-2ms).
-    Allows longer responses for intro questions.
+    Domain-aware: PL/SQL keeps formatting, other domains strip bullets.
+    Adds calm opener and strips question echoes.
     """
+    if not text:
+        return ""
+    
     # Quick check: if text has code blocks, preserve them
     has_code = '```' in text or '`' in text
     code_blocks = []
@@ -118,19 +280,52 @@ def humanize(text: str, qtype: str = "general") -> str:
     # Fast vocabulary replacement (only most common buzzwords)
     text = _simplify_vocab(text)
     
-    # Enforce proper line breaks for visual formatting
-    text = _enforce_lines(text, min_lines=8 if qtype != "intro" else 10, max_lines=10 if qtype != "intro" else 14)
+    # Remove AI-ish phrases
+    text = _remove_ai_phrases(text)
     
-    # Remove markdown formatting
-    text = text.replace("•", "").replace("*", "").replace("**", "")
+    # Strip AI-ish endings and fake experience for PL/SQL mode
+    if domain == "plsql":
+        text = _strip_ai_endings(text)
+        text = _strip_fake_experience(text, qtype=qtype)
+        # Convert Oracle % syntax to spoken form for interview readability
+        text = re.sub(r'SQL%BULK_EXCEPTIONS', 'SQL percent BULK EXCEPTIONS', text)
+        text = re.sub(r'SQL%ROWCOUNT', 'SQL percent ROWCOUNT', text)
+        text = re.sub(r'SQL%FOUND', 'SQL percent FOUND', text)
+        text = re.sub(r'SQL%NOTFOUND', 'SQL percent NOTFOUND', text)
+        text = re.sub(r'%ROWTYPE', 'percent ROWTYPE', text)  # Do ROWTYPE first (longer match)
+        text = re.sub(r'%TYPE', 'percent TYPE', text)
+        # Catch any remaining Oracle % patterns (e.g., table.column%TYPE in examples)
+        text = re.sub(r'(\w+)\.(\w+)%TYPE', r'\1 dot \2 percent TYPE', text)
+        text = re.sub(r'(\w+)%TYPE', r'\1 percent TYPE', text)
+        # Fix DBMS_OUTPUT framing for exceptions - remove or reframe as debug-only
+        if qtype == "exceptions":
+            # Remove "DBMS_OUTPUT or" - keep just the logging table part
+            text = re.sub(r'\bDBMS_OUTPUT or a (custom )?', 'an ', text, flags=re.IGNORECASE)
+            text = re.sub(r'\busing DBMS_OUTPUT\b', 'using an error table with autonomous transaction', text, flags=re.IGNORECASE)
+    
+    # For PL/SQL: keep formatting, don't clamp lines
+    # For other domains: enforce lines and strip bullets
+    if domain != "plsql":
+        text = _enforce_lines(text, min_lines=8 if qtype != "intro" else 10, max_lines=10 if qtype != "intro" else 14)
+        text = text.replace("•", "").replace("**", "")
     
     # Restore code blocks if present
     if has_code:
         for i, block in enumerate(code_blocks):
             text = text.replace(f"__CODE_BLOCK_{i}__", block)
     
-    # collapse stray double spaces
-    return re.sub(r"\s{2,}", " ", text).strip()
+    # Strip question echo if detected
+    if question:
+        text = _strip_question_echo(text, question)
+    
+    # Add calm opener (but not for code-first answers)
+    text = _add_calm_opener(text, domain)
+    
+    # Collapse stray double spaces (but preserve newlines in code blocks)
+    # Only collapse multiple spaces on the same line, not newlines
+    text = re.sub(r"[ \t]{2,}", " ", text)  # Multiple spaces/tabs -> single space
+    text = re.sub(r"\n{3,}", "\n\n", text)  # 3+ newlines -> 2 newlines
+    return text.strip()
 
 # ---------- Prompt templates ----------
 PROMPTS = {
@@ -273,6 +468,69 @@ PROMPTS = {
             "Answer as Krishna (AI/ML Engineer). Keep total length 8–10 lines including code. "
             "Show minimal working Python or PyTorch code in a code block, explain what it does in plain English, and add one brief insight or tip. "
             "Speak clearly, as if walking a teammate through the code."
+        ),
+        
+        # PL/SQL Mode System and Prompts
+        "system_plsql": (
+            "You are an Oracle PL/SQL Developer with 8+ years of experience writing stored procedures, "
+            "functions, packages, and triggers in Oracle Database.\n\n"
+            
+            "CRITICAL RULE: You write ONLY Oracle PL/SQL code. You do NOT know Python, PySpark, or Spark. "
+            "When asked for code, you write Oracle PL/SQL using CREATE OR REPLACE PROCEDURE/FUNCTION syntax.\n\n"
+
+            "GUARDRAILS:\n"
+            "- Oracle-first: use ONLY Oracle PL/SQL constructs and Oracle SQL idioms.\n"
+            "- NEVER write Python, PySpark, Spark, or any non-Oracle code.\n"
+            "- Do NOT invent employer-specific experience, table names, volumes, or metrics.\n"
+            "- NEVER mention 'Walgreens', 'Central Bank', or any company name.\n\n"
+
+            "VOICE:\n"
+            "- Sound like a calm, senior Oracle developer.\n"
+            "- Never repeat the question. End with practical closure.\n\n"
+
+            "STYLE:\n"
+            "- For code: write Oracle PL/SQL in ```sql blocks.\n"
+            "- For concepts: 6-10 lines, 1 gotcha, 1 tradeoff.\n"
+
+            "NEVER SAY: 'Moving forward', 'Next steps', 'I plan to', 'In summary', 'This approach improves', 'substantial improvement', 'robust', 'leverage', 'seamless'."
+        ),
+        "user_plsql": (
+            "Context:\n{context}\n\n"
+            "Question: {question}\n\n"
+            "Answer as Krishna (senior Oracle PL/SQL developer).\n"
+            "CRITICAL RULES:\n"
+            "- Do NOT repeat the question.\n"
+            "- Do NOT include code unless the question explicitly asks.\n"
+            "- NEVER claim personal outcomes (runtime reduced, TB processed, critical report).\n"
+            "- NEVER use numbers (TB, GB, %, million) unless user provided them.\n"
+            "- NEVER say 'I once', 'I managed to', 'we improved', 'for a client'.\n"
+            "- USE: 'Typically…', 'What works well is…', 'In production, you'll usually…'\n"
+            "- For exception handling: MUST mention SQL%ROWCOUNT for DML, SQLCODE/SQLERRM, re-raise, never swallow errors.\n"
+            "- For DISPLAY_CURSOR: MUST mention SQL_ID, ALLSTATS LAST, estimate vs reality.\n"
+            "6-10 lines max. End with practical closure.\n"
+        ),
+        "user_intro_plsql": (
+            "Context: {context}\n\nQuestion: {question}\n\n"
+            "Answer as Krishna giving a brief introduction for a PL/SQL Developer role.\n"
+            "Do NOT repeat the question.\n"
+            "Mention your strong SQL background, comfort with Oracle PL/SQL constructs (packages, bulk processing, exception handling, tuning).\n"
+            "Keep it 8–10 sentences. Be honest — don't claim extensive Oracle production experience unless true.\n"
+            "Frame it as transferable skills from data engineering. Speak naturally and confidently."
+        ),
+        "user_code_plsql": (
+            "IMPORTANT: This is an Oracle PL/SQL Developer interview. You MUST write Oracle PL/SQL code ONLY.\n"
+            "DO NOT write Python. DO NOT write PySpark. DO NOT write Spark code. ONLY Oracle PL/SQL.\n\n"
+            "Reference code from context (use this syntax):\n{context}\n\n"
+            "Question: {question}\n\n"
+            "Write Oracle PL/SQL code similar to the reference above.\n"
+            "FORMATTING REQUIREMENTS:\n"
+            "- Put code in ```sql block with PROPER INDENTATION and LINE BREAKS\n"
+            "- Each SQL statement on its own line\n"
+            "- Indent BEGIN/END blocks properly\n"
+            "- Use newlines between logical sections\n"
+            "Use CREATE OR REPLACE PROCEDURE/FUNCTION syntax.\n"
+            "Use Oracle constructs: EXCEPTION, WHEN OTHERS, RAISE_APPLICATION_ERROR.\n"
+            "Keep explanation brief (2-3 lines after code)."
         )
     },
     "tejuu": {
@@ -576,10 +834,31 @@ def _get_embedding(text: str):
     norm = _normalize_for_cache(text)
     return np.array(_cached_embedding(norm), dtype=np.float32)
 
-def _search_similar(query_embedding, top_k=5, profile="krishna", mode="auto", query_text=""):
+# Oracle PL/SQL keyword expansion map for hybrid retrieval
+ORACLE_KEYWORD_EXPANSION = {
+    # DISPLAY_CURSOR family
+    "display_cursor": ["dbms_xplan", "sql_id", "child_number", "v$sql", "allstats", "execution_plan", "actual_plan"],
+    "dbms_xplan": ["display_cursor", "display_awr", "sql_id", "allstats", "execution_plan"],
+    "execution plan": ["dbms_xplan", "display_cursor", "sql_id", "allstats", "explain_plan"],
+    "sql_id": ["dbms_xplan", "display_cursor", "v$sql", "child_number"],
+    "allstats": ["dbms_xplan", "display_cursor", "row_source_statistics", "a-rows"],
+    # Exception handling
+    "exception": ["sqlcode", "sqlerrm", "raise_application_error", "when_others", "autonomous_transaction"],
+    "error handling": ["exception", "sqlcode", "sqlerrm", "raise_application_error"],
+    # Bulk operations
+    "bulk collect": ["forall", "limit", "save_exceptions", "bulk_exceptions"],
+    "forall": ["bulk_collect", "save_exceptions", "indices_of"],
+}
+
+def _search_similar(query_embedding, top_k=5, profile="krishna", mode="auto", query_text="", qtype="technical"):
     """
     Returns top-k KB chunks for the given query embedding,
     filtered by profile+mode with quality-based reranking.
+    
+    For PL/SQL mode:
+    - qtype="code" or "sql" → include plsql_code persona (code snippets)
+    - otherwise → prefer plsql persona only (no code chunks)
+    - Uses hybrid retrieval with keyword boosting for Oracle terms
     """
     _load_data()
 
@@ -596,20 +875,20 @@ def _search_similar(query_embedding, top_k=5, profile="krishna", mode="auto", qu
 
     # Mode-aware filtering with strict profile+mode matching
     wanted_profile_modes = {
-        "krishna": {"ai", "de"},
-        "tejuu": {"analytics", "business"},  # Tejuu analytics mode includes both analytics_engineer and data_engineering
+        "krishna": {"ai", "de", "plsql", "plsql_code"},
+        "tejuu": {"analytics", "business"},
     }
-    
+
     # Mode mapping for API compatibility
     mode_mapping = {
-        "ae": "analytics",  # Analytics Engineer
-        "bi": "business",   # Business Intelligence
+        "ae": "analytics",
+        "bi": "business",
     }
-    
+
     # Map mode if needed
     if mode in mode_mapping:
         mode = mode_mapping[mode]
-    
+
     indices = list(range(len(_meta)))
     if profile and profile in wanted_profile_modes:
         wanted_modes = wanted_profile_modes[profile]
@@ -617,15 +896,24 @@ def _search_similar(query_embedding, top_k=5, profile="krishna", mode="auto", qu
             # Strict mode filtering
             wanted_modes = {mode}
         
+        # PL/SQL mode: filter code chunks based on qtype
+        if mode == "plsql":
+            if qtype in ("code", "sql"):
+                # Include both plsql and plsql_code for code questions
+                wanted_modes = {"plsql", "plsql_code"}
+            else:
+                # Concept questions: only plsql (no code chunks)
+                wanted_modes = {"plsql"}
+
         def get_mode(i):
             meta = (_meta[i].get("metadata", {}) or {})
             return meta.get("persona") or meta.get("mode")
-        
+
         def matches_profile(i):
             meta = (_meta[i].get("metadata", {}) or {})
             file_path = meta.get("file_path", "").lower()
             return profile.lower() in file_path
-        
+
         # Filter by both persona/mode AND profile name in file path
         filtered = [i for i in indices if get_mode(i) in wanted_modes and matches_profile(i)]
         if filtered:
@@ -638,6 +926,23 @@ def _search_similar(query_embedding, top_k=5, profile="krishna", mode="auto", qu
         return []
 
     # Quality-based reranking with improved project file prioritization
+    # Build expanded query keywords for Oracle hybrid retrieval (normalize underscores to spaces)
+    query_lower = query_text.lower().replace("_", " ").replace("-", " ")
+    # Only use Oracle-specific terms for keyword boosting (not common words)
+    oracle_stop_words = {"how", "do", "you", "the", "a", "an", "to", "for", "in", "on", "is", "what", "when", "where", "why", "using", "use", "with"}
+    query_keywords = set()
+    # Add expanded keywords for Oracle terms (also normalize expansions)
+    for term, expansions in ORACLE_KEYWORD_EXPANSION.items():
+        if term in query_lower:
+            for exp in expansions:
+                # Add both underscore and space versions
+                query_keywords.add(exp.replace("_", " "))
+                query_keywords.add(exp)
+    # Also add significant Oracle terms from query (not stop words)
+    for word in query_lower.split():
+        if word not in oracle_stop_words and len(word) > 3:
+            query_keywords.add(word)
+    
     def boost_score(i):
         meta = (_meta[i].get("metadata", {}) or {})
         boost = 0.0
@@ -646,6 +951,21 @@ def _search_similar(query_embedding, top_k=5, profile="krishna", mode="auto", qu
         boost += 0.15 * quality
         
         file_path = meta.get("file_path", "").lower()
+        chunk_text = _meta[i].get("text", "").lower().replace("_", " ").replace("-", " ")
+        
+        # Oracle keyword boost (hybrid retrieval) - tiered boost for keyword matches
+        if mode == "plsql":
+            oracle_matches = sum(1 for kw in query_keywords if kw in chunk_text)
+            if oracle_matches >= 6:
+                boost += 0.6  # Very strong boost for 6+ keyword matches (specific topic)
+            elif oracle_matches >= 4:
+                boost += 0.45  # Strong boost for 4-5 matches
+            elif oracle_matches >= 3:
+                boost += 0.3  # Medium-strong boost for 3 matches
+            elif oracle_matches >= 2:
+                boost += 0.15  # Medium boost for 2 matches
+            elif oracle_matches >= 1:
+                boost += 0.05  # Small boost for 1 match
         
         # Detect if this is a project-specific query
         is_project_query = any(company in query_text.lower() for company in ["central bank", "cbank", "stryker", "walgreens", "cvs", "mckesson"])
@@ -713,13 +1033,20 @@ def detect_question_type(question):
     if any(phrase in question_lower for phrase in intro_phrases):
         return 'intro'
     
-    # Explicit code requests (very specific)
-    explicit_code_phrases = ['write code', 'show code', 'write a function', 'write a script', 'code example', 'implement code', 'write python code', 'write sql code', 'write pyspark code']
+    # Explicit code requests (very specific - matches "write", "show", "example", etc.)
+    explicit_code_phrases = [
+        'write code', 'show code', 'write a function', 'write a script', 'code example',
+        'implement code', 'write python code', 'write sql code', 'write pyspark code',
+        'write a procedure', 'write procedure', 'write a package', 'write package',
+        'write pl/sql', 'write plsql', 'show me', 'give me an example', 'sample code',
+        'snippet', 'demo', 'implement a', 'code pattern', 'show a', 'write a bulk',
+        'write a forall', 'write a trigger'
+    ]
     if any(phrase in question_lower for phrase in explicit_code_phrases):
         return 'code'
-    
+
     # Explicit SQL requests
-    explicit_sql_phrases = ['write sql', 'sql query', 'write a query', 'sql code', 'select statement']
+    explicit_sql_phrases = ['write sql', 'sql query', 'write a query', 'sql code', 'select statement', 'write a merge']
     if any(phrase in question_lower for phrase in explicit_sql_phrases):
         return 'sql'
     
@@ -728,11 +1055,16 @@ def detect_question_type(question):
     if any(phrase in question_lower for phrase in interview_phrases):
         return 'interview'
     
+    # Exception handling questions (PL/SQL specific)
+    exception_keywords = ['exception', 'error handling', 'rollback', 'logging', 'when others', 'raise', 'sqlerrm', 'sqlcode', 'error log']
+    if any(keyword in question_lower for keyword in exception_keywords):
+        return 'exceptions'
+
     # Experience/Skills discussion (check this BEFORE technical)
     experience_keywords = ['experience with', 'worked with', 'used', 'familiar with', 'expertise in', 'knowledge of', 'proficient in', 'what is your experience']
     if any(keyword in question_lower for keyword in experience_keywords):
         return 'experience'
-    
+
     # Technical discussion indicators (but not asking for code)
     tech_keywords = ['explain', 'how does', 'what is', 'difference between', 'compare', 'advantages', 'disadvantages', 'best practices', 'approach', 'strategy']
     if any(keyword in question_lower for keyword in tech_keywords):
@@ -750,17 +1082,22 @@ def detect_question_type(question):
     return 'general'
 
 def detect_domain(question, profile):
-    """Detect the domain (de/ai/analytics/business) based on question content and profile."""
+    """Detect the domain (de/ai/plsql/analytics/business) based on question content and profile."""
     q = question.lower()
     
     # Domain-specific signals
+    plsql_signals = ["plsql", "pl/sql", "oracle", "bulk collect", "forall", "cursor", "ref cursor",
+                     "package", "stored procedure", "trigger", "dbms_", "exception handling",
+                     "raise_application_error", "pragma", "execute immediate", "rowtype", "type",
+                     "nvl", "decode", "rownum", "merge into", "sql%rowcount"]
     ai_signals = ["llm", "langchain", "langgraph", "rag", "embedding", "prompt", "openai", "gpt",
                   "pytorch", "tensorflow", "mlflow", "fine-tune", "transformer", "agent",
                   "vector database", "pinecone", "weaviate", "hugging face", "model training"]
     de_signals = ["spark", "pyspark", "databricks", "etl", "elt", "delta lake", "kafka", "adf", 
-                  "glue", "airflow", "data pipeline", "data lake", "streaming", "event hub"]
+                  "glue", "airflow", "data pipeline", "data lake", "streaming", "event hub",
+                  "snowflake", "medallion", "bronze", "silver", "gold"]
     analytics_signals = ["dbt", "data modeling", "star schema", "fact table", "dimension table", "scd",
-                         "slowly changing dimension", "dimensional model", "analytics engineer", "pyspark", "databricks"]
+                         "slowly changing dimension", "dimensional model", "analytics engineer"]
     business_signals = ["power bi", "tableau", "dax", "dashboard", "visualization", "stakeholder",
                         "report", "kpi", "business intelligence", "looker", "qlik", "business analyst"]
     
@@ -768,6 +1105,9 @@ def detect_domain(question, profile):
         return any(w in q for w in words)
     
     if profile == "krishna":
+        # Check PL/SQL first (highest priority for Oracle interviews)
+        if any_in(plsql_signals):
+            return "plsql"
         if any_in(ai_signals):
             return "ai"
         if any_in(de_signals):
@@ -858,8 +1198,9 @@ def answer_question(question, mode="auto", profile="auto", session_id="default",
         print("Query embedding generated successfully")
         
         # Search for similar content (optimized for speed)
-        print(f"Searching for similar content for profile '{profile}' mode '{domain}'...")
-        results = _search_similar(query_embedding, top_k=6, profile=profile, mode=domain, query_text=question)  # Increased to 6 for better retrieval
+        # Pass qtype so PL/SQL mode can filter code chunks appropriately
+        print(f"Searching for similar content for profile '{profile}' mode '{domain}' qtype '{qtype}'...")
+        results = _search_similar(query_embedding, top_k=6, profile=profile, mode=domain, query_text=question, qtype=qtype)
         print(f"Found {len(results)} relevant chunks for profile '{profile}' mode '{domain}'")
         
         # Debug: Print the sources of the results (reduced for performance)
@@ -902,9 +1243,22 @@ def answer_question(question, mode="auto", profile="auto", session_id="default",
         
         # Select system and user prompt based on domain and question type
         if profile == "krishna":
-            system_prompt = profile_prompts["system_ai"] if domain == "ai" else profile_prompts["system_de"]
+            if domain == "plsql":
+                system_prompt = profile_prompts["system_plsql"]
+            elif domain == "ai":
+                system_prompt = profile_prompts["system_ai"]
+            else:
+                system_prompt = profile_prompts["system_de"]
             
-            if domain == "ai":
+            if domain == "plsql":
+                # PL/SQL Mode
+                if qtype == "intro":
+                    user_prompt = profile_prompts["user_intro_plsql"]
+                elif qtype == "code":
+                    user_prompt = profile_prompts["user_code_plsql"]
+                else:
+                    user_prompt = profile_prompts["user_plsql"]
+            elif domain == "ai":
                 # AI/ML/GenAI Mode
                 if qtype == "intro":
                     user_prompt = profile_prompts["user_intro_ai"]
@@ -998,10 +1352,32 @@ def answer_question(question, mode="auto", profile="auto", session_id="default",
         # response = client.with_options(timeout=15.0).chat.completions.create(...)
         print("Response generated successfully")
         
-        # Apply humanization post-processor
+        # Apply humanization post-processor (domain-aware for PL/SQL)
         raw_answer = response.choices[0].message.content
-        final_answer = humanize(raw_answer, qtype=qtype)
+        final_answer = humanize(raw_answer, qtype=qtype, domain=domain, question=question)
+        
+        # Code-stripping guard: if qtype is not code/sql, strip any accidental code blocks
+        if qtype not in ("code", "sql") and domain == "plsql":
+            # Strip code fences if model emitted them for a concept question
+            if "```" in final_answer:
+                # Remove code blocks but keep explanatory text
+                final_answer = re.sub(r'```[\s\S]*?```', '', final_answer)
+                final_answer = re.sub(r'\s{2,}', ' ', final_answer).strip()
+        
         print(f"Answer humanized: {len(raw_answer)} -> {len(final_answer)} chars")
+        
+        # Deduplicate sources by title
+        seen_titles = set()
+        unique_sources = []
+        for r in results:
+            title = r["source"]
+            if title not in seen_titles:
+                seen_titles.add(title)
+                unique_sources.append({
+                    "title": title,
+                    "path": r.get("metadata", {}).get("file_path") or r["source"],
+                    "score": round(r["score"], 4)
+                })
         
         return {
             "answer": final_answer,
@@ -1010,13 +1386,7 @@ def answer_question(question, mode="auto", profile="auto", session_id="default",
             "auto_detected": auto_detected,
             "profile_used": profile,
             "profile_auto_detected": profile_auto_detected,
-            "sources": [
-                {
-                    "title": r["source"],
-                    "path": r.get("metadata", {}).get("file_path") or r["source"],
-                    "score": round(r["score"], 4)
-                } for r in results
-            ]
+            "sources": unique_sources
         }
         
     except Exception as e:
