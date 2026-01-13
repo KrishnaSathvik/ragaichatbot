@@ -40,6 +40,76 @@ def parse_frontmatter_persona(content: str) -> str:
                     return line.split(':')[1].strip()
     return None
 
+# Topic mapping from titles to canonical topics
+TITLE_TO_TOPIC = {
+    # Packages
+    "packages": "packages", "spec vs body": "packages", "why use packages": "packages",
+    "package specification": "packages", "package body": "packages",
+    # Bulk operations
+    "bulk collect": "bulk", "forall": "bulk", "save exceptions": "bulk",
+    "indices of": "bulk", "values of": "bulk", "bulk operations safely": "bulk",
+    # Exceptions
+    "exception": "exceptions", "error handling": "exceptions", "raise": "exceptions",
+    "when others": "exceptions", "autonomous": "exceptions", "logging errors": "exceptions",
+    # Cursors
+    "cursor": "cursors", "ref cursor": "cursors", "sys_refcursor": "cursors",
+    "implicit": "cursors", "explicit": "cursors",
+    # Tuning (execution plans, DBMS_XPLAN, AWR, ASH, waits, parse)
+    "dbms_xplan": "tuning", "display_cursor": "tuning", "explain plan": "tuning",
+    "sql_id": "tuning", "execution plan": "tuning", "allstats": "tuning",
+    "awr": "tuning", "ash": "tuning", "awr vs ash": "tuning",
+    "wait event": "tuning", "hard parse": "tuning", "soft parse": "tuning",
+    "cardinality": "tuning", "statistics": "tuning", "optimizer": "tuning",
+    "nested loop": "tuning", "hash join": "tuning", "plan instability": "tuning",
+    "latch": "tuning", "contention": "tuning", "tune a slow": "tuning",
+    "bind variable": "tuning",
+    # Performance (indexing issues, PLS_INTEGER)
+    "trunc": "performance", "indexed column": "performance", "function on indexed": "performance",
+    "index not": "performance", "pls_integer": "performance", "row-by-row": "performance",
+    "performance": "performance", "partition": "performance", "partitioning": "performance",
+    # Triggers
+    "trigger": "triggers", "mutating": "triggers", "compound trigger": "triggers",
+    "instead of": "triggers",
+    # Dynamic SQL
+    "execute immediate": "dyn_sql", "dynamic sql": "dyn_sql",
+    # Collections
+    "collection": "collections", "varray": "collections", "nested table": "collections",
+    "associative": "collections", "pipelined": "collections",
+    # Analytics
+    "window": "analytics", "analytic": "analytics", "row_number": "analytics",
+    "rank": "analytics", "dense_rank": "analytics", "lag": "analytics", "lead": "analytics",
+    # Transactions (locks, deadlocks, commit, ORA-01555)
+    "transaction": "transactions", "commit": "transactions", "rollback": "transactions",
+    "blocking": "transactions", "deadlock": "transactions", "lock": "transactions",
+    "ora-01555": "transactions", "snapshot too old": "transactions",
+    # Scheduler
+    "scheduler": "scheduler", "dbms_scheduler": "scheduler", "job": "scheduler",
+    # Procedures/Functions
+    "procedure": "procedures", "function": "procedures",
+    # Types
+    "percent type": "types", "rowtype": "types",
+    # DBA collaboration / scope
+    "dba territory": "dba_scope", "collaborate with dba": "dba_scope",
+    "check first": "dba_scope", "scope anchor": "dba_scope", "rac": "dba_scope",
+    # Dependencies
+    "dependencies": "dependencies", "invalidat": "dependencies",
+}
+
+def extract_title_and_topic(text: str) -> tuple:
+    """Extract title from H2 header and map to topic."""
+    import re
+    # Find first H2 header
+    match = re.search(r'^## (.+?)$', text, re.MULTILINE)
+    if match:
+        title = match.group(1).strip()
+        title_lower = title.lower()
+        # Find matching topic
+        for key, topic in TITLE_TO_TOPIC.items():
+            if key in title_lower:
+                return title, topic
+        return title, None
+    return None, None
+
 def read_markdown_files(directory: str, persona: str, file_filter: str = None) -> list:
     """Read markdown files and create chunks."""
     chunks = []
@@ -73,13 +143,17 @@ def read_markdown_files(directory: str, persona: str, file_filter: str = None) -
                         section = '## ' + section
                     
                     if len(section.strip()) > 50:
+                        # Extract title and topic for better retrieval
+                        title, topic = extract_title_and_topic(section)
                         chunks.append({
                             "text": section.strip(),
                             "metadata": {
                                 "file_name": file_path.name,
                                 "file_path": str(file_path),
                                 "persona": file_persona,
-                                "section": i
+                                "section": i,
+                                "title": title,
+                                "topic": topic
                             }
                         })
             else:

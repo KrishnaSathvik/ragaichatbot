@@ -205,9 +205,12 @@ def _add_calm_opener(answer: str, domain: str) -> str:
     if not a:
         return a
     # Skip if already starts with opener or code
-    if re.match(r"^(alright|okay|yeah|hmm|one sec|give me)\b", a.lower()):
+    if re.match(r"^(alright|okay|yeah|hmm|one sec|give me|sure|right|so)\b", a.lower()):
         return a
     if a.lstrip().startswith("```"):
+        return a
+    # For PL/SQL mode, don't add opener - let the prompt handle it
+    if domain == "plsql":
         return a
     openers = CALM_OPENERS.get(domain, CALM_OPENERS["general"])
     return f"{random.choice(openers)} {a}"
@@ -472,50 +475,57 @@ PROMPTS = {
         
         # PL/SQL Mode System and Prompts
         "system_plsql": (
-            "You are an Oracle PL/SQL Developer with 8+ years of experience writing stored procedures, "
-            "functions, packages, and triggers in Oracle Database.\n\n"
+            "You are Krishna, a senior Oracle SQL/PL/SQL developer with 6+ years of experience.\n\n"
             
-            "CRITICAL RULE: You write ONLY Oracle PL/SQL code. You do NOT know Python, PySpark, or Spark. "
-            "When asked for code, you write Oracle PL/SQL using CREATE OR REPLACE PROCEDURE/FUNCTION syntax.\n\n"
+            "SCOPE (hard rule):\n"
+            "- Use ONLY Oracle SQL and Oracle PL/SQL. Do NOT write Python, Spark, PySpark, Java, etc.\n"
+            "- If code is requested, write Oracle SQL/PLSQL using CREATE OR REPLACE PROCEDURE/FUNCTION/PACKAGE syntax.\n\n"
 
             "GUARDRAILS:\n"
-            "- Oracle-first: use ONLY Oracle PL/SQL constructs and Oracle SQL idioms.\n"
-            "- NEVER write Python, PySpark, Spark, or any non-Oracle code.\n"
-            "- Do NOT invent employer-specific experience, table names, volumes, or metrics.\n"
-            "- NEVER mention 'Walgreens', 'Central Bank', or any company name.\n\n"
+            "- Do NOT invent employer-specific details, table names, volumes, percentages, or outcomes.\n"
+            "- No company names. No 'I once / we improved / for a client' stories.\n"
+            "- If details are missing, state a reasonable assumption in one line and continue.\n\n"
 
             "VOICE:\n"
-            "- Sound like a calm, senior Oracle developer.\n"
-            "- Never repeat the question. End with practical closure.\n\n"
+            "- Calm, senior, interview-ready.\n"
+            "- Do not repeat the question.\n"
+            "- End with a confident practical closure (no 'In summary', no 'Moving forward').\n\n"
 
             "STYLE:\n"
-            "- For code: write Oracle PL/SQL in ```sql blocks.\n"
-            "- For concepts: 6-10 lines, 1 gotcha, 1 tradeoff.\n"
-
-            "NEVER SAY: 'Moving forward', 'Next steps', 'I plan to', 'In summary', 'This approach improves', 'substantial improvement', 'robust', 'leverage', 'seamless'."
+            "- Concepts: 2-3 short paragraphs, ~30-60 seconds (6-10 lines)\n"
+            "- Include ONE gotcha OR ONE tradeoff (not both unless asked)\n"
+            "- Code only if explicitly requested\n"
         ),
         "user_plsql": (
             "Context:\n{context}\n\n"
             "Question: {question}\n\n"
-            "Answer as Krishna (senior Oracle PL/SQL developer).\n"
-            "CRITICAL RULES:\n"
-            "- Do NOT repeat the question.\n"
-            "- Do NOT include code unless the question explicitly asks.\n"
-            "- NEVER claim personal outcomes (runtime reduced, TB processed, critical report).\n"
-            "- NEVER use numbers (TB, GB, %, million) unless user provided them.\n"
-            "- NEVER say 'I once', 'I managed to', 'we improved', 'for a client'.\n"
-            "- USE: 'Typically…', 'What works well is…', 'In production, you'll usually…'\n"
-            "- For exception handling: MUST mention SQL%ROWCOUNT for DML, SQLCODE/SQLERRM, re-raise, never swallow errors.\n"
-            "- For DISPLAY_CURSOR: MUST mention SQL_ID, ALLSTATS LAST, estimate vs reality.\n"
-            "6-10 lines max. End with practical closure.\n"
+            "Answer as Krishna in an INTERVIEW setting:\n"
+            "- Start with 'Sure.' or 'Yeah, so...'\n"
+            "- 2-3 short paragraphs, not bullet lists\n"
+            "- Explain the concept clearly first, then mention Oracle terms naturally\n"
+            "- ONE gotcha OR tradeoff\n"
+            "- Include ONE line: 'In practice, I use this when...' to sound real\n"
+            "- End confidently: 'That's the pattern I stick to' or similar\n"
+            "- 30-60 seconds total\n\n"
+            "NEVER:\n"
+            "- Repeat the question\n"
+            "- Include code unless explicitly asked\n"
+            "- Mention Oracle version history ('11g introduced...') unless asked\n"
+            "- Use fake numbers or company names\n"
+            "- End with 'In summary' / 'Moving forward'\n"
         ),
         "user_intro_plsql": (
             "Context: {context}\n\nQuestion: {question}\n\n"
-            "Answer as Krishna giving a brief introduction for a PL/SQL Developer role.\n"
-            "Do NOT repeat the question.\n"
-            "Mention your strong SQL background, comfort with Oracle PL/SQL constructs (packages, bulk processing, exception handling, tuning).\n"
-            "Keep it 8–10 sentences. Be honest — don't claim extensive Oracle production experience unless true.\n"
-            "Frame it as transferable skills from data engineering. Speak naturally and confidently."
+            "Give a brief intro for a PL/SQL Developer interview as Krishna.\n\n"
+            "Structure (3 paragraphs):\n"
+            "1) SQL background and database-focused work (transformations, ETL-style workflows, correctness)\n"
+            "2) PL/SQL work: procedures/functions, packages where appropriate, bulk patterns when handling larger volumes, error handling/logging discipline\n"
+            "3) Tuning/support: explain plan approach, indexes/statistics basics, how you debug production issues calmly\n\n"
+            "Style:\n"
+            "- Start with 'Sure.'\n"
+            "- Natural speaking, not a keyword list\n"
+            "- No company names, no fake metrics\n"
+            "- End with: 'correct, performant, and maintainable'\n"
         ),
         "user_code_plsql": (
             "IMPORTANT: This is an Oracle PL/SQL Developer interview. You MUST write Oracle PL/SQL code ONLY.\n"
@@ -792,6 +802,8 @@ def _load_data():
                         "file_name": md.get("file_name") or md.get("filename") or "unknown",
                         "file_path": md.get("file_path") or md.get("path") or "unknown",
                         "persona": persona,
+                        "title": md.get("title"),  # For topic-based filtering
+                        "topic": md.get("topic"),  # For topic-based filtering
                     },
                 })
             _meta = norm
@@ -849,6 +861,50 @@ ORACLE_KEYWORD_EXPANSION = {
     "bulk collect": ["forall", "limit", "save_exceptions", "bulk_exceptions"],
     "forall": ["bulk_collect", "save_exceptions", "indices_of"],
 }
+
+# Topic routing rules for PL/SQL questions
+PLSQL_TOPIC_RULES = [
+    ("packages", ["package spec", "spec vs body", "package body", "why packages", "package specification"]),
+    ("bulk", ["bulk collect", "forall", "save exceptions", "indices of", "values of", "bulk operations"]),
+    ("exceptions", ["exception", "raise", "when others", "error handling", "logging", "sqlcode", "sqlerrm", "logging errors"]),
+    ("cursors", ["cursor", "ref cursor", "weak cursor", "strong cursor", "open for", "sys_refcursor"]),
+    # Tuning: DBMS_XPLAN, AWR, ASH, waits, parse, execution plans
+    ("tuning", [
+        "dbms_xplan", "display_cursor", "sql_id", "explain plan", "execution plan", "allstats", "actual plan",
+        "awr", "ash", "awr vs ash", "wait event", "hard parse", "soft parse", "tune a slow", "slow query",
+        "nested loop", "hash join", "plan instability", "latch", "contention", "bind variable"
+    ]),
+    # Performance: indexing, TRUNC issues, PLS_INTEGER, partitioning
+    ("performance", [
+        "trunc", "indexed column", "function on index", "pls_integer", "row-by-row", "performance problem",
+        "index not used", "partition", "partitioning", "when to partition"
+    ]),
+    ("triggers", ["trigger", "mutating table", "compound trigger", "instead of trigger"]),
+    ("dyn_sql", ["execute immediate", "dynamic sql", "dbms_sql"]),
+    ("collections", ["collection", "associative array", "nested table", "varray", "pipelined"]),
+    ("analytics", ["analytic", "window function", "row_number", "rank", "over(", "dense_rank", "lag", "lead"]),
+    # Optimizer (now merged into tuning for simplicity)
+    ("tuning", ["statistics", "histogram", "bind peeking", "adaptive", "optimizer", "cardinality"]),
+    # Transactions: locks, deadlocks, commit strategy, ORA-01555
+    ("transactions", [
+        "commit", "rollback", "savepoint", "autonomous transaction", "isolation",
+        "blocking", "deadlock", "lock", "ora-01555", "snapshot too old", "commit inside loop"
+    ]),
+    ("scheduler", ["dbms_scheduler", "job", "schedule", "program", "chain"]),
+    ("procedures", ["procedure vs function", "procedure", "function", "return value"]),
+    ("types", ["percent type", "%type", "rowtype", "%rowtype"]),
+    ("dependencies", ["dependencies", "invalid", "recompile", "dependent objects"]),
+    # DBA collaboration / scope
+    ("dba_scope", ["dba territory", "collaborate with dba", "partner with dba", "rac", "cluster", "what i check first"]),
+]
+
+def route_plsql_topic(question: str) -> str:
+    """Route question to a specific PL/SQL topic for better retrieval."""
+    q = question.lower()
+    for topic, keywords in PLSQL_TOPIC_RULES:
+        if any(kw in q for kw in keywords):
+            return topic
+    return None
 
 def _search_similar(query_embedding, top_k=5, profile="krishna", mode="auto", query_text="", qtype="technical"):
     """
@@ -920,6 +976,22 @@ def _search_similar(query_embedding, top_k=5, profile="krishna", mode="auto", qu
             indices = filtered
         else:
             print(f"Warning: No content for profile '{profile}' with modes {wanted_modes}; using all content")
+        
+        # Topic-based filtering for PL/SQL mode (high-precision retrieval)
+        if mode == "plsql" and qtype not in ("intro",):
+            topic = route_plsql_topic(query_text)
+            if topic:
+                def matches_topic(i):
+                    meta = (_meta[i].get("metadata", {}) or {})
+                    chunk_topic = meta.get("topic")
+                    chunk_title = (meta.get("title") or "").lower()
+                    # Match by topic field or title contains topic keywords
+                    return chunk_topic == topic or topic in chunk_title
+                
+                topic_filtered = [i for i in indices if matches_topic(i)]
+                # Only use topic filter if we have enough results (fallback to all if too few)
+                if len(topic_filtered) >= 2:
+                    indices = topic_filtered
 
     # Rank within selected indices
     if not indices:
@@ -958,6 +1030,18 @@ def _search_similar(query_embedding, top_k=5, profile="krishna", mode="auto", qu
             intro_keywords = ["introduction", "background", "experience", "comfortable with", "my day-to-day", "solid experience"]
             if any(kw in chunk_text for kw in intro_keywords):
                 boost += 0.5  # Strong boost for intro content
+        
+        # Title match boost: prefer chunks whose title matches query keywords
+        if mode == "plsql":
+            chunk_title = (meta.get("title") or "").lower()
+            if chunk_title:
+                query_words = set(query_lower.split()) - oracle_stop_words
+                title_words = set(chunk_title.split())
+                title_overlap = len(query_words & title_words)
+                if title_overlap >= 2:
+                    boost += 0.3  # Strong title match
+                elif title_overlap >= 1:
+                    boost += 0.15  # Partial title match
         
         # Oracle keyword boost (hybrid retrieval) - tiered boost for keyword matches
         if mode == "plsql":
@@ -1033,28 +1117,41 @@ def _search_similar(query_embedding, top_k=5, profile="krishna", mode="auto", qu
 def detect_question_type(question):
     """Intelligently detect the type of question to choose the best mode"""
     question_lower = question.lower().strip()
-    
+
     # Intro/Self-introduction indicators (highest priority - be very specific)
-    intro_phrases = ['tell me about yourself', 'about yourself', 'introduce yourself', 'who are you', 
+    intro_phrases = ['tell me about yourself', 'about yourself', 'introduce yourself', 'who are you',
                      'what do you do', 'your background', 'your skills', 'give me intro', 'give intro',
                      'your intro', 'introduction', 'walk me through your', 'brief intro', 'quick intro']
     if any(phrase in question_lower for phrase in intro_phrases):
         return 'intro'
-    
-    # Explicit code requests (very specific - matches "write", "show", "example", etc.)
+
+    # Explicit code requests - MUST contain these specific phrases to get code
+    # Be VERY strict here - only return 'code' if they explicitly ask for code
     explicit_code_phrases = [
         'write code', 'show code', 'write a function', 'write a script', 'code example',
         'implement code', 'write python code', 'write sql code', 'write pyspark code',
         'write a procedure', 'write procedure', 'write a package', 'write package',
-        'write pl/sql', 'write plsql', 'show me', 'give me an example', 'sample code',
-        'snippet', 'demo', 'implement a', 'code pattern', 'show a', 'write a bulk',
-        'write a forall', 'write a trigger'
+        'write pl/sql', 'write plsql', 'sample code', 'code snippet',
+        'snippet', 'demo code', 'implement a', 'code pattern', 'write a bulk',
+        'write a forall', 'write a trigger', 'example code', 'show example',
+        'give me code', 'can you write'
     ]
+    # Only return code if the question explicitly asks for it
     if any(phrase in question_lower for phrase in explicit_code_phrases):
         return 'code'
+    
+    # "Show me" is ambiguous - only treat as code if followed by code-related words
+    if 'show me' in question_lower:
+        code_follow_words = ['procedure', 'function', 'package', 'trigger', 'code', 'example', 'how to write']
+        if any(word in question_lower for word in code_follow_words):
+            return 'code'
 
-    # Explicit SQL requests
-    explicit_sql_phrases = ['write sql', 'sql query', 'write a query', 'sql code', 'select statement', 'write a merge']
+    # Explicit SQL requests - ONLY when they explicitly ask for SQL code
+    # Removed "sql query" because it catches concept questions like "how do you tune a slow sql query"
+    explicit_sql_phrases = [
+        'write sql', 'write a query', 'sql code', 'write a select', 'write a merge',
+        'give me sql', 'show me sql', 'create a query', 'write me a query'
+    ]
     if any(phrase in question_lower for phrase in explicit_sql_phrases):
         return 'sql'
     
@@ -1074,7 +1171,13 @@ def detect_question_type(question):
         return 'experience'
 
     # Technical discussion indicators (but not asking for code)
-    tech_keywords = ['explain', 'how does', 'what is', 'difference between', 'compare', 'advantages', 'disadvantages', 'best practices', 'approach', 'strategy']
+    # These are concept/explanation questions - never return code for these
+    tech_keywords = [
+        'explain', 'how does', 'how do you', 'what is', 'what are', 'why is', 'why would',
+        'difference between', 'compare', 'advantages', 'disadvantages', 'best practices',
+        'approach', 'strategy', 'when would', 'when to use', 'when should', 'how to handle',
+        'how to tune', 'how would you', 'what happens', 'describe'
+    ]
     if any(keyword in question_lower for keyword in tech_keywords):
         return 'technical'
     
@@ -1365,12 +1468,19 @@ def answer_question(question, mode="auto", profile="auto", session_id="default",
         final_answer = humanize(raw_answer, qtype=qtype, domain=domain, question=question)
         
         # Code-stripping guard: if qtype is not code/sql, strip any accidental code blocks
-        if qtype not in ("code", "sql") and domain == "plsql":
+        # Also double-check the question itself for explicit code request keywords
+        code_request_keywords = ['write', 'show code', 'code', 'procedure', 'function', 'package', 
+                                  'snippet', 'example code', 'implement', 'create or replace']
+        question_has_code_request = any(kw in question.lower() for kw in code_request_keywords)
+        
+        if qtype not in ("code", "sql") and domain == "plsql" and not question_has_code_request:
             # Strip code fences if model emitted them for a concept question
             if "```" in final_answer:
                 # Remove code blocks but keep explanatory text
                 final_answer = re.sub(r'```[\s\S]*?```', '', final_answer)
-                final_answer = re.sub(r'\s{2,}', ' ', final_answer).strip()
+                # Clean up extra whitespace but preserve single newlines
+                final_answer = re.sub(r'[ \t]{2,}', ' ', final_answer)
+                final_answer = re.sub(r'\n{3,}', '\n\n', final_answer).strip()
         
         print(f"Answer humanized: {len(raw_answer)} -> {len(final_answer)} chars")
         

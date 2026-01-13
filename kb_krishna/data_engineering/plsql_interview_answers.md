@@ -23,7 +23,9 @@ A procedure performs an action — typically DML operations — and communicates
 
 ## BULK COLLECT and FORALL
 
-BULK COLLECT is about fetching many rows into memory in fewer round trips. FORALL is about doing DML on that collection in bulk. LIMIT is just a safety valve so you process in chunks and don't blow up PGA when the result set is huge — you fetch in batches (e.g., 1000 rows). For partial failures, SAVE EXCEPTIONS lets you keep going and inspect SQL%BULK_EXCEPTIONS after. If the collection can be sparse, that's when you reach for INDICES OF. One thing to watch: LIMIT applies to BULK COLLECT, not FORALL — FORALL just operates on whatever's in the collection.
+BULK COLLECT fetches many rows into a collection per round-trip, so you avoid row-by-row fetch overhead. FORALL is the bulk DML counterpart — it applies inserts, updates, or deletes for a set of collection elements without looping one row at a time.
+
+In production, the standard pattern is BULK COLLECT with a LIMIT inside a loop, then run FORALL for that chunk — so you get the speed-up without pulling everything into memory at once. One gotcha is error handling: if you need partial success, use FORALL with SAVE EXCEPTIONS and inspect SQL percent BULK_EXCEPTIONS after. In practice, I use this pattern whenever I'm processing batches larger than a few hundred rows.
 
 ---
 
@@ -35,7 +37,17 @@ In production batches, separate expected failures from unexpected ones. Expected
 
 ## Packages (Spec vs Body)
 
-Package spec defines the public API — what consumers compile against. Package body contains the implementation plus any private helpers. Key benefits: encapsulation, one-time loading into memory, and you can update/recompile the body without forcing dependent objects to recompile (as long as the spec stays the same). Grants go on the package level. That's the standard structure in Oracle PL/SQL environments.
+The spec is the public contract — procedure and function signatures, public types, constants. The body is the implementation plus private helpers and private state you don't want exposed.
+
+What works well is you can change the body without breaking callers as long as the spec stays stable. The gotcha is spec changes can invalidate dependents, so those changes should be controlled. In practice, I use packages when I want a clean API boundary and reusable helper logic that stays hidden from callers.
+
+---
+
+## Why Use Packages
+
+Packages are used for organization, reuse, and encapsulation. They let you group related functionality under one logical API, and you can expose only what consumers need while keeping helper logic private. That improves maintainability and makes it easier to standardize patterns like validation, logging, and error handling.
+
+They also help with dependency management: teams can evolve implementations in the body without impacting callers, as long as the spec stays stable. And in real systems, packages can improve runtime efficiency because the code is compiled and commonly reused rather than duplicated across many standalone procedures. The main caution is: if you change the package spec, dependent objects can become invalid, so changes should be controlled and released carefully.
 
 ---
 
@@ -89,7 +101,9 @@ Use EXECUTE IMMEDIATE for DDL, dynamic table names, or building queries at runti
 
 ## Mutating Table Error
 
-A mutating table error (ORA-04091) happens when a row-level trigger tries to query or modify the same table that fired it. Oracle blocks this because the table is in a transitional state. The fix is compound triggers (11g+) — they let you collect data during AFTER EACH ROW and process it in AFTER STATEMENT when the table is stable. Before compound triggers, we used package variables to cache row data. Statement-level triggers don't have this problem because they fire once after all rows are processed.
+A mutating table error (ORA-04091) happens when a row-level trigger tries to query or modify the same table that fired it. Oracle blocks this because the table is in a transitional state.
+
+The clean fix is compound triggers — collect data during AFTER EACH ROW and process it in AFTER STATEMENT when the table is stable. Legacy workaround was package variables to cache row data, but compound triggers are cleaner. Statement-level triggers don't have this problem because they fire once after all rows are processed. In practice, I reach for compound triggers only when I genuinely need cross-row logic; otherwise I try to handle it in application code.
 
 ---
 
@@ -153,9 +167,37 @@ When you change a table or package spec, dependent objects (procedures, views, t
 
 ---
 
+## Optimizer Basics (Stats, Bind Peeking, Cardinality)
+
+The Oracle optimizer relies on statistics to make good decisions — table stats, column stats, histograms. If stats are stale or missing, you get bad plans. Bind peeking means Oracle looks at the first bind value to pick a plan, which can backfire if data is skewed — one value might want an index, another wants a full scan. Adaptive cursor sharing helps but isn't perfect.
+
+Cardinality mismatch is the root of most bad plans: Oracle estimates 100 rows, gets 1 million, and the join order or access path is wrong. DBMS_XPLAN with ALLSTATS LAST shows actual vs estimated rows — that's where you catch it. The fix is usually better stats, histograms on skewed columns, or sometimes SQL hints as a last resort.
+
+---
+
+## Transactions (Commit/Rollback Placement)
+
+Commit placement matters for both performance and correctness. Committing per row kills performance — redo log sync on every commit. Committing per batch (every 1000 or 10000 rows) is the standard pattern for bulk operations. But be careful: if you commit mid-batch and then fail, you have partial data and need to handle restart logic.
+
+Autonomous transactions are useful for logging — you want the error log entry to survive even if the main transaction rolls back. But don't overuse them; they're a separate transaction context, so they can't see uncommitted changes from the parent. The gotcha is that autonomous transaction errors don't automatically roll back the parent.
+
+---
+
+## DBMS_SCHEDULER Basics
+
+DBMS_SCHEDULER is Oracle's built-in job scheduler — better than OS cron because it's database-aware (handles RAC, tracks job history, supports dependencies). Basic pattern: create a program (what to run), create a schedule (when to run), create a job (links them together).
+
+For batch PL/SQL jobs, you typically call a stored procedure. The scheduler logs runs in DBA_SCHEDULER_JOB_RUN_DETAILS — useful for monitoring and debugging. One thing to watch: if a job fails, you need explicit logging in your procedure because scheduler logs might not capture detailed errors. Also, scheduler jobs run as the job owner, so permissions matter.
+
+---
+
 ## PL/SQL Developer Introduction
 
-I'm an Oracle PL/SQL Developer with solid experience writing stored procedures, functions, packages, and triggers. My day-to-day involves bulk data processing using BULK COLLECT and FORALL, building exception handling frameworks with autonomous logging, and performance tuning using DBMS_XPLAN and execution plan analysis. I'm comfortable with cursors (implicit, explicit, REF CURSOR), dynamic SQL with bind variables, and compound triggers for complex business rules. On the SQL side, I work with window functions, partitioning strategies, and MERGE statements for upserts. I follow production patterns — always log then re-raise exceptions, use LIMIT for memory management, commit per batch not per row. My approach is to write clean, maintainable PL/SQL that handles edge cases gracefully.
+My background is strong in SQL, especially in data engineering use cases where I build ETL-style workflows and handle complex transformations. On the Oracle PL/SQL side, I've written stored procedures and functions to keep business logic close to the data, and I structure code in a way that's readable and easy to support.
+
+When working with larger volumes, I focus on performance — so I prefer set-based SQL first, and when procedural work is needed, I use bulk processing patterns like BULK COLLECT and FORALL appropriately to avoid row-by-row bottlenecks. I also take error handling seriously — clear exception handling, logging, and safe failure behavior — so production support is smoother.
+
+For tuning, I use explain plans and runtime signals to find what's actually slow — join order, missing indexes, full scans, or filtering issues — and then I optimize with query rewrite, indexing strategy, and clean access patterns. Overall, my goal is always the same: deliver database logic that's correct, performant, and maintainable.
 
 ---
 
